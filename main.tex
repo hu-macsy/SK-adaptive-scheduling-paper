@@ -1,0 +1,329 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+\usepackage{algorithm}
+
+
+\newcommand{\bottomlevel}[1]{\underline{l}_{#1}} % underline short italic
+\newcommand{\criticalpath}{\mathcal{P}}
+\newcommand{\parents}[1]{\,\Pi_{#1}}
+\newcommand{\children}[1]{\,C_{#1}}
+\newcommand{\cluster}{\,\mathcal{S}}
+\newcommand{\daghetpart}{\algo{DagHetPart}\xspace}
+\newcommand{\dagmem}{\algo{DagHetMem}\xspace}
+
+
+
+\title{Dynamic Scheduling }
+
+\begin{document}
+    \maketitle
+
+
+
+    \section{Model}
+
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{rl}
+                \hline
+                \textbf{Symbol} & \textbf{Meaning}  \\
+                \hline
+                $G = (V, E)$  & Workflow graph, set of vertices (tasks) and edges  \\
+                $\parents{u}$, $\children{u}$ & Parents of a task $u$, children of a task $u$ \\
+                $m_u$& Memory weight of task $u$ \\
+                $w_u$   & Workload of  task $u$  (normalized execution time)    \\
+                $c_{u,v}$   & Communication volume along the edge $(u,v)\in E$ \\
+                $F$, $\mathcal{F}$ & A partitioning function and the partition it creates \\
+                $V_i$ & Block number $i$\\ %\wrt~some $F$   \\
+                $\cluster$, $k$   & Computing system and its number of processors   \\
+                $p_j$, proc($V_i$)  & Processor number $j$, processor of block $V_i$ \\
+                $M_j$, $s_j$   & Memory size and speed of processor $p_j$   \\
+                $\beta$ & Bandwidth in the compute system  \\
+                $\bottomlevel{u}$   & Bottom weight of task $u$   \\
+                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$ \\
+                $\Gamma = (\mathcal{V}, \mathcal{E})$ & Quotient graph, its vertices and its edges  \\
+                $r_u$, $r_{V_i}$  & Memory requirement of  task $u$ and of block $V_i$   \\
+                $r_{\max}$   & Maximum memory requirement in a workflow   \\
+                $\criticalpath$ & Critical path in a workflow  \\
+                \hline
+            \end{tabular}
+        \end{center}
+        \caption{Notation.} \label{tabnotation}
+    \end{table}
+
+    \paragraph{Workflow-related changes}
+
+    \begin{itemize}
+        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
+        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
+
+    \end{itemize}
+
+    The following changes are not a part of this article's scope:
+
+    \begin{itemize}
+        \item The workflow structure changes: edges or tasks come in or leave.
+    \end{itemize}
+
+    \paragraph{Execution environment-related changes }
+
+
+    \begin{itemize}
+        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
+        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
+
+    \end{itemize}
+
+    The following changes are not a part of this article's scope:
+
+    \begin{itemize}
+        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
+    \end{itemize}
+
+    \subsection{Time of changes }
+
+    We consider discrete time in seconds.
+    The time point(s) at which the changes happen is unambiguously defined.
+
+    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
+    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
+    The start time of the source task in the workflow is zero.
+    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
+
+    \subsection{Changes and knowledge horizon - important questions TBA}
+
+    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
+
+    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
+    However, how do we model the following:
+    \begin{itemize}
+        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
+        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
+        \item How many times of change do we model - one per workflow run, or multiple?
+        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
+    \end{itemize}
+
+
+    \section{Related work}
+
+    In the limited time I spent looking, I found no paper addressing the exact same problem.
+
+    Wang et al.~\cite{wang2019dynamic} proposes a dynamic particle swarm optimization algorithm to schedule workflows in a cloud.
+    Particles are possible solution in the solution space.
+    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
+    Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
+    However, the approach is for clouds.
+
+    Daniels et al.
+
+
+    \section{Algorithms}
+
+    \subsection{Various useful approaches}
+
+    Bader et al. developed a system that identifies task similarities.
+    Given a workflow, it returns tasks similar to a given task.
+    We can use this system in our modelling and say that we know the new weights for finished tasks and will modify future tasks in accordance to their similarity.
+    For example, if a task finished 2 times later than expected, then all future similar tasks will be assumed to finish 2 times later.
+
+    \subsection{Local search}
+    One strategy that can be used is local search, a similar approach as with swaps.
+    The starting point could be a previously valid solution (for example, one by HetPart).
+    In the first step, the solution would need to become valid again.
+    Then, we repartition blocks on the critical path  and merge blocks in attempt to improve makespan.
+    Finally, we swap blocks between processors to finish makespan improvement.
+
+    \subsubsection{Restore Validity}
+    We~(Algorithm~\ref{alg:RestoreValidity}) start with the previously partitioned and assigned quotient tree $\Gamma$,
+    and the new weights on tasks and edges.
+    We first recompute the memory requirements of all blocks.
+    Then we identify all blocks that have become invalidated and exceed the memory of their assigned processor
+    (Line~\ref{line:damaged}).
+    For all these blocks, we try out ``border'' tasks, that is, tasks, that have neighbours in neighbouring blocks
+    (Line~\ref{line:neighb}).
+    We tentatively move them (creating a temporary quotient DAG $\Gamma'$) and assess the impact of this move on the
+    makespan(Line~\ref{line:makespan}).
+    The condition is, of course, that the neighboring block now does not exceed the memory of its own processor.
+    The task that delivers the best makespan in then moved in Line~\ref{line:movebest}.
+    The entire process is being repeated until the block fits into the memory of the processor again.
+    We return the modified quotient graph $\Gamma$ that contains the mapping to processors.
+
+    \begin{algorithm}[h!]
+        \caption{Restore Validity}
+        \label{alg:RestoreValidity}
+        \begin{algorithmic}[1]
+            \Procedure{Restore Validity}{$\Gamma$, $W$ }\\
+            \Comment{Input: initial schedule as quotient tree $\Gamma$, new  weights $W$}
+            \State $\Gamma \gets $ \textsc{QuotientDAG}($\Gamma$, $W$ ); \Comment Quotient DAG with new weights
+
+            \State $D \gets \emptyset$ \Comment {Damaged blocks that require action}
+            \For{$\nu_i \in \Gamma$}
+                \State $r_{\nu_m} \gets W$
+                \Comment{Recompute the new memory requirements of blocks in the quotient DAG}
+            \EndFor
+            \For{$\nu_i \in \Gamma$}
+                \label{line:damaged}
+                \If{$r_{\nu_i} > M_{proc(\nu_i)}$}
+                    \State $D \gets D \cup \{\nu_i\}$
+                \EndIf
+            \EndFor
+
+            \For{$\nu_i \in D$}
+                \Comment Restore the validity of each damaged block
+                \While{$r_{\nu_i} > M_{proc(\nu_i)}$}
+                    \State $MS_{min}\gets \infty; v_{min} \gets NULL; \nu_{min} \gets NULL$
+                    \Comment Moving $v_{min}$ to $\nu_{min}$ gives $MS_{min}$
+                    \For{$v \in \nu_i$}
+                        \For{$u \in ( \Pi_v \cup C_v) \cap (\Pi_{\nu_i} \cup C_{\nu_i})$}   \label{line:neighb}
+                        \State $\Gamma' \gets \Gamma \mid \nu(v) == \nu(u)$
+                        \If{ $r_{\nu(u)} > M_{proc(\nu(u))}$ and \textsc{Makespan}($\Gamma'$)$\leq MS_{min}$}\label{line:makespan}
+                        \State $MS_{min} \gets $\textsc{Makespan}($\Gamma'$); $v_{min} \gets v$; $\nu_{min} \gets \nu(u);$
+                        \EndIf
+                        \EndFor
+                    \EndFor
+                    \State  $\Gamma \gets \Gamma \mid \nu(v_{min}) == \nu_{min}$ \label{line:movebest}
+                \EndWhile
+            \EndFor
+            \State return $\Gamma$
+            \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+
+    \subsubsection{Repartition and Merge}
+
+    In the next step, we center our attention around changes in the execution environments and how the changes in
+    the workflow reflect on it.
+
+    First, we try to further partition blocks that lie on the critical path of the workflow.
+    We first compute the critical path (Line~\ref{line:cp}) and then, as long as there are free processors in the
+    execution environment(Line~\ref{line:whilefree}, assumed to be sorted in descending order of memory sizes),
+    we partition the blocks on the critical path(Line~\ref{line:repartition}).
+    We try to partition each block into 2 smaller blocks.
+    However, due to the nature of the partitioner, more can be created.
+    We assume that the resulting blocks(Line~\ref{line:repartition}) are given back sorted by their memory requirement.
+    We then assign them to free processors as long as the blocks fit and there are free processors.
+    If even one part does not fit(Line~\ref{line:ifnotfits}), then we discard the entire partition and try partitioning
+    the next block on the critical path.
+
+    Not only partitioning (introducing more parallelism) can lead to a makespan improvement.
+    Shorter runtimes of tasks can justify merging some blocks together.
+    For all pairs of blocks that are neighbours (Line~\ref{Line:neighbblocks}), we tentatively merge them and assign
+    the result to the processor of the first block.
+    If the merged block fits on this processor and the merged quotient graph has a smaller overall makespan, then we save
+    the merge and proceed with other blocks.
+
+    \begin{algorithm}[h!]
+        \caption{Repartition and Merge}
+        \label{alg:RepartitionMerge}
+        \begin{algorithmic}[1]
+            \Procedure{Repartition and Merge}{$\Gamma$, $\cluster$ }\\
+            \Comment{Input: quotient tree $\Gamma$, execution environment $\cluster$}
+            \State $CP \gets $\textsc{Criticalpath}($\Gamma$) \label{line:cp}
+            \State $Free \gets \{ p \in \cluster \mid p$ is free$\}$
+            \While{$\mid Free \mid \neq 0$}\label{line:whilefree}
+            \For{$\nu \in CP$}
+                \State $\{ \nu_1, \nu_2,\dots\}\gets$\textsc{Partition}($\nu$,2) \label{line:repartition}
+                \For{$\nu' \in \{ \nu_1, \nu_2,\dots\}$}
+                    \If{$r_\nu' \leq Free.$head()}
+                        \State proc($\nu'$)$\gets Free.$head();
+                    \Else \label{line:ifnotfits}
+                    \State \textsc{Merge}$\nu' \in \{ \nu_1, \nu_2,\dots\}$; break;
+                    \Comment Merge the parts back and leave this partitioning, as it does not fit
+                    \EndIf
+                \EndFor
+            \EndFor
+            \EndWhile
+
+            \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$} \label{line:neighbblocks}
+
+            \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
+            \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
+            \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
+                \State $\Gamma \gets \Gamma'$
+            \EndIf
+            \EndFor
+
+            \State return $\Gamma$
+            \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+
+
+    \subsubsection{Swaps}
+
+    Then a process similar to Step 4 in \daghetpart can be executed: the newly rearranged blocks are swapped until no
+    improvement in makespan can be achieved.
+
+    \subsection{Limitations}
+
+    We assume that moving a task from one processor to another costs nothing, when in reality it requires a copy operation that can take time at least equal to the sum of the weights of all its input files divided by the bandwidth.
+
+    \section{Interface}
+
+    To trigger a renewed computation of a schedule, the scheduler needs the following informations:
+    \begin{itemize}
+        \item The timestamp of the change (amount of seconds passed in the system)
+        \item Per changed task:
+        \begin{itemize}
+            \item Task name (and id, if available)
+            \item The new runtime
+            \item The new memory requirement
+        \end{itemize}
+
+        Tasks, for which this information is not delivered are assumed unchanged.
+        Previously given information will be used to determine their runtime and memory requirement.
+        \item Per changed file transfer (edge in the workflow graph)
+
+        \begin{itemize}
+            \item The source and sink task names (to identify the edge)
+            \item The new edge weight (size of files transferred)
+        \end{itemize}
+
+        \item  Per changed processor:
+        \begin{itemize}
+            \item Processor name and number (both required, because we have several processors with the same name)
+            \item If exited or entered
+
+        \end{itemize}
+
+        Processors, for which no such information is delivered, are assumed to be unchanged.
+        Processor exit time is assumed to be the time of the change. This means that all tasks that were scheduled there, have ran.
+        However, currently running tasks need to be restarted on another processor and no future tasks cannot be scheduled on the exited processor.
+        All task data is assumed to be retrievable from an exited processor without additional time requirements to do so.
+    \end{itemize}
+
+    Based on the timestamp, the renewed runtimes of tasks and renewed processor speeds, the scheduler can identify tasks that are finished, running or not started.
+    The output of the scheduler is the new schedule: an assignment of each of the (not yet executed) tasks to a processor.
+
+    Assumptions:
+
+    \begin{itemize}
+        \item No tasks can disappear, no new tasks can appear during an execution. Same holds for edges.
+        \item The processor cannot change characteristics. It can only fail (exit) or appear (enter).
+
+    \end{itemize}
+
+
+    To be Discussed: The runtime of the scheduler itself is assumed to be zero, for the ease of simulating.
+
+
+
+    \bibliographystyle{alpha}
+    \bibliography{references}
+\end{document}
