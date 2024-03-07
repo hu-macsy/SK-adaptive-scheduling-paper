@@ -10,15 +10,12 @@ acmart.cls
 acmart.pdf
 acmguide.pdf
 samples/sample-*.pdf
-*.log
-*.aux
 *.cfg
 *.glo
 *.idx
 *.toc
 *.ilg
 *.ind
-*.out
 *.lof
 *.lot
 *.bbl

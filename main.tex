@@ -1,10 +1,10 @@
 \documentclass[sigconf,review,anonymous]{acmart}
 \usepackage{algorithmicx}
 \usepackage{amsmath}
-\usepackage{graphicx}
 %\usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage{algpseudocode}
 \usepackage{algorithm}
+\usepackage{xspace}
 
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -21,7 +21,7 @@
 \acmConference[ICPP '24]{53rd International Conference on Parallel Processing}{August 12-15, 2024}{Gotland, Sweden}
 \acmISBN{978-1-4503-XXXX-X/18/06}
 
-
+\include{macros}
 
 \newcommand{\algo}[1]{\textsc{#1}}
 \newcommand{\bottomlevel}[1]{\underline{l}_{#1}} % underline short italic
@@ -34,6 +34,7 @@
 %%
 %% end of the preamble, start of the body of the document source.
 \begin{document}
+
 
 %%
 %% The "title" command has an optional parameter,
@@ -202,8 +203,55 @@
     However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
     Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
     However, the approach is for clouds.
+    \xspace
 
     Daniels et al.
+
+    De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling heuristic
+    for clouds.
+    Based on a 3-objective cost model, their greedy scheduling algorithm schedules tasks into machines.
+    The authors use provenance data to make scheduling decisions.
+    The cost model is a set of linear equations computed in the simulation environment, it represents the cost of an execution based on the criteria.
+    In the algorithms, the authors test out 4 scenarios - one preferring each criteria, and a balanced one.
+    The algorithm merely chooses the best virtual machine for each next task based on the cost given by the model.
+    An additional algorithm combines several cloud activities (task executions) into one to improve the cost, so that each
+    execution is not too small (utilize the granularity factor, the smallest entity of payment of the cloud producer).
+    The authors used workflows with less than 10 tasks, but repeated them so that the execution had up to 200 tasks.
+    They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
+
+    Rahman~\etal~\cite{rahman2013} propose a scheduling heuristic for grids that proposes mapping of tasks to machines by calculating
+    the critical path in the graph dynamically at every step.
+    They call it the dynamic critical path (DCP).
+    For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
+    on the start time of a task (differing by the slack this task has).
+    All tasks on this critical path have the same earliest and latest start times, because they cannot be ddelayed.
+
+    The algorithm takes the first unscheduled task on the critical path each time and maps it on a processor identified for it.
+    If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum execution time for
+    the task is chosen.
+    The heuristic also uses the same processor to schedule parent and children tasks, as to avoid data transfer between processors.
+    The authors evaluate their approaches on random workflows of the size up to 300 tasks.
+
+    The authors provide an overview over (simpler) scheduling heuristics.
+    For example, GRASP (generally randomized adaptive search procedure) conducts a number of iterations to search an optimal
+    solution for mapping tasks on machines.
+    A solution is generated at each step, and the best solution is kept at the end.
+    The search terminates when a certain termination criterion is reached.
+    It generates better results than other algorithms, because it explores the whole solution space.
+
+    Avanes~\etal\cite{avanes2008adaptive} present a heuristic for networks in disaster scenarios.
+    These networks are a set of DAG-shaped scenarios, out of which one needs to be executed.
+    The scenario contains AND- and OR-branches, where AND-branches indicate acitivities that need to be executed in parallel.
+
+    The heuristic first partitions the set into local schedules by using affinity matrices to determine similar
+    activities and group them together.
+    Then they physically allocate these partitions to groups of disaster responders and tasks within this group.
+    They define a constraint system for that.
+    The dynamic part deals with changes and distinguishes between retriable and compensation acitivities.
+    The heuristic calculates a new execution path with these tasks.
+    In general, this heuristic is not as related as it looks, because of very specific workflow and task structure.
+
+
 
 
     \section{Algorithms}
@@ -324,8 +372,8 @@
             \EndFor
             \EndWhile
 
-            \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$} \label{line:neighbblocks}
-
+            \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$}
+                \label{line:neighbblocks}
             \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
             \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
             \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
