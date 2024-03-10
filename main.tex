@@ -205,7 +205,13 @@
     However, the approach is for clouds.
     \xspace
 
-    Daniels et al.
+    Daniels et al.~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
+    on a single machine.
+    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related (that means
+    that these runtime changes are unrelated to each other).
+    The authors formulate a decision space of all permutations of n jobs, and the optimal schedule in relation to a
+    performance measure $\phi$.
+    Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
 
     De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling heuristic
     for clouds.
@@ -251,6 +257,27 @@
     The heuristic calculates a new execution path with these tasks.
     In general, this heuristic is not as related as it looks, because of very specific workflow and task structure.
 
+    Garg~\etal~\cite{GARG2015256} propose a dynamic scheduling algorithm for heterogeneous grids based on rescheduling.
+    The aim is to minimize the makespan, and the experiments were conducted on a single wotkflow with 10 tasks.
+    The procesdure involves building a first (static) schedule, priodic resource monitoring and rescheduling the remaining
+    tasks.
+    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
+    For each resuorce group, there is an own scheduler, and an overall global scheduler responsible for distributing
+    tasks to groups.
+    The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
+    The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.
+
+    The algorithm first computes bottom levels for all tasks (execution time is average of all possible execution times).
+    THe bottom level represents the priority of the task, and tasks are sorted according to these priorities.
+    They then go through tasks and map than to such processors that minimize the earliest start times of this task's
+    successors.
+    To do this, the authors calculate the earliest finishing time of the task across all ressources, along with the
+    average communication and computation costs fir the dependent tasks.
+
+    The rescheduling is being triggered when either a load on a resource increases over a threshold, or if a new resource
+    is added.
+    The algorithm produces a new mapping from scrath, and this mapping is being accepted if the resulting maespan is
+    smaller than the previously predicted one.
 
 
 
