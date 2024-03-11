@@ -283,14 +283,29 @@
 
     \section{Algorithms}
 
-    \subsection{Various useful approaches}
+    \subsection{Baseline: HEFT with memories}
 
-    Bader et al. developed a system that identifies task similarities.
-    Given a workflow, it returns tasks similar to a given task.
-    We can use this system in our modelling and say that we know the new weights for finished tasks and will modify future tasks in accordance to their similarity.
-    For example, if a task finished 2 times later than expected, then all future similar tasks will be assumed to finish 2 times later.
+    \algo{HEFT} is one of the most popular scheduling heuristics(TODO cite).
+    This algorithm schedules tasks on heterogeneous computing systems with the aim to minimize
+    the workflow's overall completion time.
+    The classical formulation of \algo{HEFT} does not respect memory boundaries, so we suggest a
+    slightly changed version that also takes memory sizes into account.
 
-    \subsection{Local search}
+    \algo{HEFT} first assigns all tasks their ranks on all processors.
+    This rank includes the bottom level of the task, including the maximum cost of its successors on the same processor.
+    Then, for each task, they are being assigned to the processor with the best rank.
+    Finally, the algorithm calculates the order of execution of tasks on each processor, depending on their dependencies.
+
+    We only change the assignment to processor part.
+    Before assigning a new task there, we calculate the memory requirement of already assigned tasks.
+    If the remaining memory is big enough to host the task, we assign it there, otherwise we try the next-best processor
+    rank-wise.
+
+    \skug{Even easier: calculate the memory requirement of already assigned tasks by summing them up. This will lead
+    to an overestimation of memory requirement.}
+
+
+    \subsection{New heuristic: Local search}
     One strategy that can be used is local search, a similar approach as with swaps.
     The starting point could be a previously valid solution (for example, one by HetPart).
     In the first step, the solution would need to become valid again.
