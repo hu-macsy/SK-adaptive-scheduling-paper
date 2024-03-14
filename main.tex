@@ -31,6 +31,10 @@
 \newcommand{\cluster}{\,\mathcal{S}}
 \newcommand{\daghetpart}{\algo{DagHetPart}\xspace}
 \newcommand{\dagmem}{\algo{DagHetMem}\xspace}
+
+\newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
+\newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
+\newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
 %%
 %% end of the preamble, start of the body of the document source.
 \begin{document}
@@ -294,6 +298,7 @@
     \algo{HEFT} first assigns all tasks their ranks on all processors.
     This rank includes the bottom level of the task, including the maximum cost of its successors on the same processor.
     Then, for each task, they are being assigned to the processor with the best rank.
+    The algorithm looks to minimize the earliest finish time of the task when it chooses the processor with the best rank.
     Finally, the algorithm calculates the order of execution of tasks on each processor, depending on their dependencies.
 
     We only change the assignment to processor part.
@@ -303,6 +308,36 @@
 
     \skug{Even easier: calculate the memory requirement of already assigned tasks by summing them up. This will lead
     to an overestimation of memory requirement.}
+
+
+    \subsection{New heuristic: HEFT with minimal memory traversal}
+
+    This heuristic changes both the rank calculation step, and the assignment step.
+
+    Before calculating ranks, we calculate the optimal memory traversal over the entire graph.
+    We then calculate ranks as bottom levels on each processor, but adding some small $\epsilon$ on tasks that have the
+    same bottom level, but are higher in the memory traversal order.
+    So, for a traversal $v_1 \rightarrow v_2 \rightarrow v_3$, if both $v_2$ and $v_3$ have the bottom level of $100$,
+    $v_2$ will get the rank of $100+\epsilon$.
+
+    Then we sort the tasks ascending according to their rank.
+    We then look to minimize not the earliest finishing time of the task itself, but the earliest starting time of
+    its \skug{heaviest} successor.
+    The term heaviest is currently not defined exactly.
+    The intuition is to try to optimize for that successor that hold the schedule up the most.
+
+    We then do a procedure similar to our FillUpFit intuition.
+    We traverse the graph along the optimal memory traversal.
+    We keep track of the processor that we last used.
+    With each new task $v$, we check if it has the best rank on the same processor.
+    If so, and if the processor's memory is big enough, we fit the task there.
+
+    If the memory is too full or if $v$ has a better rank elsewhere, we calculate earliest starting times
+    of all its successors on all other processors (we assume that not only $v$ itself goes on that processor, but also
+    all its successors).
+    We then choose the processor that gives the best earliest starting time for the  \skug{heaviest} successor
+    and assign $v$ there.
+
 
 
     \subsection{New heuristic: Local search}
