@@ -32,6 +32,13 @@
 \newcommand{\daghetpart}{\algo{DagHetPart}\xspace}
 \newcommand{\dagmem}{\algo{DagHetMem}\xspace}
 
+\newcommand{\MM}{M}
+\newcommand{\MC}{MC}
+\newcommand{\rt}{rt}
+\newcommand{\curM}{curM}
+\newcommand{\curC}{curC}
+\newcommand{\PD}{PD}
+
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
 \newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
@@ -475,6 +482,104 @@
 
     We assume that moving a task from one processor to another costs nothing, when in reality it requires a copy
     operation that can take time at least equal to the sum of the weights of all its input files divided by the bandwidth.
+
+
+\section{Proposal of a new heuristic with slightly refined model}
+
+The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
+but favor processor reuse as is done in HEFT. 
+
+\subsection{Model}
+
+For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
+For an  edge $(u,v)\in E$, we have a data of size $c_{u,v}$. 
+
+For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds: 
+$\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
+We can decide to evict some data from the main memory if we are sending the data
+to another processor; it then stays in the communication buffer until it has been sent.
+
+We keep track of the current ready time of each processor and each communication
+channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
+are set to~$0$. 
+
+We also keep track of the current memory usage, $\curM_j$ and $\curC_j$,
+on respectively the processor memory and communication buffer. 
+Furthermore, $\PD_j$ is a priority queue with the {\em pending data} 
+that are in $\MM_j$ but may be evicted to be communicated, if 
+more memory is needed on~$p_j$. They are ordered by non-decreasing size. 
+They correspond to some $c_{u,v}$'s. 
+
+\subsection{Heuristics}
+
+We consider two variants of HEFT accounting for memory usage, which only
+differ in the order they consider tasks to be scheduled.
+
+HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
+level is defined as
+$$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
+ (the max is 0 if there is no outgoing edge). 
+ 
+HEFTM-MM orders tasks as dictated by MinMem.
+\AB{Actually, while writing,
+I remember that this might be complicated to compute MinMem for the
+entire graph, so this might not be a feasible variant, or needs to be updated?}
+
+Then, the idea is to pick the next free task in the given order,
+and greedily assign it to a processor, by trying all possible options
+and keeping the most promising one. 
+
+\medskip
+\noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
+{\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
+on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$, 
+i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice). 
+
+\smallskip
+\noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
+$$Res = \curM_j  + m_v + \sum_{u \in Pred(v), u\notin T(p_j)}  \{c_{u,v}\}
++ \sum_{w\in Succ(v)}  \{c_{v,w}\} - \MM_j .$$
+
+$T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
+already in the memory of~$p_j$. However, the files from the 
+other predecessor tasks must be loaded in memory before executing task~$v$,
+as well as $m_v$ and the data generated for all successor tasks.
+$Res$ is then checking whether there was enough memory; if it is positive, 
+it means that we have exceeded the memory of~$p_j$ with this tentative 
+assignment. 
+
+In this case ($Res >0$), we  try evicting
+some data from memory so that we have enough memory to execute task~$v$. 
+We need to evict at least $Res$ data. For now, we propose a greedy approach,
+evicting the largest files of $\PD_j$ until $Res$ data has been evicted. 
+\AB{I can further detail if needed, moving data of $\PD_j$ from $\curM_j$
+to $\curC_j$, and removing it from $\PD_j$...}
+If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
+we set the finish time to~$+\infty$ (invalid choice). 
+
+\smallskip
+\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$. Its starting time $st_v$
+is dictated by the maximum between $rt_j$, and all communications that
+must be orchestrated from predecessor tasks $u\notin T(p_j)$. Its
+finish time on $p_j$ is then 
+$FT(v,p_j) = st_v + \frac{w_v}{s_j}$. 
+
+
+\medskip
+\noindent{\em Assignment of task~$v$.}\\
+Once we have computed all finish times for task~$v$, 
+we keep the minimum $FT(v,p_j)$ and assign task~$v$
+to processor~$p_j$, updating $\MM_j$ and $\MC_j$ as needed,
+as well as all the $rt$ values for $p_j$ and the communication channels.
+
+
+
+\section{Conclusion}
+
+
+
+
+
 
     \bibliographystyle{ACM-Reference-Format}
     \bibliography{references}
