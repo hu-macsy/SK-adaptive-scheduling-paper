@@ -506,7 +506,7 @@ are set to~$0$.
 We also keep track of the current memory usage, $\curM_j$ and $\curC_j$,
 on respectively the processor memory and communication buffer. 
 Furthermore, $\PD_j$ is a priority queue with the {\em pending data} 
-that are in $\MM_j$ but may be evicted to be communicated, if 
+that are in the memory of size $\MM_j$ but may be evicted to be communicated, if 
 more memory is needed on~$p_j$. They are ordered by non-decreasing size. 
 They correspond to some $c_{u,v}$'s. 
 
@@ -571,6 +571,12 @@ Once we have computed all finish times for task~$v$,
 we keep the minimum $FT(v,p_j)$ and assign task~$v$
 to processor~$p_j$, updating $\MM_j$ and $\MC_j$ as needed,
 as well as all the $rt$ values for $p_j$ and the communication channels.
+
+
+\subsection{Approximation}
+\hmey{Rough notes:}
+Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
+
 
 
 
