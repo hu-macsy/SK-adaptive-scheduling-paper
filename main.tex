@@ -488,6 +488,9 @@
 
 The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
 but favor processor reuse as is done in HEFT. 
+Furthermore, this would allow us to handle variability on the fly, by updating
+the bottom levels if some parameters vary, and computing the schedule
+only for the near future...
 
 \subsection{Model}
 
@@ -510,6 +513,8 @@ that are in the memory of size $\MM_j$ but may be evicted to be communicated, if
 more memory is needed on~$p_j$. They are ordered by non-decreasing size. 
 They correspond to some $c_{u,v}$'s. 
 
+
+
 \subsection{Heuristics}
 
 We consider two variants of HEFT accounting for memory usage, which only
@@ -520,10 +525,19 @@ level is defined as
 $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
  (the max is 0 if there is no outgoing edge). 
  
+ 
+ HEFTM-BLC: from the study of the fork (see below), it seems important
+ to also account for the size of the data as input of a task,
+ to give more priority at tasks with potential large incoming communications.
+ For each task, we compute its modified bottom level: 
+ $$blc(u) = bl(u) + \max_{(v,u)\in E} c_{v,u}   . $$
+ 
+ 
 HEFTM-MM orders tasks as dictated by MinMem.
 \AB{Actually, while writing,
 I remember that this might be complicated to compute MinMem for the
 entire graph, so this might not be a feasible variant, or needs to be updated?}
+
 
 Then, the idea is to pick the next free task in the given order,
 and greedily assign it to a processor, by trying all possible options
@@ -551,7 +565,11 @@ assignment.
 In this case ($Res >0$), we  try evicting
 some data from memory so that we have enough memory to execute task~$v$. 
 We need to evict at least $Res$ data. For now, we propose a greedy approach,
-evicting the largest files of $\PD_j$ until $Res$ data has been evicted. 
+evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
+in order to avoid costly communications. 
+\AB{FYI We initially discussed  evicting the largest files, but this leads to 
+large communications and does not seem efficient after all... Maybe we can think of another 
+approach that would take into account both data size and bottom level...}
 \AB{I can further detail if needed, moving data of $\PD_j$ from $\curM_j$
 to $\curC_j$, and removing it from $\PD_j$...}
 If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
@@ -573,9 +591,43 @@ to processor~$p_j$, updating $\MM_j$ and $\MC_j$ as needed,
 as well as all the $rt$ values for $p_j$ and the communication channels.
 
 
+
 \subsection{Approximation}
 \hmey{Rough notes:}
 Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
+
+
+
+\subsection{The fork}
+We look at the behavior of these heuristics on a fork graph,
+where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
+to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
+
+Without memory, this problem is NP-complete; this is equivalent
+to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
+and with two processors. Half of the tasks must be sent to the processor
+on which $T_0$ is not executed, and the optimal makespan is 
+$w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
+
+However, with an infinite number of identical processors, it can be
+solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$; 
+the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
+while the remaining $n-k$ tasks are executed locally (try all values of $k$).
+
+With heterogeneous processors, it is probably NP-complete again
+because we could ensure that there are only two processors fast enough
+and get back to the 2-partition...
+
+We also had an example where evicting large files first in step 2
+can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
+$f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
+imposes that we free one unit of memory before executing one
+of the tasks... Actually the new version with BLC would start 
+considering $T_2$ and be fine in this case...
+
+
+\AB{Can we prove that we have (maybe) a 2-approximation, 
+at least for the fork? What worst-case can we think of? }
 
 
 
