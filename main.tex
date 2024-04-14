@@ -516,15 +516,17 @@ They correspond to some $c_{u,v}$'s.
 
 
 \subsection{Heuristics}
+    Like the original HEFT, our heuristic consistst of two steps: first, computing task ranks,
+    and second, assigning tasks to processors in the order defined in the first step.
+    We consider three variants of HEFT accounting for memory usage, which only
+    differ in the order they consider tasks to be scheduled.
 
-We consider two variants of HEFT accounting for memory usage, which only
-differ in the order they consider tasks to be scheduled.
+\subsubsection{Step 1: calculate task ranks}
 
 HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
 level is defined as
 $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
  (the max is 0 if there is no outgoing edge). 
- 
  
  HEFTM-BLC: from the study of the fork (see below), it seems important
  to also account for the size of the data as input of a task,
@@ -534,10 +536,8 @@ $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
  
  
 HEFTM-MM orders tasks as dictated by MinMem.
-\AB{Actually, while writing,
-I remember that this might be complicated to compute MinMem for the
-entire graph, so this might not be a feasible variant, or needs to be updated?}
 
+\subsubsection{Task assignment}
 
 Then, the idea is to pick the next free task in the given order,
 and greedily assign it to a processor, by trying all possible options
@@ -551,28 +551,31 @@ i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid
 
 \smallskip
 \noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-$$Res = \curM_j  + m_v + \sum_{u \in Pred(v), u\notin T(p_j)}  \{c_{u,v}\}
-+ \sum_{w\in Succ(v)}  \{c_{v,w}\} - \MM_j .$$
+\[Res = \curM_j  - m_v + \sum_{u \in Pred(v), u\notin T(p_j)}  \{c_{u,v}\}
+- \sum_{w\in Succ(v)}  \{c_{v,w}\}.\]
 
 $T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
 already in the memory of~$p_j$. However, the files from the 
 other predecessor tasks must be loaded in memory before executing task~$v$,
 as well as $m_v$ and the data generated for all successor tasks.
-$Res$ is then checking whether there was enough memory; if it is positive, 
+$Res$ is then checking whether there was enough memory; if it is negative,
 it means that we have exceeded the memory of~$p_j$ with this tentative 
 assignment. 
 
-In this case ($Res >0$), we  try evicting
+In this case ($Res <0$), we  try evicting
 some data from memory so that we have enough memory to execute task~$v$. 
-We need to evict at least $Res$ data. For now, we propose a greedy approach,
-evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
+We need to evict at least $Res$ data.
+For now, we propose a greedy approach, evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
 in order to avoid costly communications. 
 \AB{FYI We initially discussed  evicting the largest files, but this leads to 
 large communications and does not seem efficient after all... Maybe we can think of another 
 approach that would take into account both data size and bottom level...}
-\AB{I can further detail if needed, moving data of $\PD_j$ from $\curM_j$
-to $\curC_j$, and removing it from $\PD_j$...}
+While tentatively evicting files, we remove them from the list of pending memories and move them into a list
+    of memories pending in the communication buffer.
+We keep track of the available buffer size, too.
+
 If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
+    or if while doing so we exceeded the size of the available buffer,
 we set the finish time to~$+\infty$ (invalid choice). 
 
 \smallskip
@@ -580,14 +583,34 @@ we set the finish time to~$+\infty$ (invalid choice).
 is dictated by the maximum between $rt_j$, and all communications that
 must be orchestrated from predecessor tasks $u\notin T(p_j)$. Its
 finish time on $p_j$ is then 
-$FT(v,p_j) = st_v + \frac{w_v}{s_j}$. 
+$FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
+    \skug {TODO PUT THE FORMULA HERE}
 
 
 \medskip
 \noindent{\em Assignment of task~$v$.}\\
 Once we have computed all finish times for task~$v$, 
 we keep the minimum $FT(v,p_j)$ and assign task~$v$
-to processor~$p_j$, updating $\MM_j$ and $\MC_j$ as needed,
+to processor~$p_j$.
+In detail, we:
+
+    \textbullet
+    Evict the memories that need to be evicted to free the memory. We remove these memories from pending memories
+        $PD_j$, add them to pending data in the communication buffer, and reduce the available buffer size accordingly.
+
+    \textbullet For every predecessor of~$v$ that has been assigned to another processor, we
+
+    \textbullet We compute the correct amount of available memory for $p_j$ (for when the task is done).
+For each predecessor that is mapped to the same processor, we remove the pending memory corresponding to the weight of
+    the incoming edge, also freeing the same amount of available memory (increasing $CurM_j$).
+For each successor, on the other hand, we add the edge weights to pending memories and reduce $CurM_j$ by the corresponding
+    amount.
+
+    \textbullet
+We adjust ready times on communication buffers $rt_{j, j'}$ for every predecessor processor $u$ of $v$: we increase them by the
+    communication time $c(v, u) / \beta$.
+
+    updating $\MM_j$ and $\MC_j$ as needed,
 as well as all the $rt$ values for $p_j$ and the communication channels.
 
 
