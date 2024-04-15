@@ -572,19 +572,22 @@ large communications and does not seem efficient after all... Maybe we can think
 approach that would take into account both data size and bottom level...}
 While tentatively evicting files, we remove them from the list of pending memories and move them into a list
     of memories pending in the communication buffer.
-We keep track of the available buffer size, too.
+We keep track of the available buffer size, too - each time a file gets moved into the pending in buffer, the available buffer size is reduced by its weight.
 
 If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
     or if while doing so we exceeded the size of the available buffer,
 we set the finish time to~$+\infty$ (invalid choice). 
 
 \smallskip
-\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$. Its starting time $st_v$
+\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
+    Its starting time $st_v$
 is dictated by the maximum between $rt_j$, and all communications that
-must be orchestrated from predecessor tasks $u\notin T(p_j)$. Its
-finish time on $p_j$ is then 
+must be orchestrated from predecessor tasks $u\notin T(p_j)$.
+    The starting time is then
+    \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]
+    Its finish time on $p_j$ is then
 $FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
-    \skug {TODO PUT THE FORMULA HERE}
+
 
 
 \medskip
@@ -598,7 +601,10 @@ In detail, we:
     Evict the memories that need to be evicted to free the memory. We remove these memories from pending memories
         $PD_j$, add them to pending data in the communication buffer, and reduce the available buffer size accordingly.
 
-    \textbullet For every predecessor of~$v$ that has been assigned to another processor, we
+    \textbullet For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
+    communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
+    communication time $c( u,v) / \beta$.
+
 
     \textbullet We compute the correct amount of available memory for $p_j$ (for when the task is done).
 For each predecessor that is mapped to the same processor, we remove the pending memory corresponding to the weight of
@@ -606,9 +612,7 @@ For each predecessor that is mapped to the same processor, we remove the pending
 For each successor, on the other hand, we add the edge weights to pending memories and reduce $CurM_j$ by the corresponding
     amount.
 
-    \textbullet
-We adjust ready times on communication buffers $rt_{j, j'}$ for every predecessor processor $u$ of $v$: we increase them by the
-    communication time $c(v, u) / \beta$.
+
 
     updating $\MM_j$ and $\MC_j$ as needed,
 as well as all the $rt$ values for $p_j$ and the communication channels.
