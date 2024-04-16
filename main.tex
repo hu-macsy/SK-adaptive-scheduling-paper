@@ -290,61 +290,215 @@
     The algorithm produces a new mapping from scrath, and this mapping is being accepted if the resulting maespan is
     smaller than the previously predicted one.
 
+\section{Proposal of a new heuristic with slightly refined model}
+
+The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
+but favor processor reuse as is done in HEFT. 
+Furthermore, this would allow us to handle variability on the fly, by updating
+the bottom levels if some parameters vary, and computing the schedule
+only for the near future...
+
+\subsection{Model}
+
+For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
+For an  edge $(u,v)\in E$, we have a data of size $c_{u,v}$. 
+
+For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds: 
+$\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
+We can decide to evict some data from the main memory if we are sending the data
+to another processor; it then stays in the communication buffer until it has been sent.
+
+We keep track of the current ready time of each processor and each communication
+channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
+are set to~$0$. 
+
+We also keep track of the currently available memory, $availM_j$ and $availC_j$,
+on respectively the processor memory and communication buffer. 
+Furthermore, $\PD_j$ is a priority queue with the {\em pending data} 
+that are in the memory of size $\MM_j$ but may be evicted to be communicated, if 
+more memory is needed on~$p_j$. They are ordered by non-decreasing size. 
+They correspond to some $c_{u,v}$'s.
+
+\subsection{Baseline: original HEFT without memories}
+
+    Original HEFT does not consider memory sizes.
+    The solutions it provides can be invalid if it schedules tasks to processors without sufficient memories.
+    However, these solutions can be viewed as a ``lower bound'' for an actual solution that considers memory sizes.
+
+    HEFT works in two steps.
+    In the first step, it calculates the ranks of tasks by computing their non-increasing bottom levels.
+    The bottom level of a task is defined as
+    $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
+    (the max is 0 if there is no outgoing edge).
+    The tasks are sorted by non-decreasing ranks.
+
+    In the second step, the algorithm iterates over the ranks and tries to assign the task to the processor where it
+    has the earliest finish time.
+    We tentatively assign each task to each processor.
+    The task's starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
+    must be orchestrated from predecessor tasks $u\notin T(p_j)$.
+    The starting time is then
+    \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]
+    Its finish time on $p_j$ is then
+    $FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
+
+    Once we have computed all finish times for task~$v$,
+    we keep the minimum $FT(v,p_j)$ and assign task~$v$
+    to processor~$p_j$.
+
+    \textit{Assignment to processor}
+    When assigning the task, we set the ready time of the processor~$j$ $rt_j$ to the finish time of the task.
+    For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
+    communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
+    communication time $c( u,v) / \beta$.
 
 
-    \section{Algorithms}
+\subsection{Heuristics}
+    Like the original HEFT, our heuristic consistst of two steps: first, computing task ranks,
+    and second, assigning tasks to processors in the order defined in the first step.
+    We consider three variants of HEFT accounting for memory usage, which only
+    differ in the order they consider tasks to be scheduled.
 
-    \subsection{Baseline: HEFT with memories}
+\subsubsection{Step 1: calculate task ranks}
 
-    \algo{HEFT} is one of the most popular scheduling heuristics(TODO cite).
-    This algorithm schedules tasks on heterogeneous computing systems with the aim to minimize
-    the workflow's overall completion time.
-    The classical formulation of \algo{HEFT} does not respect memory boundaries, so we suggest a
-    slightly changed version that also takes memory sizes into account.
+HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
+level is defined as
+$$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
+ (the max is 0 if there is no outgoing edge). 
+ 
+ HEFTM-BLC: from the study of the fork (see below), it seems important
+ to also account for the size of the data as input of a task,
+ to give more priority at tasks with potential large incoming communications.
+ For each task, we compute its modified bottom level: 
+ $$blc(u) = bl(u) + \max_{(v,u)\in E} c_{v,u}   . $$
+ 
+ 
+HEFTM-MM orders tasks as dictated by MinMem.
 
-    \algo{HEFT} first assigns all tasks their ranks on all processors.
-    This rank includes the bottom level of the task, including the maximum cost of its successors on the same processor.
-    Then, for each task, they are being assigned to the processor with the best rank.
-    The algorithm looks to minimize the earliest finish time of the task when it chooses the processor with the best rank.
-    Finally, the algorithm calculates the order of execution of tasks on each processor, depending on their dependencies.
+\subsubsection{Task assignment}
 
-    We only change the assignment to processor part.
-    Before assigning a new task there, we calculate the memory requirement of already assigned tasks.
-    If the remaining memory is big enough to host the task, we assign it there, otherwise we try the next-best processor
-    rank-wise.
+Then, the idea is to pick the next free task in the given order,
+and greedily assign it to a processor, by trying all possible options
+and keeping the most promising one. 
 
-    \skug{Even easier: calculate the memory requirement of already assigned tasks by summing them up. This will lead
-    to an overestimation of memory requirement.}
+\medskip
+\noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
+{\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
+on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$, 
+i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice). 
+
+\smallskip
+\noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
+\[Res = availM_j  - m_v - \sum_{u \in \Pi(v), u\notin T(p_j)}  \{c_{u,v}\}
+- \sum_{w\in Succ(v)}  \{c_{v,w}\}.\]
+
+$T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
+already in the memory of~$p_j$. However, the files from the 
+other predecessor tasks must be loaded in memory before executing task~$v$,
+as well as $m_v$ and the data generated for all successor tasks.
+$Res$ is then checking whether there was enough memory; if it is negative,
+it means that we have exceeded the memory of~$p_j$ with this tentative 
+assignment. 
+
+In this case ($Res <0$), we  try evicting
+some data from memory so that we have enough memory to execute task~$v$. 
+We need to evict at least $Res$ data.
+For now, we propose a greedy approach, evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
+in order to avoid costly communications. 
+\AB{FYI We initially discussed  evicting the largest files, but this leads to 
+large communications and does not seem efficient after all... Maybe we can think of another 
+approach that would take into account both data size and bottom level...}
+While tentatively evicting files, we remove them from the list of pending memories and move them into a list
+    of memories pending in the communication buffer.
+We keep track of the available buffer size, too - each time a file gets moved into the pending in buffer, the available buffer size is reduced by its weight.
+
+If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
+    or if while doing so we exceeded the size of the available buffer,
+we set the finish time to~$+\infty$ (invalid choice). 
+
+\smallskip
+\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
+    Its starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
+must be orchestrated from predecessor tasks $u\notin T(p_j)$.
+    The starting time is then
+    \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} } \]
+    Its finish time on $p_j$ is then
+$FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
 
 
-    \subsection{New heuristic: HEFT with minimal memory traversal}
 
-    This heuristic changes both the rank calculation step, and the assignment step.
+\medskip
+\noindent{\em Assignment of task~$v$.}\\
+Once we have computed all finish times for task~$v$, 
+we keep the minimum $FT(v,p_j)$ and assign task~$v$
+to processor~$p_j$.
+In detail, we:
+    \begin{itemize}
+        \item  Evict the file memories that correspond to edge weights that need to be evicted to free the memory.
+        We remove these files from pending memories
+        $PD_j$, add them to pending data in the communication buffer, and reduce the available buffer size accordingly.
+        \item    Calculate the new $availM_j$ on the processor.
+        We subtract the weights of all incoming files from predecessors assigned to the same processor,
+        and add the weights of outgoing files generated by the currently assigned task.
+        \item  For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
+        communication buffers $rt_{j', j}$ for the processor~$j'$that the predecessor $u$ has been assigned to: we increase them by the
+        communication time $c( u,v) / \beta$.
+        We also remove the incoming files from either the pending memories or pending data in buffers of these other
+        processors, and increase the available memories or available buffer sizes on these processors.
+        \item We compute the correct amount of available memory for $p_j$ (for when the task is done).
+        For each predecessor that is mapped to the same processor, we remove the pending memory corresponding to the weight of
+        the incoming edge, also freeing the same amount of available memory (increasing $availM_j$).
+        For each successor, on the other hand, we add the edge weights to pending memories and reduce $availM_j$ by the corresponding
+        amount.
+    \end{itemize}
 
-    Before calculating ranks, we calculate the optimal memory traversal over the entire graph.
-    We then calculate ranks as bottom levels on each processor, but adding some small $\epsilon$ on tasks that have the
-    same bottom level, but are higher in the memory traversal order.
-    So, for a traversal $v_1 \rightarrow v_2 \rightarrow v_3$, if both $v_2$ and $v_3$ have the bottom level of $100$,
-    $v_2$ will get the rank of $100+\epsilon$.
 
-    Then we sort the tasks ascending according to their rank.
-    We then look to minimize not the earliest finishing time of the task itself, but the earliest starting time of
-    its \skug{heaviest} successor.
-    The term heaviest is currently not defined exactly.
-    The intuition is to try to optimize for that successor that hold the schedule up the most.
 
-    We then do a procedure similar to our FillUpFit intuition.
-    We traverse the graph along the optimal memory traversal.
-    We keep track of the processor that we last used.
-    With each new task $v$, we check if it has the best rank on the same processor.
-    If so, and if the processor's memory is big enough, we fit the task there.
+\subsection{The fork}
+We look at the behavior of these heuristics on a fork graph,
+where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
+to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
 
-    If the memory is too full or if $v$ has a better rank elsewhere, we calculate earliest starting times
-    of all its successors on all other processors (we assume that not only $v$ itself goes on that processor, but also
-    all its successors).
-    We then choose the processor that gives the best earliest starting time for the  \skug{heaviest} successor
-    and assign $v$ there.
+Without memory, this problem is NP-complete; this is equivalent
+to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
+and with two processors. Half of the tasks must be sent to the processor
+on which $T_0$ is not executed, and the optimal makespan is 
+$w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
 
+However, with an infinite number of identical processors, it can be
+solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$; 
+the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
+while the remaining $n-k$ tasks are executed locally (try all values of $k$).
+
+With heterogeneous processors, it is probably NP-complete again
+because we could ensure that there are only two processors fast enough
+and get back to the 2-partition...
+
+We also had an example where evicting large files first in step 2
+can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
+$f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
+imposes that we free one unit of memory before executing one
+of the tasks... Actually the new version with BLC would start 
+considering $T_2$ and be fine in this case...
+
+
+\AB{Can we prove that we have (maybe) a 2-approximation, 
+at least for the fork? What worst-case can we think of? }
+
+
+
+
+\subsection{Approximation}
+\hmey{Rough notes:}
+Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
+
+
+
+\section{Conclusion}
+
+
+
+\section{Appendix}
 
 
     \subsection{New heuristic: Local search}
@@ -458,11 +612,11 @@
 
             \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$}
                 \label{line:neighbblocks}
-            \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
-            \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
-            \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
-                \State $\Gamma \gets \Gamma'$
-            \EndIf
+                \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
+                \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
+                \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
+                    \State $\Gamma \gets \Gamma'$
+                \EndIf
             \EndFor
 
             \State return $\Gamma$
@@ -478,192 +632,33 @@
     can be executed: the newly rearranged blocks are swapped until no
     improvement in makespan can be achieved.
 
-    \subsection{Limitations}
+    \subsection{New heuristic: HEFT with minimal memory traversal}
 
-    We assume that moving a task from one processor to another costs nothing, when in reality it requires a copy
-    operation that can take time at least equal to the sum of the weights of all its input files divided by the bandwidth.
+    This heuristic changes both the rank calculation step, and the assignment step.
 
+    Before calculating ranks, we calculate the optimal memory traversal over the entire graph.
+    We then calculate ranks as bottom levels on each processor, but adding some small $\epsilon$ on tasks that have the
+    same bottom level, but are higher in the memory traversal order.
+    So, for a traversal $v_1 \rightarrow v_2 \rightarrow v_3$, if both $v_2$ and $v_3$ have the bottom level of $100$,
+    $v_2$ will get the rank of $100+\epsilon$.
 
-\section{Proposal of a new heuristic with slightly refined model}
+    Then we sort the tasks ascending according to their rank.
+    We then look to minimize not the earliest finishing time of the task itself, but the earliest starting time of
+    its \skug{heaviest} successor.
+    The term heaviest is currently not defined exactly.
+    The intuition is to try to optimize for that successor that hold the schedule up the most.
 
-The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
-but favor processor reuse as is done in HEFT. 
-Furthermore, this would allow us to handle variability on the fly, by updating
-the bottom levels if some parameters vary, and computing the schedule
-only for the near future...
+    We then do a procedure similar to our FillUpFit intuition.
+    We traverse the graph along the optimal memory traversal.
+    We keep track of the processor that we last used.
+    With each new task $v$, we check if it has the best rank on the same processor.
+    If so, and if the processor's memory is big enough, we fit the task there.
 
-\subsection{Model}
-
-For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
-For an  edge $(u,v)\in E$, we have a data of size $c_{u,v}$. 
-
-For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds: 
-$\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
-We can decide to evict some data from the main memory if we are sending the data
-to another processor; it then stays in the communication buffer until it has been sent.
-
-We keep track of the current ready time of each processor and each communication
-channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
-are set to~$0$. 
-
-We also keep track of the current memory usage, $\curM_j$ and $\curC_j$,
-on respectively the processor memory and communication buffer. 
-Furthermore, $\PD_j$ is a priority queue with the {\em pending data} 
-that are in the memory of size $\MM_j$ but may be evicted to be communicated, if 
-more memory is needed on~$p_j$. They are ordered by non-decreasing size. 
-They correspond to some $c_{u,v}$'s. 
-
-
-
-\subsection{Heuristics}
-    Like the original HEFT, our heuristic consistst of two steps: first, computing task ranks,
-    and second, assigning tasks to processors in the order defined in the first step.
-    We consider three variants of HEFT accounting for memory usage, which only
-    differ in the order they consider tasks to be scheduled.
-
-\subsubsection{Step 1: calculate task ranks}
-
-HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
-level is defined as
-$$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
- (the max is 0 if there is no outgoing edge). 
- 
- HEFTM-BLC: from the study of the fork (see below), it seems important
- to also account for the size of the data as input of a task,
- to give more priority at tasks with potential large incoming communications.
- For each task, we compute its modified bottom level: 
- $$blc(u) = bl(u) + \max_{(v,u)\in E} c_{v,u}   . $$
- 
- 
-HEFTM-MM orders tasks as dictated by MinMem.
-
-\subsubsection{Task assignment}
-
-Then, the idea is to pick the next free task in the given order,
-and greedily assign it to a processor, by trying all possible options
-and keeping the most promising one. 
-
-\medskip
-\noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
-{\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
-on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$, 
-i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice). 
-
-\smallskip
-\noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-\[Res = \curM_j  - m_v + \sum_{u \in Pred(v), u\notin T(p_j)}  \{c_{u,v}\}
-- \sum_{w\in Succ(v)}  \{c_{v,w}\}.\]
-
-$T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
-already in the memory of~$p_j$. However, the files from the 
-other predecessor tasks must be loaded in memory before executing task~$v$,
-as well as $m_v$ and the data generated for all successor tasks.
-$Res$ is then checking whether there was enough memory; if it is negative,
-it means that we have exceeded the memory of~$p_j$ with this tentative 
-assignment. 
-
-In this case ($Res <0$), we  try evicting
-some data from memory so that we have enough memory to execute task~$v$. 
-We need to evict at least $Res$ data.
-For now, we propose a greedy approach, evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
-in order to avoid costly communications. 
-\AB{FYI We initially discussed  evicting the largest files, but this leads to 
-large communications and does not seem efficient after all... Maybe we can think of another 
-approach that would take into account both data size and bottom level...}
-While tentatively evicting files, we remove them from the list of pending memories and move them into a list
-    of memories pending in the communication buffer.
-We keep track of the available buffer size, too - each time a file gets moved into the pending in buffer, the available buffer size is reduced by its weight.
-
-If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
-    or if while doing so we exceeded the size of the available buffer,
-we set the finish time to~$+\infty$ (invalid choice). 
-
-\smallskip
-\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
-    Its starting time $st_v$
-is dictated by the maximum between $rt_j$, and all communications that
-must be orchestrated from predecessor tasks $u\notin T(p_j)$.
-    The starting time is then
-    \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]
-    Its finish time on $p_j$ is then
-$FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
-
-
-
-\medskip
-\noindent{\em Assignment of task~$v$.}\\
-Once we have computed all finish times for task~$v$, 
-we keep the minimum $FT(v,p_j)$ and assign task~$v$
-to processor~$p_j$.
-In detail, we:
-
-    \textbullet
-    Evict the memories that need to be evicted to free the memory. We remove these memories from pending memories
-        $PD_j$, add them to pending data in the communication buffer, and reduce the available buffer size accordingly.
-
-    \textbullet For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
-    communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
-    communication time $c( u,v) / \beta$.
-
-
-    \textbullet We compute the correct amount of available memory for $p_j$ (for when the task is done).
-For each predecessor that is mapped to the same processor, we remove the pending memory corresponding to the weight of
-    the incoming edge, also freeing the same amount of available memory (increasing $CurM_j$).
-For each successor, on the other hand, we add the edge weights to pending memories and reduce $CurM_j$ by the corresponding
-    amount.
-
-
-
-    updating $\MM_j$ and $\MC_j$ as needed,
-as well as all the $rt$ values for $p_j$ and the communication channels.
-
-
-
-\subsection{The fork}
-We look at the behavior of these heuristics on a fork graph,
-where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
-to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
-
-Without memory, this problem is NP-complete; this is equivalent
-to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
-and with two processors. Half of the tasks must be sent to the processor
-on which $T_0$ is not executed, and the optimal makespan is 
-$w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
-
-However, with an infinite number of identical processors, it can be
-solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$; 
-the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
-while the remaining $n-k$ tasks are executed locally (try all values of $k$).
-
-With heterogeneous processors, it is probably NP-complete again
-because we could ensure that there are only two processors fast enough
-and get back to the 2-partition...
-
-We also had an example where evicting large files first in step 2
-can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
-$f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
-imposes that we free one unit of memory before executing one
-of the tasks... Actually the new version with BLC would start 
-considering $T_2$ and be fine in this case...
-
-
-\AB{Can we prove that we have (maybe) a 2-approximation, 
-at least for the fork? What worst-case can we think of? }
-
-
-
-
-\subsection{Approximation}
-\hmey{Rough notes:}
-Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
-
-
-
-\section{Conclusion}
-
-
-
-
+    If the memory is too full or if $v$ has a better rank elsewhere, we calculate earliest starting times
+    of all its successors on all other processors (we assume that not only $v$ itself goes on that processor, but also
+    all its successors).
+    We then choose the processor that gives the best earliest starting time for the  \skug{heaviest} successor
+    and assign $v$ there.
 
 
     \bibliographystyle{ACM-Reference-Format}
