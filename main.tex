@@ -370,8 +370,9 @@ $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
  to also account for the size of the data as input of a task,
  to give more priority at tasks with potential large incoming communications.
  For each task, we compute its modified bottom level: 
- $$blc(u) = bl(u) + \max_{(v,u)\in E} c_{v,u}   . $$
+ $$blc(u) = w_u + \max_{(u,w)\in E} \{c_{u,w} + blc(w)\} + \max_{(v,u)\in E} c_{v,u}   . $$
  
+    \skug{avoid having mixed ranks, when the memory size of the lower task is not taken into account}
  
 HEFTM-MM orders tasks as dictated by MinMem.
 
