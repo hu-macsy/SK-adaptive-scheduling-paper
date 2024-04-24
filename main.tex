@@ -454,6 +454,37 @@ In detail, we:
     \end{itemize}
 
 
+\subsection{Retracing the effects of change on an existing schedule}
+    After the monitoring system has reported changes, we need to assess their impact on the existing schedule.
+    These changes can invalidate the schedule (\eg if there is not enough memory for some tasks to execute anymore),
+    they can lead to a later finishing time (\eg if some tasks longer and delay other tasks), or they can have no effect (\eg if new processors
+    joined the cluster, but the old schedule did not account for them).
+    To assess the impact, we need to retrace the schedule.
+
+    First, we find out if at least one processor that had assigned tasks has exited - this instantly invalidates the
+    entire schedule.
+
+    We then iterate over all tasks of the workflow in a topological order - any of the orderings given by rankings BL, BLC or MM
+    is a topologial ordering.
+    We then repeat steps similar to those we did during tentative assignment in our heuristic, except we do not choose a processor
+    anymore, but rather see if the current one still fits.
+
+    For each task $v$, we first assess its current memory constraint $Res$ using Step 2 from our heuristic.
+    The factors that affect $Res$ are possible changes in $m_v$, in $c_{u,v}$ from predecessors $u$ or $c_{v,w}$ from successors $w$,
+    available memory $availM_j$ on the processor (due to either changed $M_j$ or changed memory requirements from other tasks).
+    If originally,$Res$ was positive (no files were evicted from memory into the communication buffer), then it has to stay this way -
+    otherwise evicted files can invalidate next tasks.
+    If original $Res$ was negative, then we need to make sure that evicted files still fit into the communication buffer.
+    If either $Res$ is newly negative, or the communication buffer is not large enough, this invalidates the schedule.
+    We update the $availM_j$ and $availMC_j$ according to the new memory constraints.
+
+    Then we can re-calculate the finish time of the task on its processor like in Step 3.
+    The factors that affect it are changes in own execution time $w_v$ of the tasks, changed ready time of the processor
+    (after delayed previous tasks), and changed communication buffer availability.
+
+    Then, after having updated the processor's values, we move on to the next task.
+
+
 
 \subsection{The fork}
 We look at the behavior of these heuristics on a fork graph,
