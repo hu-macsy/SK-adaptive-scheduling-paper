@@ -69,13 +69,13 @@
         \postcode{10099}
     }
 
-       \author{Henning Meyerhenke}
-       \affiliation{%
-           \institution{Humboldt Universitaet zu Berlin}
-           \city{Berlin}
-           \country{Germany}
-       }
-       \email{meyerhenke@hu-berlin.de}
+    \author{Henning Meyerhenke}
+    \affiliation{%
+        \institution{Humboldt Universitaet zu Berlin}
+        \city{Berlin}
+        \country{Germany}
+    }
+    \email{meyerhenke@hu-berlin.de}
 
     \author{Anne Benoit}
     \affiliation{%
@@ -97,7 +97,7 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
     \begin{abstract}
-       Todo: reinsert CCSXML concepts
+        Todo: reinsert CCSXML concepts
     \end{abstract}
 
 %%
@@ -119,6 +119,7 @@
 %% information and builds the first part of the formatted document.
     \maketitle
 
+
     \section{Introduction}
 
 
@@ -128,25 +129,25 @@
         \begin{center}
             \begin{tabular}{rl}
                 \hline
-                \textbf{Symbol} & \textbf{Meaning}  \\
+                \textbf{Symbol}                       & \textbf{Meaning}                                         \\
                 \hline
-                $G = (V, E)$  & Workflow graph, set of vertices (tasks) and edges  \\
-                $\parents{u}$, $\children{u}$ & Parents of a task $u$, children of a task $u$ \\
-                $m_u$& Memory weight of task $u$ \\
-                $w_u$   & Workload of  task $u$  (normalized execution time)    \\
-                $c_{u,v}$   & Communication volume along the edge $(u,v)\in E$ \\
-                $F$, $\mathcal{F}$ & A partitioning function and the partition it creates \\
-                $V_i$ & Block number $i$\\ %\wrt~some $F$   \\
-                $\cluster$, $k$   & Computing system and its number of processors   \\
-                $p_j$, proc($V_i$)  & Processor number $j$, processor of block $V_i$ \\
-                $M_j$, $s_j$   & Memory size and speed of processor $p_j$   \\
-                $\beta$ & Bandwidth in the compute system  \\
-                $\bottomlevel{u}$   & Bottom weight of task $u$   \\
-                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$ \\
-                $\Gamma = (\mathcal{V}, \mathcal{E})$ & Quotient graph, its vertices and its edges  \\
-                $r_u$, $r_{V_i}$  & Memory requirement of  task $u$ and of block $V_i$   \\
-                $r_{\max}$   & Maximum memory requirement in a workflow   \\
-                $\criticalpath$ & Critical path in a workflow  \\
+                $G = (V, E)$                          & Workflow graph, set of vertices (tasks) and edges        \\
+                $\parents{u}$, $\children{u}$         & Parents of a task $u$, children of a task $u$            \\
+                $m_u$                                 & Memory weight of task $u$                                \\
+                $w_u$                                 & Workload of task $u$  (normalized execution time)          \\
+                $c_{u,v}$                             & Communication volume along the edge $(u,v)\in E$         \\
+                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates     \\
+                $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
+                $\cluster$, $k$                    & Computing system and its number of processors           \\
+                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
+                $M_j$, $s_j$                               & Memory size and speed of processor $p_j$                          \\
+                $\beta$                     & Bandwidth in the compute system                                \\
+                $\bottomlevel{u}$                      & Bottom weight of task $u$ \\
+                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
+                $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
+                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
+                $r_{\max}$                       & Maximum memory requirement in a workflow                              \\
+                $\criticalpath$                       & Critical path in a workflow                              \\
                 \hline
             \end{tabular}
         \end{center}
@@ -204,6 +205,7 @@
         \item How many times of change do we model - one per workflow run, or multiple?
         \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
     \end{itemize}
+
 
     \section{Related work}
 
@@ -290,36 +292,37 @@
     The algorithm produces a new mapping from scrath, and this mapping is being accepted if the resulting maespan is
     smaller than the previously predicted one.
 
-\section{Proposal of a new heuristic with slightly refined model}
 
-The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
-but favor processor reuse as is done in HEFT. 
-Furthermore, this would allow us to handle variability on the fly, by updating
-the bottom levels if some parameters vary, and computing the schedule
-only for the near future...
+    \section{Proposal of a new heuristic with slightly refined model}
 
-\subsection{Model}
+    The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
+    but favor processor reuse as is done in HEFT.
+    Furthermore, this would allow us to handle variability on the fly, by updating
+    the bottom levels if some parameters vary, and computing the schedule
+    only for the near future...
 
-For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
-For an  edge $(u,v)\in E$, we have a data of size $c_{u,v}$. 
+    \subsection{Model}
 
-For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds: 
-$\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
-We can decide to evict some data from the main memory if we are sending the data
-to another processor; it then stays in the communication buffer until it has been sent.
+    For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
+    For an edge $(u,v)\in E$, we have a data of size $c_{u,v}$.
 
-We keep track of the current ready time of each processor and each communication
-channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
-are set to~$0$. 
+    For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds:
+    $\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
+    We can decide to evict some data from the main memory if we are sending the data
+    to another processor; it then stays in the communication buffer until it has been sent.
 
-We also keep track of the currently available memory, $availM_j$ and $availC_j$,
-on respectively the processor memory and communication buffer. 
-Furthermore, $\PD_j$ is a priority queue with the {\em pending data} 
-that are in the memory of size $\MM_j$ but may be evicted to be communicated, if 
-more memory is needed on~$p_j$. They are ordered by non-decreasing size. 
-They correspond to some $c_{u,v}$'s.
+    We keep track of the current ready time of each processor and each communication
+    channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
+    are set to~$0$.
 
-\subsection{Baseline: original HEFT without memories}
+    We also keep track of the currently available memory, $availM_j$ and $availC_j$,
+    on respectively the processor memory and communication buffer.
+    Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
+    that are in the memory of size $\MM_j$ but may be evicted to be communicated, if
+    more memory is needed on~$p_j$. They are ordered by non-decreasing size.
+    They correspond to some $c_{u,v}$'s.
+
+    \subsection{Baseline: original HEFT without memories}
 
     Original HEFT does not consider memory sizes.
     The solutions it provides can be invalid if it schedules tasks to processors without sufficient memories.
@@ -352,88 +355,87 @@ They correspond to some $c_{u,v}$'s.
     communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
     communication time $c( u,v) / \beta$.
 
-
-\subsection{Heuristics}
+    \subsection{Heuristics}
     Like the original HEFT, our heuristic consistst of two steps: first, computing task ranks,
     and second, assigning tasks to processors in the order defined in the first step.
     We consider three variants of HEFT accounting for memory usage, which only
     differ in the order they consider tasks to be scheduled.
 
-\subsubsection{Step 1: calculate task ranks}
+    \subsubsection{Step 1: calculate task ranks}
 
-HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
-level is defined as
-$$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
- (the max is 0 if there is no outgoing edge). 
- 
- HEFTM-BLC: from the study of the fork (see below), it seems important
- to also account for the size of the data as input of a task,
- to give more priority at tasks with potential large incoming communications.
- For each task, we compute its modified bottom level: 
- $$blc(u) = w_u + \max_{(u,w)\in E} \{c_{u,w} + blc(w)\} + \max_{(v,u)\in E} c_{v,u}   . $$
- 
+    HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
+    level is defined as
+    $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
+    (the max is 0 if there is no outgoing edge).
+
+    HEFTM-BLC: from the study of the fork (see below), it seems important
+    to also account for the size of the data as input of a task,
+    to give more priority at tasks with potential large incoming communications.
+    For each task, we compute its modified bottom level:
+    $$blc(u) = w_u + \max_{(u,w)\in E} \{c_{u,w} + blc(w)\} + \max_{(v,u)\in E} c_{v,u}   . $$
+
     \skug{avoid having mixed ranks, when the memory size of the lower task is not taken into account}
- 
-HEFTM-MM orders tasks as dictated by MinMem.
 
-\subsubsection{Task assignment}
+    HEFTM-MM orders tasks as dictated by MinMem.
 
-Then, the idea is to pick the next free task in the given order,
-and greedily assign it to a processor, by trying all possible options
-and keeping the most promising one. 
+    \subsubsection{Task assignment}
 
-\medskip
-\noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
-{\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
-on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$, 
-i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice). 
+    Then, the idea is to pick the next free task in the given order,
+    and greedily assign it to a processor, by trying all possible options
+    and keeping the most promising one.
 
-\smallskip
-\noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-\[Res = availM_j  - m_v - \sum_{u \in \Pi(v), u\notin T(p_j)}  \{c_{u,v}\}
-- \sum_{w\in Succ(v)}  \{c_{v,w}\}.\]
+    \medskip
+    \noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
+    {\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
+    on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$,
+    i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice).
 
-$T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
-already in the memory of~$p_j$. However, the files from the 
-other predecessor tasks must be loaded in memory before executing task~$v$,
-as well as $m_v$ and the data generated for all successor tasks.
-$Res$ is then checking whether there was enough memory; if it is negative,
-it means that we have exceeded the memory of~$p_j$ with this tentative 
-assignment. 
+    \smallskip
+    \noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
+    \[Res = availM_j - m_v - \sum_{u \in \Pi(v), u\notin T(p_j)}  \{c_{u,v}\}
+    - \sum_{w\in Succ(v)}  \{c_{v,w}\}.\]
 
-In this case ($Res <0$), we  try evicting
-some data from memory so that we have enough memory to execute task~$v$. 
-We need to evict at least $Res$ data.
-For now, we propose a greedy approach, evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
-in order to avoid costly communications. 
-\AB{FYI We initially discussed  evicting the largest files, but this leads to 
-large communications and does not seem efficient after all... Maybe we can think of another 
-approach that would take into account both data size and bottom level...}
-While tentatively evicting files, we remove them from the list of pending memories and move them into a list
+    $T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
+    already in the memory of~$p_j$. However, the files from the
+    other predecessor tasks must be loaded in memory before executing task~$v$,
+    as well as $m_v$ and the data generated for all successor tasks.
+    $Res$ is then checking whether there was enough memory; if it is negative,
+    it means that we have exceeded the memory of~$p_j$ with this tentative
+    assignment.
+
+    In this case ($Res <0$), we try evicting
+    some data from memory so that we have enough memory to execute task~$v$.
+    We need to evict at least $Res$ data.
+    For now, we propose a greedy approach, evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
+    in order to avoid costly communications.
+    \AB{FYI We initially discussed evicting the largest files, but this leads to
+    large communications and does not seem efficient after all... Maybe we can think of another
+    approach that would take into account both data size and bottom level...}
+    While tentatively evicting files, we remove them from the list of pending memories and move them into a list
     of memories pending in the communication buffer.
-We keep track of the available buffer size, too - each time a file gets moved into the pending in buffer, the available buffer size is reduced by its weight.
+    We keep track of the available buffer size, too - each time a file gets moved into the pending in buffer, the available buffer size is reduced by its weight.
 
-If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
+    If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
     or if while doing so we exceeded the size of the available buffer,
-we set the finish time to~$+\infty$ (invalid choice). 
+    we set the finish time to~$+\infty$ (invalid choice).
 
-\smallskip
-\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
+    \smallskip
+    \noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
     Its starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
-must be orchestrated from predecessor tasks $u\notin T(p_j)$.
+    must be orchestrated from predecessor tasks $u\notin T(p_j)$.
     The starting time is then
     \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} } \]
     Its finish time on $p_j$ is then
-$FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
+    $FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
 
 
 
-\medskip
-\noindent{\em Assignment of task~$v$.}\\
-Once we have computed all finish times for task~$v$, 
-we keep the minimum $FT(v,p_j)$ and assign task~$v$
-to processor~$p_j$.
-In detail, we:
+    \medskip
+    \noindent{\em Assignment of task~$v$.}\\
+    Once we have computed all finish times for task~$v$,
+    we keep the minimum $FT(v,p_j)$ and assign task~$v$
+    to processor~$p_j$.
+    In detail, we:
     \begin{itemize}
         \item  Evict the file memories that correspond to edge weights that need to be evicted to free the memory.
         We remove these files from pending memories
@@ -453,8 +455,25 @@ In detail, we:
         amount.
     \end{itemize}
 
+    \subsection{Dynamic Scenario}
 
-\subsection{Retracing the effects of change on an existing schedule}
+    In a workflow execution environment, the scheduling method interacts with the runtime environment, which provides information such as resource estimates.
+    This information may include, memory usage, runtime, graph structures, or the status of the underlying infrastructure.
+    In order to ensure that the information is up to date, a monitoring system observes the workflow execution and collects metrics for tasks and the underlying infrastructure.
+    By incorporating dynamic monitoring values, e.g., the resources a task consumed, the runtime environment can incorporate the data into the prediction model to provide more accurate resource predictions.
+    Also the underlying infrastructure can change during the workflow execution.
+    Examples are processor failures, node recoveries, or acquisition of new nodes.
+    However, also when the hardware of the infrastructure does not change, the set of nodes provided as a scheduling target might change due to release or occupation in shared cluster infrastructures.
+    As infrastructure information and resource predictions are dynamically updated and provided to the scheduler during the workflow runtime, the previous schedule becomes invalid and a new one must be calculated.
+
+    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures of approximately 15\% is shown~\cite{}.
+    Online prediction methods were able to significantly reduce the error during runtime, with the reduction reaching up to one-third of the cold-start error~\cite{baderDiedrichDynamic2023,witt2019learning}.
+    %For instance, Nadeen~et~al.\cite{} report an error of 10\%, 11\%, and 15\% while the task prediction errors shows a normal and exponential distribution.
+    %Bader~et~al.~ report a prediction error between 13\% and 17\% for their method, showing an exponential task error distribution.
+    % @Svetlana, willst du sowas für deine Experimente? Also die Daten, welche du dann konfigurieren kannst?
+    Such a dynamic execution environment necessitates for a dynamic scheduling method where the schedule can be recomputed during the workflow execution.
+
+    \subsection{Retracing the effects of change on an existing schedule}
     After the monitoring system has reported changes, we need to assess their impact on the existing schedule.
     These changes can invalidate the schedule (\eg if there is not enough memory for some tasks to execute anymore),
     they can lead to a later finishing time (\eg if some tasks longer and delay other tasks), or they can have no effect (\eg if new processors
@@ -484,60 +503,52 @@ In detail, we:
 
     Then, after having updated the processor's values, we move on to the next task.
 
+    \subsection{The fork}
+    We look at the behavior of these heuristics on a fork graph,
+    where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
+    to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
+
+    Without memory, this problem is NP-complete; this is equivalent
+    to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
+    and with two processors. Half of the tasks must be sent to the processor
+    on which $T_0$ is not executed, and the optimal makespan is
+    $w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
+
+    However, with an infinite number of identical processors, it can be
+    solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$;
+    the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
+    while the remaining $n-k$ tasks are executed locally (try all values of $k$).
+
+    With heterogeneous processors, it is probably NP-complete again
+    because we could ensure that there are only two processors fast enough
+    and get back to the 2-partition...
+
+    We also had an example where evicting large files first in step 2
+    can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
+    $f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
+    imposes that we free one unit of memory before executing one
+    of the tasks... Actually the new version with BLC would start
+    considering $T_2$ and be fine in this case...
 
 
-\subsection{The fork}
-We look at the behavior of these heuristics on a fork graph,
-where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
-to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
+    \AB{Can we prove that we have (maybe) a 2-approximation,
+        at least for the fork? What worst-case can we think of? }
 
-Without memory, this problem is NP-complete; this is equivalent
-to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
-and with two processors. Half of the tasks must be sent to the processor
-on which $T_0$ is not executed, and the optimal makespan is 
-$w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
-
-However, with an infinite number of identical processors, it can be
-solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$; 
-the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
-while the remaining $n-k$ tasks are executed locally (try all values of $k$).
-
-With heterogeneous processors, it is probably NP-complete again
-because we could ensure that there are only two processors fast enough
-and get back to the 2-partition...
-
-We also had an example where evicting large files first in step 2
-can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
-$f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
-imposes that we free one unit of memory before executing one
-of the tasks... Actually the new version with BLC would start 
-considering $T_2$ and be fine in this case...
+    \subsection{Approximation}
+    \hmey{Rough notes:}
+    Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
 
 
-\AB{Can we prove that we have (maybe) a 2-approximation, 
-at least for the fork? What worst-case can we think of? }
+    \section{Conclusion}
 
 
-
-
-\subsection{Approximation}
-\hmey{Rough notes:}
-Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
-
-
-
-\section{Conclusion}
-
-
-
-\section{Appendix}
-
+    \section{Appendix}
 
     \subsection{New heuristic: Local search}
     One strategy that can be used is local search, a similar approach as with swaps.
     The starting point could be a previously valid solution (for example, one by HetPart).
     In the first step, the solution would need to become valid again.
-    Then, we repartition blocks on the critical path  and merge blocks in attempt to improve makespan.
+    Then, we repartition blocks on the critical path and merge blocks in attempt to improve makespan.
     Finally, we swap blocks between processors to finish makespan improvement.
 
     \subsubsection{Restore Validity}
@@ -559,43 +570,45 @@ Let's use a fork to see how the algorithm behaves and if it provides some approx
         \caption{Restore Validity}
         \label{alg:RestoreValidity}
         \begin{algorithmic}[1]
-            \Procedure{Restore Validity}{$\Gamma$, $W$ }\\
-            \Comment{Input: initial schedule as quotient tree $\Gamma$, new  weights $W$}
-            \State $\Gamma \gets $ \textsc{QuotientDAG}($\Gamma$, $W$ ); \Comment Quotient DAG with new weights
+            \Procedure{Restore Validity}{$\Gamma$, $W$ }
+                \\
+                \Comment{Input: initial schedule as quotient tree $\Gamma$, new weights $W$}
+                \State $\Gamma \gets $ \textsc{QuotientDAG}($\Gamma$, $W$ ); \Comment Quotient DAG with new weights
 
-            \State $D \gets \emptyset$ \Comment {Damaged blocks that require action}
-            \For{$\nu_i \in \Gamma$}
-                \State $r_{\nu_m} \gets W$
-                \Comment{Recompute the new memory requirements of blocks in the quotient DAG}
-            \EndFor
-            \For{$\nu_i \in \Gamma$}
-                \label{line:damaged}
-                \If{$r_{\nu_i} > M_{proc(\nu_i)}$}
-                    \State $D \gets D \cup \{\nu_i\}$
-                \EndIf
-            \EndFor
+                \State $D \gets \emptyset$ \Comment {Damaged blocks that require action}
+                \For{$\nu_i \in \Gamma$}
+                    \State $r_{\nu_m} \gets W$
+                    \Comment{Recompute the new memory requirements of blocks in the quotient DAG}
+                \EndFor
+                \For{$\nu_i \in \Gamma$}
+                    \label{line:damaged}
+                    \If{$r_{\nu_i} > M_{proc(\nu_i)}$}
+                        \State $D \gets D \cup \{\nu_i\}$
+                    \EndIf
+                \EndFor
 
-            \For{$\nu_i \in D$}
-                \Comment Restore the validity of each damaged block
-                \While{$r_{\nu_i} > M_{proc(\nu_i)}$}
-                    \State $MS_{min}\gets \infty; v_{min} \gets NULL; \nu_{min} \gets NULL$
-                    \Comment Moving $v_{min}$ to $\nu_{min}$ gives $MS_{min}$
-                    \For{$v \in \nu_i$}
-                        \For{$u \in ( \Pi_v \cup C_v) \cap (\Pi_{\nu_i} \cup C_{\nu_i})$}   \label{line:neighb}
-                        \State $\Gamma' \gets \Gamma \mid \nu(v) == \nu(u)$
-                        \If{ $r_{\nu(u)} > M_{proc(\nu(u))}$ and \textsc{Makespan}($\Gamma'$)$\leq MS_{min}$}\label{line:makespan}
-                        \State $MS_{min} \gets $\textsc{Makespan}($\Gamma'$); $v_{min} \gets v$; $\nu_{min} \gets \nu(u);$
-                        \EndIf
+                \For{$\nu_i \in D$}
+                    \Comment Restore the validity of each damaged block
+                    \While{$r_{\nu_i} > M_{proc(\nu_i)}$}
+                        \State $MS_{min}\gets \infty; v_{min} \gets NULL; \nu_{min} \gets NULL$
+                        \Comment Moving $v_{min}$ to $\nu_{min}$ gives $MS_{min}$
+                        \For{$v \in \nu_i$}
+                            \For{$u \in ( \Pi_v \cup C_v) \cap (\Pi_{\nu_i} \cup C_{\nu_i})$}
+                                \label{line:neighb}
+                                \State $\Gamma' \gets \Gamma \mid \nu(v) == \nu(u)$
+                                \If{ $r_{\nu(u)} > M_{proc(\nu(u))}$ and \textsc{Makespan}($\Gamma'$)$\leq MS_{min}$}
+                                    \label{line:makespan}
+                                    \State $MS_{min} \gets $\textsc{Makespan}($\Gamma'$); $v_{min} \gets v$; $\nu_{min} \gets \nu(u);$
+                                \EndIf
+                            \EndFor
                         \EndFor
-                    \EndFor
-                    \State  $\Gamma \gets \Gamma \mid \nu(v_{min}) == \nu_{min}$ \label{line:movebest}
-                \EndWhile
-            \EndFor
-            \State return $\Gamma$
+                        \State  $\Gamma \gets \Gamma \mid \nu(v_{min}) == \nu_{min}$ \label{line:movebest}
+                    \EndWhile
+                \EndFor
+                \State return $\Gamma$
             \EndProcedure
         \end{algorithmic}
     \end{algorithm}
-
 
     \subsubsection{Repartition and Merge}
 
@@ -624,39 +637,40 @@ Let's use a fork to see how the algorithm behaves and if it provides some approx
         \caption{Repartition and Merge}
         \label{alg:RepartitionMerge}
         \begin{algorithmic}[1]
-            \Procedure{Repartition and Merge}{$\Gamma$, $\cluster$ }\\
-            \Comment{Input: quotient tree $\Gamma$, execution environment $\cluster$}
-            \State $CP \gets $\textsc{Criticalpath}($\Gamma$) \label{line:cp}
-            \State $Free \gets \{ p \in \cluster \mid p$ is free$\}$
-            \While{$\mid Free \mid \neq 0$}\label{line:whilefree}
-            \For{$\nu \in CP$}
-                \State $\{ \nu_1, \nu_2,\dots\}\gets$\textsc{Partition}($\nu$,2) \label{line:repartition}
-                \For{$\nu' \in \{ \nu_1, \nu_2,\dots\}$}
-                    \If{$r_\nu' \leq Free.$head()}
-                        \State proc($\nu'$)$\gets Free.$head();
-                    \Else \label{line:ifnotfits}
-                    \State \textsc{Merge}$\nu' \in \{ \nu_1, \nu_2,\dots\}$; break;
-                    \Comment Merge the parts back and leave this partitioning, as it does not fit
+            \Procedure{Repartition and Merge}{$\Gamma$, $\cluster$ }
+                \\
+                \Comment{Input: quotient tree $\Gamma$, execution environment $\cluster$}
+                \State $CP \gets $\textsc{Criticalpath}($\Gamma$) \label{line:cp}
+                \State $Free \gets \{ p \in \cluster \mid p$ is free$\}$
+                \While{$\mid Free \mid \neq 0$}
+                    \label{line:whilefree}
+                    \For{$\nu \in CP$}
+                        \State $\{ \nu_1, \nu_2,\dots\}\gets$\textsc{Partition}($\nu$,2) \label{line:repartition}
+                        \For{$\nu' \in \{ \nu_1, \nu_2,\dots\}$}
+                            \If{$r_\nu' \leq Free.$head()}
+                                \State proc($\nu'$)$\gets Free.$head();
+                            \Else
+                                \label{line:ifnotfits}
+                                \State \textsc{Merge}$\nu' \in \{ \nu_1, \nu_2,\dots\}$; break;
+                                \Comment Merge the parts back and leave this partitioning, as it does not fit
+                            \EndIf
+                        \EndFor
+                    \EndFor
+                \EndWhile
+
+                \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$}
+                    \label{line:neighbblocks}
+                    \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
+                    \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
+                    \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
+                        \State $\Gamma \gets \Gamma'$
                     \EndIf
                 \EndFor
-            \EndFor
-            \EndWhile
 
-            \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$}
-                \label{line:neighbblocks}
-                \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
-                \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
-                \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
-                    \State $\Gamma \gets \Gamma'$
-                \EndIf
-            \EndFor
-
-            \State return $\Gamma$
+                \State return $\Gamma$
             \EndProcedure
         \end{algorithmic}
     \end{algorithm}
-
-
 
     \subsubsection{Swaps}
 
