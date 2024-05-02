@@ -75,8 +75,43 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \section{Introduction}
 
+    Only mapping tasks to processors is not enough.
+    Reusing processors is important to achieve good makespans.
+
+    HEFT is one of the most popular heuristics (cite a review).
+    However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
+
+    In this paper, we formulate the problem that takes memories into consideration.
+    We propose three HEFT-based heuristics that take memory size into account: \heftbl, \heftblc, and \heftmm.
+    The difference is the way they order tasks for scheduling.
+    We compare our heuristics to a baseline HEFT variant that does not take memory sizes into account.
+
+    We find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
+
 
     \section{Model}
+
+    \skug{TODO:unify the notation with the table!!}
+
+    For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
+    For an edge $(u,v)\in E$, we have a data of size $c_{u,v}$.
+
+    For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds:
+    $\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
+    We can decide to evict some data from the main memory if we are sending the data
+    to another processor; it then stays in the communication buffer until it has been sent.
+
+    We keep track of the current ready time of each processor and each communication
+    channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
+    are set to~$0$.
+
+    We also keep track of the currently available memory, $availM_j$ and $availC_j$,
+    on respectively the processor memory and communication buffer.
+    Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
+    that are in the memory of size $\MM_j$ but may be evicted to be communicated, if
+    more memory is needed on~$p_j$. They are ordered by non-decreasing size.
+    They correspond to some $c_{u,v}$'s.
+
 
     \begin{table}[h]
         \begin{center}
@@ -109,6 +144,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
     \section{Related work}
+    \skug{problem: this is written for the old heuristic - parititioning-based heuristic to solvea dynamic problem! it is irrelevant to heft}
 
     In the limited time I spent looking, I found no paper addressing the exact same problem.
 
@@ -201,27 +237,6 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     Furthermore, this would allow us to handle variability on the fly, by updating
     the bottom levels if some parameters vary, and computing the schedule
     only for the near future...
-
-    \subsection{Model}
-
-    For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
-    For an edge $(u,v)\in E$, we have a data of size $c_{u,v}$.
-
-    For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds:
-    $\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
-    We can decide to evict some data from the main memory if we are sending the data
-    to another processor; it then stays in the communication buffer until it has been sent.
-
-    We keep track of the current ready time of each processor and each communication
-    channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
-    are set to~$0$.
-
-    We also keep track of the currently available memory, $availM_j$ and $availC_j$,
-    on respectively the processor memory and communication buffer.
-    Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
-    that are in the memory of size $\MM_j$ but may be evicted to be communicated, if
-    more memory is needed on~$p_j$. They are ordered by non-decreasing size.
-    They correspond to some $c_{u,v}$'s.
 
     \subsection{Baseline: original HEFT without memories}
 
