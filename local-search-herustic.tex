@@ -1,0 +1,147 @@
+%! Author = kulagins
+%! Date = 02.05.24
+
+% Preamble
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage{amsmath}
+
+% Document
+\begin{document}
+
+    \subsection{New heuristic: Local search}
+    One strategy that can be used is local search, a similar approach as with swaps.
+    The starting point could be a previously valid solution (for example, one by HetPart).
+    In the first step, the solution would need to become valid again.
+    Then, we repartition blocks on the critical path and merge blocks in attempt to improve makespan.
+    Finally, we swap blocks between processors to finish makespan improvement.
+
+    \subsubsection{Restore Validity}
+    We~(Algorithm~\ref{alg:RestoreValidity}) start with the previously partitioned and assigned quotient tree $\Gamma$,
+    and the new weights on tasks and edges.
+    We first recompute the memory requirements of all blocks.
+    Then we identify all blocks that have become invalidated and exceed the memory of their assigned processor
+    (Line~\ref{line:damaged}).
+    For all these blocks, we try out ``border'' tasks, that is, tasks, that have neighbours in neighbouring blocks
+    (Line~\ref{line:neighb}).
+    We tentatively move them (creating a temporary quotient DAG $\Gamma'$) and assess the impact of this move on the
+    makespan(Line~\ref{line:makespan}).
+    The condition is, of course, that the neighboring block now does not exceed the memory of its own processor.
+    The task that delivers the best makespan in then moved in Line~\ref{line:movebest}.
+    The entire process is being repeated until the block fits into the memory of the processor again.
+    We return the modified quotient graph $\Gamma$ that contains the mapping to processors.
+
+    \begin{algorithm}[h!]
+        \caption{Restore Validity}
+        \label{alg:RestoreValidity}
+        \begin{algorithmic}[1]
+            \Procedure{Restore Validity}{$\Gamma$, $W$ }
+                \\
+                \Comment{Input: initial schedule as quotient tree $\Gamma$, new weights $W$}
+                \State $\Gamma \gets $ \textsc{QuotientDAG}($\Gamma$, $W$ ); \Comment Quotient DAG with new weights
+
+                \State $D \gets \emptyset$ \Comment {Damaged blocks that require action}
+                \For{$\nu_i \in \Gamma$}
+                    \State $r_{\nu_m} \gets W$
+                    \Comment{Recompute the new memory requirements of blocks in the quotient DAG}
+                \EndFor
+                \For{$\nu_i \in \Gamma$}
+                    \label{line:damaged}
+                    \If{$r_{\nu_i} > M_{proc(\nu_i)}$}
+                        \State $D \gets D \cup \{\nu_i\}$
+                    \EndIf
+                \EndFor
+
+                \For{$\nu_i \in D$}
+                    \Comment Restore the validity of each damaged block
+                    \While{$r_{\nu_i} > M_{proc(\nu_i)}$}
+                        \State $MS_{min}\gets \infty; v_{min} \gets NULL; \nu_{min} \gets NULL$
+                        \Comment Moving $v_{min}$ to $\nu_{min}$ gives $MS_{min}$
+                        \For{$v \in \nu_i$}
+                            \For{$u \in ( \Pi_v \cup C_v) \cap (\Pi_{\nu_i} \cup C_{\nu_i})$}
+                                \label{line:neighb}
+                                \State $\Gamma' \gets \Gamma \mid \nu(v) == \nu(u)$
+                                \If{ $r_{\nu(u)} > M_{proc(\nu(u))}$ and \textsc{Makespan}($\Gamma'$)$\leq MS_{min}$}
+                                    \label{line:makespan}
+                                    \State $MS_{min} \gets $\textsc{Makespan}($\Gamma'$); $v_{min} \gets v$; $\nu_{min} \gets \nu(u);$
+                                \EndIf
+                            \EndFor
+                        \EndFor
+                        \State  $\Gamma \gets \Gamma \mid \nu(v_{min}) == \nu_{min}$ \label{line:movebest}
+                    \EndWhile
+                \EndFor
+                \State return $\Gamma$
+            \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    \subsubsection{Repartition and Merge}
+
+    In the next step, we center our attention around changes in the execution environments and how the changes in
+    the workflow reflect on it.
+
+    First, we try to further partition blocks that lie on the critical path of the workflow.
+    We first compute the critical path (Line~\ref{line:cp}) and then, as long as there are free processors in the
+    execution environment(Line~\ref{line:whilefree}, assumed to be sorted in descending order of memory sizes),
+    we partition the blocks on the critical path(Line~\ref{line:repartition}).
+    We try to partition each block into 2 smaller blocks.
+    However, due to the nature of the partitioner, more can be created.
+    We assume that the resulting blocks(Line~\ref{line:repartition}) are given back sorted by their memory requirement.
+    We then assign them to free processors as long as the blocks fit and there are free processors.
+    If even one part does not fit(Line~\ref{line:ifnotfits}), then we discard the entire partition and try partitioning
+    the next block on the critical path.
+
+    Not only partitioning (introducing more parallelism) can lead to a makespan improvement.
+    Shorter runtimes of tasks can justify merging some blocks together.
+    For all pairs of blocks that are neighbours (Line~\ref{Line:neighbblocks}), we tentatively merge them and assign
+    the result to the processor of the first block.
+    If the merged block fits on this processor and the merged quotient graph has a smaller overall makespan, then we save
+    the merge and proceed with other blocks.
+
+    \begin{algorithm}[h!]
+        \caption{Repartition and Merge}
+        \label{alg:RepartitionMerge}
+        \begin{algorithmic}[1]
+            \Procedure{Repartition and Merge}{$\Gamma$, $\cluster$ }
+                \\
+                \Comment{Input: quotient tree $\Gamma$, execution environment $\cluster$}
+                \State $CP \gets $\textsc{Criticalpath}($\Gamma$) \label{line:cp}
+                \State $Free \gets \{ p \in \cluster \mid p$ is free$\}$
+                \While{$\mid Free \mid \neq 0$}
+                    \label{line:whilefree}
+                    \For{$\nu \in CP$}
+                        \State $\{ \nu_1, \nu_2,\dots\}\gets$\textsc{Partition}($\nu$,2) \label{line:repartition}
+                        \For{$\nu' \in \{ \nu_1, \nu_2,\dots\}$}
+                            \If{$r_\nu' \leq Free.$head()}
+                                \State proc($\nu'$)$\gets Free.$head();
+                            \Else
+                                \label{line:ifnotfits}
+                                \State \textsc{Merge}$\nu' \in \{ \nu_1, \nu_2,\dots\}$; break;
+                                \Comment Merge the parts back and leave this partitioning, as it does not fit
+                            \EndIf
+                        \EndFor
+                    \EndFor
+                \EndWhile
+
+                \For{$\nu_1, \nu_2 \in \Gamma \mid \nu_1 \in ( \Pi_{\nu_2} \cup C_{\nu_2})$}
+                    \label{line:neighbblocks}
+                    \State $\{\Gamma', \nu_m\} \gets $ \textsc{Merge}($\nu_1, \nu_2$); proc($\nu_m$)$\gets $ proc($\nu_1$);
+                    \State $\mu \gets $\textsc{Makespan}($\Gamma'$)
+                    \If{$r_{\nu_m} \leq M_{proc(\nu_m)}$ and $\mu \leq $ \textsc{Makespan}($\Gamma$)}
+                        \State $\Gamma \gets \Gamma'$
+                    \EndIf
+                \EndFor
+
+                \State return $\Gamma$
+            \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    \subsubsection{Swaps}
+
+    Then a process similar to Step 4 in %\daghetpart
+    can be executed: the newly rearranged blocks are swapped until no
+    improvement in makespan can be achieved.
+
+\end{document}

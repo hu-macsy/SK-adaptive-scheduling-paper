@@ -1,0 +1,66 @@
+%! Author = kulagins
+%! Date = 02.05.24
+
+% Preamble
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage{amsmath}
+
+% Document
+\begin{document}
+
+    \paragraph{Workflow-related changes}
+
+    \begin{itemize}
+        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
+        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
+
+    \end{itemize}
+
+    The following changes are not a part of this article's scope:
+
+    \begin{itemize}
+        \item The workflow structure changes: edges or tasks come in or leave.
+    \end{itemize}
+
+    \paragraph{Execution environment-related changes }
+
+
+    \begin{itemize}
+        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
+        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
+
+    \end{itemize}
+
+    The following changes are not a part of this article's scope:
+
+    \begin{itemize}
+        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
+    \end{itemize}
+
+    \subsection{Time of changes }
+
+    We consider discrete time in seconds.
+    The time point(s) at which the changes happen is unambiguously defined.
+
+    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
+    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
+    The start time of the source task in the workflow is zero.
+    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
+
+    \subsection{Changes and knowledge horizon - important questions TBA}
+
+    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
+
+    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
+    However, how do we model the following:
+    \begin{itemize}
+        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
+        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
+        \item How many times of change do we model - one per workflow run, or multiple?
+        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
+    \end{itemize}
+
+
+\end{document}
