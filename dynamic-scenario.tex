@@ -111,4 +111,89 @@
 
     Then, after having updated the processor's values, we move on to the next task.
 
+    \section{Related work}
+    \skug{problem: this is written for the old heuristic - parititioning-based heuristic to solvea dynamic problem! it is irrelevant to heft}
+
+    In the limited time I spent looking, I found no paper addressing the exact same problem.
+
+    Wang et al.~\cite{wang2019dynamic} proposes a dynamic particle swarm optimization algorithm to schedule workflows in a cloud.
+    Particles are possible solution in the solution space.
+    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
+    Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
+    However, the approach is for clouds.
+    \xspace
+
+    Daniels et al.~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
+    on a single machine.
+    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related (that means
+    that these runtime changes are unrelated to each other).
+    The authors formulate a decision space of all permutations of n jobs, and the optimal schedule in relation to a
+    performance measure $\phi$.
+    Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
+
+    De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling heuristic
+    for clouds.
+    Based on a 3-objective cost model, their greedy scheduling algorithm schedules tasks into machines.
+    The authors use provenance data to make scheduling decisions.
+    The cost model is a set of linear equations computed in the simulation environment, it represents the cost of an execution based on the criteria.
+    In the algorithms, the authors test out 4 scenarios - one preferring each criteria, and a balanced one.
+    The algorithm merely chooses the best virtual machine for each next task based on the cost given by the model.
+    An additional algorithm combines several cloud activities (task executions) into one to improve the cost, so that each
+    execution is not too small (utilize the granularity factor, the smallest entity of payment of the cloud producer).
+    The authors used workflows with less than 10 tasks, but repeated them so that the execution had up to 200 tasks.
+    They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
+
+    Rahman~\etal~\cite{rahman2013} propose a scheduling heuristic for grids that proposes mapping of tasks to machines by calculating
+    the critical path in the graph dynamically at every step.
+    They call it the dynamic critical path (DCP).
+    For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
+    on the start time of a task (differing by the slack this task has).
+    All tasks on this critical path have the same earliest and latest start times, because they cannot be ddelayed.
+
+    The algorithm takes the first unscheduled task on the critical path each time and maps it on a processor identified for it.
+    If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum execution time for
+    the task is chosen.
+    The heuristic also uses the same processor to schedule parent and children tasks, as to avoid data transfer between processors.
+    The authors evaluate their approaches on random workflows of the size up to 300 tasks.
+
+    The authors provide an overview over (simpler) scheduling heuristics.
+    For example, GRASP (generally randomized adaptive search procedure) conducts a number of iterations to search an optimal
+    solution for mapping tasks on machines.
+    A solution is generated at each step, and the best solution is kept at the end.
+    The search terminates when a certain termination criterion is reached.
+    It generates better results than other algorithms, because it explores the whole solution space.
+
+    Avanes~\etal\cite{avanes2008adaptive} present a heuristic for networks in disaster scenarios.
+    These networks are a set of DAG-shaped scenarios, out of which one needs to be executed.
+    The scenario contains AND- and OR-branches, where AND-branches indicate acitivities that need to be executed in parallel.
+
+    The heuristic first partitions the set into local schedules by using affinity matrices to determine similar
+    activities and group them together.
+    Then they physically allocate these partitions to groups of disaster responders and tasks within this group.
+    They define a constraint system for that.
+    The dynamic part deals with changes and distinguishes between retriable and compensation acitivities.
+    The heuristic calculates a new execution path with these tasks.
+    In general, this heuristic is not as related as it looks, because of very specific workflow and task structure.
+
+    Garg~\etal~\cite{GARG2015256} propose a dynamic scheduling algorithm for heterogeneous grids based on rescheduling.
+    The aim is to minimize the makespan, and the experiments were conducted on a single wotkflow with 10 tasks.
+    The procesdure involves building a first (static) schedule, priodic resource monitoring and rescheduling the remaining
+    tasks.
+    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
+    For each resuorce group, there is an own scheduler, and an overall global scheduler responsible for distributing
+    tasks to groups.
+    The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
+    The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.
+
+    The algorithm first computes bottom levels for all tasks (execution time is average of all possible execution times).
+    THe bottom level represents the priority of the task, and tasks are sorted according to these priorities.
+    They then go through tasks and map than to such processors that minimize the earliest start times of this task's
+    successors.
+    To do this, the authors calculate the earliest finishing time of the task across all ressources, along with the
+    average communication and computation costs fir the dependent tasks.
+
+    The rescheduling is being triggered when either a load on a resource increases over a threshold, or if a new resource
+    is added.
+    The algorithm produces a new mapping from scrath, and this mapping is being accepted if the resulting maespan is
+    smaller than the previously predicted one.
 \end{document}
