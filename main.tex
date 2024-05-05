@@ -94,20 +94,48 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \section{Model}
 
-    \skug{TODO:unify the notation with the table!!}
+    We first describe the target applications, which are (large scientific) workflows,
+    in Section~\ref{sec.mod.work}.  Next, we define the execution
+    environment, a heterogeneous system (in terms of processor speed and memory size),
+    in Section~\ref{sec.mod.plat}.
 
-    For a task~$u\in V$, we have a memory usage~$m_u$ and execution time~$w_u$.
-    For an edge $(u,v)\in E$, we have a data of size $c_{u,v}$.
+    \subsection{Workflow}
+    \label{sec.mod.work}
+    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
+    $E$ is a set of directed edges of the form $e=(u,v)$, with $u,v\in V$, expressing precedence constraints between tasks.
+    Each task~$u \in V$  is performing $w_u$ operations, and it also
+    requires some amount of memory to be executed, denoted as~$m_u$.
+    Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
 
-    For each processor $P_j$, we have a speed~$s_j$, and also two memory bounds:
-    $\MM_j$ the processor memory, and $\MC_j$, the size of the communication buffer.
+    Hence, the total  memory requirement for the execution of task~$u$ consists of the input files
+    (size of the files to be received from the parents),
+    the output files (size of the files to be sent to the children),
+    and the memory size~$m_u$:
+    \[
+        r_u = m_u + \sum_{v:(v,u)\in E}c_{v,u} + \sum_{v:(u,v)\in E} c_{u,v}.
+    \]
+
+    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
+    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
+    The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
+    $ \children{u} = \{v \in V: (u,v) \in E\}$. A task without children is called a {\it target task}.
+    Each task may have multiple parents and children.
+
+    \subsection{Execution environment}
+    \label{sec.mod.plat}
+
+    The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
+    consists of $k$ processors $p_1, \dots, p_k$.
+    Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory size $M_j$, a communication
+    buffer size $MC_j$ and a speed~$s_j$.
     We can decide to evict some data from the main memory if we are sending the data
     to another processor; it then stays in the communication buffer until it has been sent.
+    The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
+    We assume that all processors are connected with the same bandwidth~$\beta$.
 
     We keep track of the current ready time of each processor and each communication
-    channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$. Initially, all the ready times
-    are set to~$0$.
-
+    channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$.
+    Initially, all the ready times are set to~$0$.
     We also keep track of the currently available memory, $availM_j$ and $availC_j$,
     on respectively the processor memory and communication buffer.
     Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
@@ -115,6 +143,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     more memory is needed on~$p_j$. They are ordered by non-decreasing size.
     They correspond to some $c_{u,v}$'s.
 
+    We use the \algo{memDag} algorithm from~\cite{KAYAASLAN20181} to compute
+    the memory requirement by transforming the workflow into a series-parallel graph,
+    and then finding the traversal that leads to the minimum memory consumption.
 
     \begin{table}[h]
         \begin{center}
@@ -131,14 +162,12 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
                 $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
                 $\cluster$, $k$                    & Computing system and its number of processors           \\
                 $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
-                $M_j$, $s_j$                               & Memory size and speed of processor $p_j$                          \\
+                $M_j$, $MC_j$, $s_j$                               & Memory size, comm. buffer and speed of processor $p_j$                          \\
                 $\beta$                     & Bandwidth in the compute system                                \\
                 $\bottomlevel{u}$                      & Bottom weight of task $u$ \\
                 $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
                 $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
                 $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
-                $r_{\max}$                       & Maximum memory requirement in a workflow                              \\
-                $\criticalpath$                       & Critical path in a workflow                              \\
                 \hline
             \end{tabular}
         \end{center}
