@@ -508,6 +508,21 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     For the big workflows however, the results of \heftbl and \heftblc are $<1$\% worse and \heftmm is only $9$\% worse.
     The heuristics pay off more on larger workflows.
     \subsubsection{Memory usage}
+    Minimizing memory usage is an interesting measure of the quality of the solution produced by a heuristic.
+    We studied the average peak memory consumption in our cluster.
+    We looked at the maximum memory usage on each processor during a task execution, and averaged it over all processors
+    in the execution environment.
+
+    The results adhere to the intuition: \heftmm produces consistently smaller memory usage among all the heuristics.
+    So, for small workflows, the average memory occupation by \heftbl and \heftblc is $11.8$\% and $11.7$\%, respectively,
+    while \heftmm manged to occupy $10.2$\% of memories.
+    For middle-sized workflows, \heftbl and \heftblc occupied $27.8$\% and $28.2$\%, respectively, while \heftmm occupied
+    $21$\%.
+    For the big workflows, \heftmm occupied $20.9$\% against $33.7$\% by \heftbl and $27.6$\% by \heftblc.
+    Interestingly, for big workflows, \heftmm occupied on average even a little less that for the middle-sized ones.
+    This means that the bound of exploiting parallelization has been achieved for workflows around the size of middle-sized ones,
+    and for the big workflows, the makespan is not improved by ``spreading'' the workflow more.
+
     \subsubsection{Impact of cluster size}
     On a cluster with only 6 processors (1 of each kind), the baseline makes more failures: from $43.4$\%  (small workflows)
     to $88.9$\% (mid-sized) and $94.4$\% (big workflows).
