@@ -502,11 +502,21 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     In this case, \heftbl produces the same makespan while producing a valid solution.
     The heuristics produce valid results by default and also manage to find a solution in all cases (on all workflow sizes).
 
-    On the normal cluster and among small workflows, the makespans produced by \heftbl and \heftblc are $1$\% worse than the baseline,
-    \heftmm $19$\% worse.
-    For middle-sized ones \heftmm is $12.3$\% worse, the rest is also $1-2$\% worse.
-    For the big workflows however, the results of \heftbl and \heftblc are $<1$\% worse and \heftmm is only $9$\% worse.
+    The excess makespans produced by the heuristics are shown in Figure~\ref{fig:excess-ms}.
+    On the normal cluster and among small workflows, the makespans produced by \heftbl and \heftblc are virtually indistinguishable
+    from those of the baseline (no change and $0.4$\% change), while \heftmm produces  $18$\% worse makespans.
+    For middle-sized ones \heftmm is $9$\% worse,  \heftblc $0.9$\% worse.
+    For the big workflows however, while results of \heftbl and \heftblc are still barely worse ($<1$\% worse),
+     \heftmm is only $5.8$\% worse.
     The heuristics pay off more on larger workflows.
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.495\columnwidth] {images/ms-relative-3groups}
+        \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm for different . Smaller is better.}
+       \label{fig:excess-ms}
+        \vspace{-0.3cm}
+    \end{figure}
     \subsubsection{Memory usage}
     Minimizing memory usage is an interesting measure of the quality of the solution produced by a heuristic.
     We studied the average peak memory consumption in our cluster.
