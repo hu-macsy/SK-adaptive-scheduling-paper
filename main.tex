@@ -466,9 +466,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
     We set the number of each kind of node to six, thus having 36 processors in total. % the whole cluster.
 
-        Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
-        ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines; ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and large memory
-        (see Table~\ref{tab:procs} in Appendix~\ref{sub:appx-cluster-config}~\cite{daghetpart_full_version}).
+    Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
+    ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines; ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and large memory
+    (see Table~\ref{tab:procs} in Appendix~\ref{sub:appx-cluster-config}~\cite{daghetpart_full_version}).
     Note that, by nature,
     memory sizes are normalized values, relative to each other, too.
     Therefore, we additionally normalize memory weights of real-world workflows
@@ -480,7 +480,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     To test various settings, we also vary the cluster configuration and consider
     variants of the default cluster presented above:\\
     $\bullet$ {\em Small} and {\em large} clusters. While the default cluster consists of 36 nodes (6 of each kind), we
-    consider a small cluster with one processor of each kind ($6$ processors in total), and a
+    consider a small cluster with three processors of each kind ($18$ processors in total), and a
     large cluster with ten processors of each kind ($60$ processors in total). \skug{leaving the big cluster inside for
     the case we do want to include it}\\
     $\bullet$ {\em Fat-and-thin} cluster. In this cluster, the fastest processors have the smallest amount of memory (thin),
@@ -524,12 +524,19 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     and for the big workflows, the makespan is not improved by ``spreading'' the workflow more.
 
     \subsubsection{Impact of cluster size}
-    On a cluster with only 6 processors (1 of each kind), the baseline makes more failures: from $43.4$\%  (small workflows)
-    to $88.9$\% (mid-sized) and $94.4$\% (big workflows).
-    These values also become more unattainable: the makespans heuristics produce are worse by $3-12$\% (\heftbl) to $12-52$\%
-    (\heftmm).
-    However, these comparisons are less expressive, because most of baseline solutions are invalid.
-    \skug{TODO: add numbers about failures on the small cluster with the fixed bug}
+    On a cluster with only $18$ processors ($3$ of each kind), the baseline makes more failures: from $43.8$\%  (small workflows)
+    to $77.8$\% (mid-sized) and $88.9$\% (big workflows).
+    At the same time, each heuristic is unable to schedule one big workflow and one middle-sized one.
+    On the workflows that they are able to schedule, \heftbl and \heftblc produce makespans that are $<1$\% bigger than
+    those of the baseline on small and middle-sized workflows.
+    On the big workflows, they produce makespans that are $3.5$\% and $2.3$\% bigger respectively.
+    The performance of \heftmm improves more with workflow size: it goes from producing $16$\% bigger makespans on small
+    workflows, to $8$\% on middle-sized ones, to $7$\% on big workflows.
+
+   Like in the normal cluster, \heftmm again consistently shows smaller peak memory usage in the cluster.
+    It utilizes on average $15$\% of memory on small workflows ($17.7$\% for \heftbl and \heftblc),
+    $31$\% on middle-sied workflows ($45.2$\% and $44.9$\% on \heftbl and \heftblc, respectively),
+    and $34$\% on big workflows ($50.1$\% and $50.2$\% for \heftbl and \heftblc).
 
     \subsubsection{Impact of cluster composition}
     On the {\em fat-and-thin} cluster, the baseline produces $60$\% invalid results on small workflows, $83.3$\% on
