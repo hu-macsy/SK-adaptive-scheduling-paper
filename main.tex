@@ -69,7 +69,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     \begin{abstract}
         \skug{Fullness score (how much text is available): 0-none to 5 - everything.
 
-        Polishedness scroe (how well-written is the chapter): 0 messy - 5 very clean.
+        Polishedness score (how well-written is the chapter): 0 messy - 5 very clean.
         }
         TODO: Insert abstract
     \end{abstract}
@@ -234,53 +234,186 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \section{Related work: \skug{Full: 4, Polished: 0}}
 
-    \paragraph{HEFT-based algorithms}
+    We discuss relevant scheduling approaches that either reuse processors, or respect memory requirements of the processors.
 
-    Introduced in 2002, HEFT~\cite{topcuoglu2002performance} has become a base for multiple heuristics in workflow (~\cite{SHI2006665, SANDOKJI2019482}) scheduling
-    and in cloud-oriented environments(\cite{samadi2018eheft}).
-    HEFT is even combined with reinforcement learning techniques(\cite{yano2022cqga}).
+    \subsection{Early list schedulers with unlimited processors}
+    An entire cluster of works on list schedulers has been carried out as early as the 90s.
+    They all assume a DAG-shaped workflow with makespan weights on tasks, and an unlimited amount of homogeneous processors
+    with the speed of 1.
 
-    HEFT-based or list-based heuristics are more applicable to very large workflows in comparison to greedy
-    or exact algorithms(~\cite{de2012provenance},~\cite{rahman2013}).
+    The \textit{task duplication}-based approaches note that sometimes running a task twice on different machines can
+    help reduce the makespan by saving communication costs.
+    The two approaches are scheduling with the partial duplication~(SPD), and withe the full duplication~(SFD).
+    For a join task (a task whose incoming degree is larger than its outgoing degree), SPD finds a critical immediate
+    parent (the one that gives the largest start time to the join task) and duplicate only it.
+    SFD duplicates all parents of a join node.
+    \cite{dfrn1997} is a task duplication algorithm.
+    The authors duplicate first (create copies of all parent tasks) and then reduce (remove) the ones that can be removed without harming
+    the makespan.
+    The critical path fast duplication algorithm \texttt{CPFD}~\cite{5727760} classifies tasks into three categories: a critical
+    path task, and in-branch task, or out-branch task.
+    It schedules critical path tasks first, then in-branch tasks.
+
+    Linear clustering~\cite{KWOK1999381} acts on critical paths in the workflow.
+    It assigns the current critical path to one processor, removes all these tasks from the workflow, recomputes the critical
+    path and repeats the procedure.
+    \texttt{Heaviest node first} algorithm~\cite{SHIRAZI1990222} assigns the tasks level by level, and in each level,
+    schedules the heaviest (with largest computation time)  ones first.
 
 
-    \paragraph{Memory-aware scheduling algorithms}
-    Incorporating processor memory sizes into the scheduling problem is another layer of complexity in a scheduling problem.
+    \subsection{Static list schedulers, especially HEFT-based algorithms}
 
-    Different models of memory available on processors and memory requirements of tasks.
-    The most straightforward memory representations assume no memory requirement on tasks of the workflow and single
-    memories on each processor(\eg~\cite{rodriguez2019exploration}).
-    In an assumed dual-memory systems(\cite{herrmann2014memory}) a processor can have access to a memory of two different kinds,
-    and each task can be executed on one sort of memory.
+    Introduced in 2002, HEFT~\cite{topcuoglu2002performance} is a list-based heuristic.
+    It and all its successors consist of two phases: task ordering, and task assignment.
+    In the first phase, the algorithms compute bottom levels of the tasks based on some priorities (create the list),
+    and then schedule tasks in the order of these priorities.
+    The modifications of HEFT revolve around the way the priorities of tasks are computed, and the logic
+    of processor assignment.
+    All such algorithms assume a heterogeneous execution environment.
+
+    So, during task prioritization phase~\cite{sulaiman2021hybrid} compute the standard deviation of the computation cost
+    (between processors) and add it to the mean value to account for the differences between processor speeds.
+    In the processor choice phase, they duplicate the entry task and the longest parent tasks during idle times on the processor.
+
+    \cite{alebrahim2017task} compute a the bottom level based on the difference of execution times on
+    the fastest and the slowest processors, divided by the speedup (speeds ratio) of these two processors.
+    When doing processor selection, the authors differentiate between the lowest execution time and earliest finishing time.
+    They choose the processor with the lowest execution time, and cross over to other processors sometimes.
+    They build upon~\cite{shetti2013optimization}.
+
+    PEFT (Predict earliest finish time) algorithm~\cite{arabnejad2014list} is a HEFT variant that computes an Optimistic
+    Cost Table OCT.
+    OCT is computed per task-processor pair and stores the longest shortest path from this task to the target task, if this
+    processor is chosen for this task.
+    Ranking is based on OCT values.
+    Processor choice stage minimizes the Optimistic EFT, which is EFT plus the the longest path to the exit node for each task.
+
+    The HSIP (Heterogeneous Scheduling with Improved task Priorities)~\cite{wang2016hsip} has an improved first step in
+    comparison to HEFT.
+    It combines the standard deviation with the communication cost weight on the tasks.
+    In the second stage, the algorithm duplicates the entry task if there is a need for it.
+
+    The TSHCS (Task Scheduling for Heterogeneous Comupting Systems) algorithm~\cite{alebrahim2017task} improves on HEFT
+    by adding randomized decisions to the second phase.
+    The decision is whether the task be assigned to the processor with the lowest execution time or to the processor that
+    produces the lowest finish time.
+
+    The \texttt{SDC} algorithm~\cite{SHI2006665} considers the percentage of feasible processors in addition to task’s
+    average execution cost in its weight.
+    The selected task is then assigned to a processor which minimizes its Adjusted Earliest Finish Time (AEFT) that
+    additionally notes how large the communication between current node and its children will be on the
+    average provided that it is scheduled on the current processor.
+
+
+    HEFT  can also be adapted in cloud-oriented environments~\cite{samadi2018eheft} and even combined with reinforcement
+    learning techniques(\cite{yano2022cqga}).
+
+    \subsection{Memory-aware scheduling algorithms}
+    Respecting processor memories adds a constraint to a scheduling problem.
+    Therefore, only specifically memory-targeted algorithms address this issue.
+    Moreover, the way processor memories are represented in the model has a decisive impact on the way the constraint
+    is formulated and addressed in the algorithm.
+
+    Different models of memory available on processors and memory requirements of tasks have been presented.
+
+    Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each processor has an individual memory available.
+    Workflow tasks have no memory requirements, but they have input and output files that need to be stored in the memory.
+    A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a DAG is provided,
+    as well as an ILP solution to the scheduling problem.
+    The memory model requires deleting all input data upon starting of the task and adding all output files there.
+
+    In an assumed dual-memory systems(\cite{herrmann2014memory}) a processor can have access to a memory of two different
+    kinds (red or blue), and each task can be executed on only one sort of memory.
+    The communications happen only between these two kinds of processors (communications withing each group are ignored).
+    The authors then formulate an ILP solution for this problem formulation.
+
+    The algorithm presented by Yao \etal~\cite{yao2022memory}, each processor has an own internal memory and all
+    processors share a common external one. The internal (local) memory is used to store the task files.
+    The external memory is used to store evicted files to make room for the execution of a task on a processor.
+    All processors, including the original one, can access these files.
+    Each edge in~\cite{yao2022memory} has two weights -- the size of the files transferred along it,
+    and the time of communication along this edge.
+    The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
+
+    \cite{ding2024ils} assumes connected processors with individual limited memories.
+    The collective set of memories forms the global memory, to which each processor has access, however the access time
+    to global memory is different.
+    Each memory access in the graph is modelled as a memory access token on the task, while the edges have no weights.
+    The solved problem is how to allocate initial input data in processor memories so that the overall
+    execution is minimized and the memories are not exceeded.
+    They propose an integer linear programming model.
+    %that minimizes the length of the critical path, including a greedy initial solution.
+
+    In~\cite{rodriguez2019exploration}, the authors assume memory requirement on tasks represented as tiles.
+    Each processor has individual memories to process the task, but only the shared memories store the tiles containing
+    memory tiles occupied by memory tiles.
+
+
     Cloud-oriented model can include costs associated with memory usage(\cite{liang2020memory}).
 
+    \subsection{Dynamic/adaptive algorithms}
 
-    The algorithm presented by Yao \etal~\cite{yao2022memory} looks similar to our heuristics on the first glance, but the
-    model the authors adopt differs from the one assumed in this paper.
-    The biggest difference is in the way processor memory is represented.
-    In their model, each processor has an own internal memory and all processors share a common external one.
-    The internal (local) memory is used to store the task files.
-    The external memory is used to store evicted files to make room for the execution of a task on a processor.
-    Yet, and this marks the decisive difference to our approach: once the files have been evicted into the communication
-    buffer in our approach, they can only be transferred to another processor.
-    In~\cite{yao2022memory}, in turn, the same processor can evict files and then take them back.
-    This makes the approach not directly comparable with ours.
-    Other differences in the model include edge weights in the workflow graph.
-    Each edge in~\cite{yao2022memory} has two weights -- the size of the files transferred along it,
-    and the time of communication along this edge, while we assume a single weight that represents file size and also
-    determines the transfer time (along with the bandwidth).
-    The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
-    They assume that the {\em minimum} local memory should be bigger than the memory requirement of the largest task.
+    DVR HEFT~\cite{SANDOKJI2019482} uses an almost unchanged HEFT algorithm in their static step, executing three slightly
+    varying variants of task weighting and choosing the variant that gives the best overall makespan.
+    In the dynamic phase, they receive new tasks and schedule them on either idle processors or those processors that give them
+    the earliest finish time.
+    Task failures are not covered.
 
-\todo[inline]{TBD (HM): Still, wouldn't an empirical comparison make sense from a reviewer's point of view?}
+    Rahman~\etal~\cite{rahman2013}'s dynamic critical path (DCP) algorithm for grids maps tasks to machines
+    by calculating the critical path in the graph dynamically at every step.
+    %For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
+    %on the start time of a task (differing by the slack this task has).
+    %All tasks on this critical path have the same earliest and latest start times, because they cannot be delayed.
+    They schedule the first task on the critical path to the best suitable processor and recompute the critical path.
+    %The algorithm takes the first unscheduled task on the critical path each time and maps it on a processor identified for it.
+    %If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum
+    %execution time for the task is chosen.
+    The heuristic also uses the same processor to schedule parent and children tasks, as to avoid data transfer between processors.
+    The approach is evaluated on random workflows of the size up to 300 tasks.
 
-    \paragraph{Dynamic case}
-    Wang et al.~\cite{wang2019dynamic} proposes a dynamic particle swarm optimization algorithm to schedule workflows in a cloud.
+
+    Garg~\etal~\cite{GARG2015256} propose a dynamic scheduling algorithm for heterogeneous grids based on rescheduling.
+    The procedure involves building a first (static) schedule, periodic resource monitoring and rescheduling the remaining
+    tasks.
+    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
+    For each resource group, there is an own scheduler, and an overall global scheduler responsible for distributing
+    tasks to groups.
+    The static heuristic is HEFT with earliest start time as priority.
+    Upon rescheduling, a new mapping is calculated from scratch, and this mapping is accepted if the resulting makespan
+    is smaller than the previous one.
+    The experiments were conducted on a single workflow with 10 tasks.
+%
+    % The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
+    %The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.
+
+    %The algorithm first computes bottom levels for all tasks (execution time is average of all possible execution times).
+    %THe bottom level represents the priority of the task, and tasks are sorted according to these priorities.
+    %They then go through tasks and map than to such processors that minimize the earliest start times of this task's
+    %successors.
+    %To do this, the authors calculate the earliest finishing time of the task across all ressources, along with the
+    %average communication and computation costs fir the dependent tasks.
+    %
+    %The rescheduling is triggered when either a load on a resource increases over a threshold, or if a new resource
+    %is added.
+
+
+    Most dynamic or adaptive algorithms are formulated for clouds, where the execution environment is not fixed,
+    but constrained by cost.
+
+    Wang et al.~\cite{wang2019dynamic} propose a dynamic particle swarm optimization algorithm to schedule workflows in a cloud.
     Particles are possible solution in the solution space.
     However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
-    Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
-    However, the approach is for clouds.
-    \xspace
+    Similarly, Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
+
+    De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
+    for clouds.
+    They solve a set of linear equations that represent the cost of an execution based on the criteria.
+    The authors test out 4 scenarios - one preferring each criteria, and a balanced one.
+    The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
+    The authors used workflows with less than 10 tasks, but repeated them so that the execution had up to 200 tasks.
+    %They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
+ %   The authors use provenance data to make scheduling decisions.
+
 
     Daniels et al.~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
     on a single machine.
@@ -290,72 +423,46 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     performance measure $\phi$.
     Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
 
-    De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling heuristic
-    for clouds.
-    Based on a 3-objective cost model, their greedy scheduling algorithm schedules tasks into machines.
-    The authors use provenance data to make scheduling decisions.
-    The cost model is a set of linear equations computed in the simulation environment, it represents the cost of an execution based on the criteria.
-    In the algorithms, the authors test out 4 scenarios - one preferring each criteria, and a balanced one.
-    The algorithm merely chooses the best virtual machine for each next task based on the cost given by the model.
-    An additional algorithm combines several cloud activities (task executions) into one to improve the cost, so that each
-    execution is not too small (utilize the granularity factor, the smallest entity of payment of the cloud producer).
-    The authors used workflows with less than 10 tasks, but repeated them so that the execution had up to 200 tasks.
-    They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
+    \subsection{Other notable works}
 
-    Rahman~\etal~\cite{rahman2013} propose a scheduling heuristic for grids that proposes mapping of tasks to machines by calculating
-    the critical path in the graph dynamically at every step.
-    They call it the dynamic critical path (DCP).
-    For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
-    on the start time of a task (differing by the slack this task has).
-    All tasks on this critical path have the same earliest and latest start times, because they cannot be ddelayed.
+    \cite{palis1996task} present a clustering-based scheduling algorithm for a parallel execution and prove its quality.
+    They utilize task duplication when creating the clusters (grains).
+    Their scheduler then maps clusters to processors.
+    They assume unlimited processors with the speed of 1.
+    For each task, they compute the earliest starting time and find a cluster, where this tasks's start time is as close
+    to it as possible.
+    %The cluster growing algorithm adds one task to the cluster at a time, by adding tasks in nondecreasing order of
+    %release times.
 
-    The algorithm takes the first unscheduled task on the critical path each time and maps it on a processor identified for it.
-    If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum execution time for
-    the task is chosen.
-    The heuristic also uses the same processor to schedule parent and children tasks, as to avoid data transfer between processors.
-    The authors evaluate their approaches on random workflows of the size up to 300 tasks.
-
-    The authors provide an overview over (simpler) scheduling heuristics.
-    For example, GRASP (generally randomized adaptive search procedure) conducts a number of iterations to search an optimal
-    solution for mapping tasks on machines.
+    GRASP (generally randomized adaptive search procedure)~\cite{feo1989probabilistic} conducts a number of iterations
+    to search for an optimal solution for mapping tasks on machines.
     A solution is generated at each step, and the best solution is kept at the end.
     The search terminates when a certain termination criterion is reached.
     It generates better results than other algorithms, because it explores the whole solution space.
 
     Avanes~\etal\cite{avanes2008adaptive} present a heuristic for networks in disaster scenarios.
     These networks are a set of DAG-shaped scenarios, out of which one needs to be executed.
-    The scenario contains AND- and OR-branches, where AND-branches indicate acitivities that need to be executed in parallel.
-
-    The heuristic first partitions the set into local schedules by using affinity matrices to determine similar
-    activities and group them together.
-    Then they physically allocate these partitions to groups of disaster responders and tasks within this group.
-    They define a constraint system for that.
-    The dynamic part deals with changes and distinguishes between retriable and compensation acitivities.
+    The scenario contains AND- and OR-branches, where AND-branches indicate activities that need to be executed in parallel.
+    The heuristic first determines similar activities and groups them together.
+    Then they allocate these groups to disaster responders and tasks within this group according to a constraint system.
+    The dynamic part deals with changes and distinguishes between retriable and compensation activities.
     The heuristic calculates a new execution path with these tasks.
-    In general, this heuristic is not as related as it looks, because of very specific workflow and task structure.
 
-    Garg~\etal~\cite{GARG2015256} propose a dynamic scheduling algorithm for heterogeneous grids based on rescheduling.
-    The aim is to minimize the makespan, and the experiments were conducted on a single wotkflow with 10 tasks.
-    The procesdure involves building a first (static) schedule, priodic resource monitoring and rescheduling the remaining
-    tasks.
-    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
-    For each resuorce group, there is an own scheduler, and an overall global scheduler responsible for distributing
-    tasks to groups.
-    The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
-    The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.
 
-    The algorithm first computes bottom levels for all tasks (execution time is average of all possible execution times).
-    THe bottom level represents the priority of the task, and tasks are sorted according to these priorities.
-    They then go through tasks and map than to such processors that minimize the earliest start times of this task's
-    successors.
-    To do this, the authors calculate the earliest finishing time of the task across all ressources, along with the
-    average communication and computation costs fir the dependent tasks.
+    \cite{lutke2024hetsim} is a scheduling simulator that models heterogeneous software with memory and accelerator
+    (processor) speed heterogeneity.
+    Each accelerator has its own memory that can be zero.
+    Each accelerator's characteristics depend on the task it runs and are not fixed.
 
-    The rescheduling is being triggered when either a load on a resource increases over a threshold, or if a new resource
-    is added.
-    The algorithm produces a new mapping from scrath, and this mapping is being accepted if the resulting maespan is
-    smaller than the previously predicted one.
 
+
+
+    \cite{meng2018traffic} investigate scheduling on multi-core chips.
+    Their model is far from ours.
+
+
+    An online scheduling algorithm~\cite{Witt2018POS} assumes a DAG-structured workflow and learns task characteristics.
+    They prioritize tasks that have failed before or are well-predictable.
 
     \section{Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
 
@@ -758,7 +865,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \section{Conclusion  \skug{Full: 0, Polished: 0}}
 
-    \bibliographystyle{IEEEtran}
+    \bibliographystyle{apalike}
     \bibliography{references}
 
 \end{document}
