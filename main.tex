@@ -45,7 +45,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-    \title{Adaptive Scheduling of Scientific Workflows\\
+    \title{Memory-aware Adaptive Scheduling of Scientific Workflows On Heterogeneous Architectures\\
 %{\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
 %should not be used}
     % \thanks{Identify applicable funding agency here. If none, delete this.}
@@ -736,6 +736,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     workflows are scheduled.
 
     \subsubsection{Workflow instances}
+    \skug{Todo: describe the workflows the same asin the abstract}
     The input data for the experiments consists of two sets of workflows: real-world workflows
     obtained from~\cite{ewels2020nf} and workflows obtained by simulating real-world workflows
     with the WFGen generator~\cite{COLEMAN202216}.
@@ -793,6 +794,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
     \subsubsection{Target computing systems}
+    \skug{Check that the description of speeds and memories is plausible and consistent with experimental setup. esp check for 19200 -> 192 GB.}
     To fully benefit from the historical data, the  {\em default} experimental environment
     that we consider is a cluster based on the same six
     kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
@@ -823,7 +825,8 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
     \subsection{Results \skug{Full: 3, Polished: 2}}
-    \subsubsection{Normal cluster}
+    \subsubsection{Static experiments}
+    \paragraph{Normal cluster}
 
     On the normal cluster, the baseline produces invalid results in $40$\% of small workflows and $66.6$\% of middle-sized
     and big workflows.
