@@ -75,13 +75,13 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
         certain amount of memory to be executed and needs to communicate data to its successor tasks.
         The goal is generally to execute the workflow  as fast as possible (i.e., to minimize its makespan), 
         while satisfying the memory constraints.  
-        Hence, we investigate the memory-aware scheduling of DAG-shaped workflows onto 
+        Hence, we investigate the memory-aware scheduling of DAG-shaped workflows on 
         heterogeneous platforms, where each processor can have a different speed and a different memory size.
-        We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that accounts for memory, and 
-        that includes eviction strategies for cases when it might be beneficial to remove some data from memory
+        We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that (in contrast to the original) accounts for memory and 
+        includes eviction strategies for cases when it might be beneficial to remove some data from memory
 	in order to have enough memory to execute other tasks.
 %
-	Furthermore, while HEFT assumes a perfect knowledge of the execution time and memory usage
+	Furthermore, while HEFT assumes perfect knowledge of the execution time and memory usage
 	of each task, the actual values might differ upon execution. Thus, we propose an adaptive
 	scheduling strategy, where a schedule is recomputed when there has been a significant variation in terms
 	of execution time or memory. 
