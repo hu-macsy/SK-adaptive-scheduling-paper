@@ -68,42 +68,55 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \begin{abstract}
 
-        Scheduling scientific workflows is important. (\skug{can't imagine a good first sentence})
-        They are often represented as directed acyclic graphs (DAGs),
+        %Scheduling scientific workflows is important. (\skug{can't imagine a good first sentence})
+        Scientific workflows are often represented as directed acyclic graphs (DAGs),
         where vertices correspond to tasks and edges represent the dependencies between them.
-       % Since these graphs are often large in both the number of tasks and their resource requirements, it is important
-       % to schedule them efficiently on parallel or distributed compute systems.
         Typically, each task requires a
         certain amount of memory to be executed and needs to communicate data to its successor tasks.
-        The goal is thus to execute the workflow  as fast as possible (i.e., to minimize its makespan) while satisfying the memory constraints.  %and using parallelism to speed up the execution.
+        The goal is generally to execute the workflow  as fast as possible (i.e., to minimize its makespan), 
+        while satisfying the memory constraints.  
+        Hence, we investigate the memory-aware scheduling of DAG-shaped workflows onto 
+        heterogeneous platforms, where each processor can have a different speed and a different memory size.
+        We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that accounts for memory, and 
+        that includes eviction strategies for cases when it might be beneficial to remove some data from memory
+	in order to have enough memory to execute other tasks.
+%
+	Furthermore, while HEFT assumes a perfect knowledge of the execution time and memory usage
+	of each task, the actual values might differ upon execution. Thus, we propose an adaptive
+	scheduling strategy, where a schedule is recomputed when there has been a significant variation in terms
+	of execution time or memory. 
+%	
+	The scheduler has been closely integrated with a runtime system, allowing us to perform a thorough
+	experimental evaluation on real-world workflows. The runtime system warns the scheduler when 
+	the task parameters have changed, and a schedule can be recomputed on the fly. The memory-aware
+	strategy allows us to schedule task graphs that would run out of memory with a state-of-the-art
+	scheduler, and the adaptive setting allows us to significantly reduce the makespan. 
+	   
+%                when tentatively assigning tasks, in order to 
+%        Its first step is to compute the weights of the tasks.
+%        We suggest three variants: bottom levels as weights, bottom levels with impact of incoming edge weight,
+%        and weights along the optimal memory traversal.
+%        In the second step, we try assigning each task to each processors and execute the assignment that
+%        is feasible with regard to memory size and gives the earliest finishing time to the task.
+%        Sometimes, data corresponding to edge weights that is stored in the memory needs to be evicted in order to
+%        assign a task to a processor.
+%        We suggest two eviction strategies - largest files first and smallest files first.
 
-        Hence, we investigate adaptive memory-aware scheduling  of DAG-shaped workflows onto heterogeneous platforms where
-        each processor can have a different speed and a different memory size.
-        We propose a two-step HEFT-inspired heuristic.
-        Its first step is to compute the weights of the tasks.
-        We suggest three variants: bottom levels as weights, bottom levels with impact of incoming edge weight,
-        and weights along the optimal memory traversal.
-        In the second step, we try assigning each task to each processors and execute the assignment that
-        is feasible with regard to memory size and gives the earliest finishing time to the task.
-        Sometimes, data corresponding to edge weights that is stored in the memory needs to be evicted in order to
-        assign a task to a processor.
-        We suggest two eviction strategies - largest files first and smallest files first.
-
-        Our experimental evaluation on real-world workflows and simulated (\skug{generated? They are generated from real-world wfs})
-        ones with real task and edge weights with up to 30,000 tasks shows that
-        respecting memory constraints only costs $11\%$ of runtime in comparison to a non memory-aware baseline.
-        Calculating task weights with the impact of memory gives a $x\%$ better makespans on a normal and $y\%$ better makespans
-        on small one.
-        Calculating task weights along the optimal memory traversal gives on average $z\%$ worse makespans, but improves
-        average memory utlization by $t\%$.
+%        Our experimental evaluation on real-world workflows and simulated (\skug{generated? They are generated from real-world wfs})
+%        ones with real task and edge weights with up to 30,000 tasks shows that
+%        respecting memory constraints only costs $11\%$ of runtime in comparison to a non memory-aware baseline.
+%        Calculating task weights with the impact of memory gives a $x\%$ better makespans on a normal and $y\%$ better makespans
+%        on small one.
+%        Calculating task weights along the optimal memory traversal gives on average $z\%$ worse makespans, but improves
+%        average memory utlization by $t\%$.
 
 
 
     \end{abstract}
 
-    \begin{IEEEkeywords}
-        Scheduling, Adaptive Scheduling, DAG
-    \end{IEEEkeywords}
+%    \begin{IEEEkeywords}
+%        DAG, Heterogeneous platform, Adaptive scheduling, Memory constraint.
+%    \end{IEEEkeywords}
 
     \section{Introduction: \skug{Full: 0, Polished: 0}}
 
