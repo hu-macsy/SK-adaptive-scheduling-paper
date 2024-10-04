@@ -143,12 +143,14 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     We find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
 
 
-    \section{Model: \skug{Full: 4, polished: 3}}
+    \section{Model} %: \skug{Full: 4, polished: 3}}
 
-    We first describe the target applications, which are (large scientific) workflows,
+    We first describe the target applications, which are (large scientific) workflows for which we
+    do not have a perfect a priori knowlodge,
     in Section~\ref{sec.mod.work}.  Next, we define the execution
     environment, a heterogeneous system (in terms of processor speed and memory size),
-    in Section~\ref{sec.mod.plat}.
+    in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
+    Section~\ref{sec.mod.pb}. The key notations are summarized in Table~\ref{tabnotation}. 
 
     \subsection{Workflow}
     \label{sec.mod.work}
@@ -157,20 +159,32 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     Each task~$u \in V$  is performing $w_u$ operations, and it also
     requires some amount of memory to be executed, denoted as~$m_u$.
     Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
-
-    Hence, the total  memory requirement for the execution of task~$u$ consists of the input files
+   Note that $m_u$ is the total memory usage
+    of a task during its execution, including input and output files currently being read and written, 
+    and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
+    between the input files
     (total size of the files to be received from the parents),
     the output files (total size of the files to be sent to the children),
-    and the memory size~$m_u$:
+    and the total memory size~$m_u$ (usually achieving the maximum):
     \[
-        r_u = m_u + \sum_{v:(v,u)\in E}c_{v,u} + \sum_{v:(u,v)\in E} c_{u,v}.
+        r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
     \]
+\AB{I transformed the sum into a max, correct? Or maybe we could assume $r_u=m_u$? }
 
     The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
     $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
     The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
     $ \children{u} = \{v \in V: (u,v) \in E\}$. A task without children is called a {\it target task}.
     Each task may have multiple parents and children.
+
+
+Furthermore, we place ourself in a context where we do not have a perfect knowledge 
+of the task parameters ($w_u$ and $m_u$) before they start their execution,
+but only estimates. \AB{Add motivation: related work with variable task durations for instance...}
+Hence, scheduling decisions are made on these estimated parameters, and
+may be reconsidered at runtime when a task starts its execution and we know
+its exact parameters. 
+
 
     \subsection{Execution environment}
     \label{sec.mod.plat}
@@ -225,57 +239,71 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
         \caption{Notation} \label{tabnotation}
     \end{table}
 
-    \paragraph{Workflow-related changes}
-
-    \begin{itemize}
-        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
-        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
-
-    \end{itemize}
-
-    The following changes are not a part of this article's scope:
-
-    \begin{itemize}
-        \item The workflow structure changes: edges or tasks come in or leave.
-    \end{itemize}
-
-    \paragraph{Execution environment-related changes }
 
 
-    \begin{itemize}
-        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
-        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
+\subsection{Optimization problem}
+\label{sec.mod.pb}
 
-    \end{itemize}
+The goal is to find a schedule of the DAG~$G$ onto the $k$ processors, 
+so that the makespan (total execution time) is minimized while
+respecting memory constraints. If a processor runs out of memory to execute
+a task, the schedule is said to be {\em invalid}. 
 
-    The following changes are not a part of this article's scope:
+Since tasks are subject to variability, we aim at minimizing the actual makespan
+achieved at the end of the execution, while decisions may be taken building
+on the estimated task parameters. 
 
-    \begin{itemize}
-        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
-    \end{itemize}
-
-    \subsection{Time of changes }
-
-    We consider discrete time in seconds.
-    The time point(s) at which the changes happen is unambiguously defined.
-
-    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
-    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
-    The start time of the source task in the workflow is zero.
-    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
-
-    \subsection{Changes and knowledge horizon - important questions TBA}
-
-    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
-
-    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
-    However, how do we model the following:
-    \begin{itemize}
-        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
-        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
-        \item How many times of change do we model - one per workflow run, or multiple?
-        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
-    \end{itemize}
+%    \paragraph{Workflow-related changes}
+%
+%    \begin{itemize}
+%        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
+%        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
+%
+%    \end{itemize}
+%
+%    The following changes are not a part of this article's scope:
+%
+%    \begin{itemize}
+%        \item The workflow structure changes: edges or tasks come in or leave.
+%    \end{itemize}
+%
+%    \paragraph{Execution environment-related changes }
+%
+%
+%    \begin{itemize}
+%        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
+%        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
+%
+%    \end{itemize}
+%
+%    The following changes are not a part of this article's scope:
+%
+%    \begin{itemize}
+%        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
+%    \end{itemize}
+%
+%    \subsection{Time of changes }
+%
+%    We consider discrete time in seconds.
+%    The time point(s) at which the changes happen is unambiguously defined.
+%
+%    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
+%    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
+%    The start time of the source task in the workflow is zero.
+%    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
+%
+%    \subsection{Changes and knowledge horizon - important questions TBA}
+%
+%    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
+%
+%    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
+%    However, how do we model the following:
+%    \begin{itemize}
+%        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
+%        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
+%        \item How many times of change do we model - one per workflow run, or multiple?
+%        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
+%    \end{itemize}
 
 
     \section{Related work: \skug{Full: 5, Polished: 4}}
@@ -510,35 +538,48 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     An online scheduling algorithm~\cite{Witt2018POS} assumes a DAG-structured workflow and learns task characteristics.
     They prioritize tasks that have failed before or are well-predictable.
 
-    \section{Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
+    \section{Scheduling heuristics} %Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
+\label{sec.heuristics}
 
-    The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
-    but favor processor reuse as is done in HEFT.
-    Furthermore, this would allow us to handle variability on the fly, by updating
-    the bottom levels if some parameters vary, and computing the schedule
-    only for the near future...
+%    The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
+%    but favor processor reuse as is done in HEFT.
+%    Furthermore, this would allow us to handle variability on the fly, by updating
+%    the bottom levels if some parameters vary, and computing the schedule
+%    only for the near future...
+
+In order to be able to easily adapt to variability of task parameters, we design
+variants of HEFT that account for memory usage and aim at minimizing the makespan. 
+First, we present in Section~\ref{sec.heft} the baseline HEFT heuristic that does not account for the memory
+(and hence, may return invalid schedules that will not be able to run on the platform
+by running out of memory).  Then, Section~\ref{sec.heftm} focuses on the presentation of the novel
+heuristics, including eviction strategies to move some data in communication buffers
+in case there is not enough memory available on some processors. 
 
     \subsection{Baseline: original HEFT without memories}
+\label{sec.heft}
 
     Original HEFT does not consider memory sizes.
     The solutions it provides can be invalid if it schedules tasks to processors without sufficient memories.
     However, these solutions can be viewed as a ``lower bound'' for an actual solution that considers memory sizes.
 
-    HEFT works in two steps.
-    In the first step, it calculates the ranks of tasks by computing their non-increasing bottom levels.
+    HEFT works in two stages.
+    In the first stage, it computes the ranks of tasks by computing their non-increasing bottom levels.
     The bottom level of a task is defined as
     $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
     (the max is 0 if there is no outgoing edge).
     The tasks are sorted by non-decreasing ranks.
 
-    In the second step, the algorithm iterates over the ranks and tries to assign the task to the processor where it
+    In the second stage, the algorithm iterates over the ranks and tries to assign the task to the processor where it
     has the earliest finish time.
-    We tentatively assign each task to each processor.
-    The task's starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
+    We tentatively assign each task~$v$ to each processor~$j$.
+    The task's starting time $st_v$ is dictated by the maximum between the ready time of the processor~$rt_j$, 
+    and all communications that
     must be orchestrated from predecessor tasks $u\notin T(p_j)$.
-    The starting time is then
-    \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]
-    Its finish time on $p_j$ is then
+    The starting time is then:
+    
+ {\footnotesize{   \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]}}
+ 
+    Finally, its finish time on $p_j$ is 
     $FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
 
     Once we have computed all finish times for task~$v$,
@@ -551,34 +592,48 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
     communication time $c( u,v) / \beta$.
 
-    \subsection{Heuristics}
-    Like the original HEFT, our heuristic consistst of two steps: first, computing task ranks,
-    and second, assigning tasks to processors in the order defined in the first step.
-    We consider three variants of HEFT accounting for memory usage, which only
-    differ in the order they consider tasks to be scheduled.
+    \subsection{Memory-aware heuristics}
+    \label{sec.heftm}
+    Like the original HEFT, the memory-aware versions of HEFT consist of two stages: 
+    first, they compute the task ranks,
+    and second, they assign tasks to processors in the order defined in the first step.
+    We consider three variants of HEFT accounting for memory usage (HEFTM), which only
+    differ in the order they consider tasks to be scheduled in the first stage. 
 
-    \subsubsection{Step 1: calculate task ranks}
+\smallskip
+    \noindent{\bf Compute task ranks. }
 
-    HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
+We design three variants of memory-aware HEFT: 
+\begin{itemize}
+\item    HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
     level is defined as
     $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
     (the max is 0 if there is no outgoing edge).
 
-    HEFTM-BLC: from the study of the fork (see below), it seems important
-    to also account for the size of the data as input of a task,
-    to give more priority at tasks with potential large incoming communications.
-    For each task, we compute its modified bottom level:
+\item    HEFTM-BLC %: from the study of the fork (see below), it seems important
+   %  to also account for the size of the data as input of a task,
+    is  giving more priority at tasks with potential large incoming communications, 
+    hence aiming at clearing the memory used by files as soon as possible, 
+    to have more free memory for remaining tasks to be executed on the processor. 
+    Therefore, for each task, we compute a modified bottom level accounting for communications: 
     $$blc(u) = w_u + \max_{(u,w)\in E} \{c_{u,w} + blc(w)\} + \max_{(v,u)\in E} c_{v,u}   . $$
 
-    \skug{avoid having mixed ranks, when the memory size of the lower task is not taken into account}
+%    \skug{avoid having mixed ranks, when the memory size of the lower task is not taken into account}
 
-    HEFTM-MM orders tasks as dictated by MinMem.
+\item   Finally, HEFTM-MM orders tasks  in the order returned by %as dictated by MinMem.
+the  \algo{memDag} algorithm~\cite{KAYAASLAN20181}, which corresponds to a traversal 
+of the graph that minimizes the peak memory usage. 
 
-    \subsubsection{Task assignment}
+\end{itemize}
+
+\smallskip
+  \noindent  {\bf Task assignment. }
 
     Then, the idea is to pick the next free task in the given order,
     and greedily assign it to a processor, by trying all possible options
-    and keeping the most promising one.
+    and keeping the most promising one. We first detail how a task
+    is tentatively assigned on a processor, by carefully accounting for the memory usage. 
+    Next, we explain the steps to be taken to effectively assign a task on a given processor. 
 
     \medskip
     \noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
@@ -732,9 +787,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     Then, after having updated the processor's values, we move on to the next task.
 
 
-    \subsection{Approximation}
-    \hmey{Rough notes:}
-    Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
+%    \subsection{Approximation}
+%    \hmey{Rough notes:}
+%    Let's use a fork to see how the algorithm behaves and if it provides some approximation. Our current intuition is that, if the memory constraint is ignored, HEFTM-BLc provides a $2$-approximation (to be proved).
 
     \section{Experimental evaluation: \skug{Full: 3, Polished: 3}}
     \subsection{Setup: \skug{Full: 5, Polished: 4}}
@@ -913,6 +968,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     \subsubsection{Summary}
 
     \section{Conclusion  \skug{Full: 0, Polished: 0}}
+
+Further variability commented out from the paper: changing DAG structure; changing platform...
+
 
     \bibliographystyle{IEEEtran}
     \bibliography{references}
