@@ -27,6 +27,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\children}[1]{\,C_{#1}}
 \newcommand{\cluster}{\,\mathcal{S}}
 
+\newcommand{\heft}{\algo{HEFT}\xspace}
 \newcommand{\heftmm}{\algo{HEFTM\_MM}\xspace}
 \newcommand{\heftbl}{\algo{HEFTM\_BL}\xspace}
 \newcommand{\heftblc}{\algo{HEFTM\_BLC}\xspace}
@@ -727,44 +728,39 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     \subsection{Setup: \skug{Full: 5, Polished: 4}}
     \label{sec:setup}
 
-    All algorithms are implemented in C++ and compiled with g++ (v.11.2.0).
+    All algorithms are implemented in C++ and compiled with g++ (v.8.5.0).
     The experiments are executed on workstations with 192 GB RAM and 2x 12-Core Intel Xeon 6126 @3.2 GHz
     and CentOS 8 as OS.
-    Code, input data, and experiment scripts are available for review under \url{TODO:insert link}.
+    Code, input data, and experiment scripts are available for review under \skug{\url{insert link}}.
 
     Next, we describe the set of workflows used in the evaluation and then the clusters on which the
     workflows are scheduled.
 
     \subsubsection{Workflow instances}
     \skug{Todo: describe the workflows the same asin the abstract}
-    The input data for the experiments consists of two sets of workflows: real-world workflows
-    obtained from~\cite{ewels2020nf} and workflows obtained by simulating real-world workflows
-    with the WFGen generator~\cite{COLEMAN202216}.
-    First, we discuss how the graph topology is generated,
-    then we focus on the weights associated to tasks and edges.
+    We run our experiments on a dataqset comprised of real-world workflows: ones used in~\cite{lotaru} (atacseq, bacass, chipseq,
+    eager and methylseq), and ones obtained by increasing their size using the WFGen generator~\cite{COLEMAN202216}.
+
 
     \paragraph{Workflow graphs}
-    For real-world workflows, their nextflow definition (see~\cite{ewels2020nf}) was downloaded from the
+    For the five real-world workflows, their nextflow definition (see~\cite{ewels2020nf}) was downloaded from the
     respective repository and transformed into .dot format using the nextflow option ``-with-dag''.
     The resulting DAG contains many pseudo-tasks that are only internal representations in nextflow
     (and not actual tasks); that is why we removed them.
 
-    For the simulated workflows, the graph is produced by the WFGen generator, based on a {\em model workflow} and
+    For the size-increased workflows, the graph is produced by the WFGen generator, based on a {\em model workflow} and
     the desired number of tasks.
-    The model workflows are described on the WFGen website, and we used the following ones:
-    1000Genome, BLAST, BWA, Epigenomics, Montage, Seismology, and SoyKB.
-    Other models could not be generated without errors.
+    We used the real-world workflows as models, except for bacass that lead to errors in the generator.
 %
     As number of tasks, we use: 200, \numprint{1000}, \numprint{2000}, \numprint{4000}, \numprint{8000}, \numprint{10000},
     \numprint{15000}, \numprint{18000}, \numprint{20000}, \numprint{25000}, \numprint{30000}.
     We divide the workflows into three groups by size: small ones with up to \numprint{8000} tasks, middle
     ones with \numprint{10000} to \numprint{18000} tasks, and big ones with \numprint{20000} to \numprint{30000} tasks.
-    Note that for some workflow models, such as SoyKB or Montage, only a subset of the workflow sizes could be generated,
-    because the workflow generator either took a disproportionally long time or yielded errors.
 
-    Overall, this yields four workflow types, denoted by real, small, mid, and big.
+    \skug{Im still considerin adding category "tiny" with original workflows and those with 200 tasks. this needs to be double-checked after}
+    Overall, this yields four workflow types, denoted by tiny, small, mid, and big.
 
-    \paragraph{Generation of task and edge weights}
+    \paragraph{Task and edge weights}
     For the real-world workflows, we use historical data files provided by Bader~\etal~\cite{lotaru}.
     The columns in these files are measured Linux PS stats, acquired during an execution of a nextflow workflow.
     Each row corresponds to an execution of one task on one cluster node.
@@ -772,60 +768,52 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     to store files that were sent or received from other tasks, the values in the historical data are total memory requirements (input/output files plus memory consumption of the computation).
     In a similar manner, the historical data provided by~\cite{lotaru} do not store the actual weights of edges between tasks, but only the overall
     size of files that the task sends to all its children.
+
     For each task, historical data can contain multiple values, obtained from the runs with different input sizes.
-    To avoid underestimation, we take the maximum among all values from different runs on the same cluster node.
+    The same workflow can require different memory capacity and take different time to execute
+    depending on the size of its input.
+    We simulate these various runs by obtaining values corresponding to each input size.
+    For each of the four families, there are five input sizes, so we run each workflow in five variants corresponding to these inputs
+
     Not all tasks have historical runtime data stored in the tables.
     In fact, for two workflows, Bader~\etal do not provide data for more than 50\% of the tasks.
     For two more, around 40\% of tasks have no historical runtime data stored.
-    Hence, in the absence of historical data about a task, we give it a weight of~1.
+    Hence, in the absence of historical data about a task, we give it fixed weights.
+    We give it an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
+    These values align with the findings of~\cite{lotaru} about small tasks.
 %
-    Because the historical data contains absolute measured values and the cluster node information is a relative value,
-    we normalize all values extracted from the historical data by the smallest one.
-    This way, task memory weights fit into the memory of the cluster nodes.
-    Additionally, this way, the tasks without historical data receive less insignificant values compared to tasks with historical data.
-
-    For the simulated workflows, we generate random execution times and memory weights for each task as well as
-    edge weights for each precedence constraint.
-    We generate uniformly distributed values between $1$ and $10$ for edge weights,
-    $1$ and $1000$ for the workloads,
-    and $1$ and $192$ for memory weights.
-    When doing so, we try to mimic the weights observed in the historical data, hence \eg the low lower bounds for the
-    workloads.
-
+    \skug{insert more abt how the runtime system hanfles data reads}
 
     \subsubsection{Target computing systems}
     \skug{Check that the description of speeds and memories is plausible and consistent with experimental setup. esp check for 19200 -> 192 GB.}
+
     To fully benefit from the historical data, the  {\em default} experimental environment
     that we consider is a cluster based on the same six
     kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
-    We set the number of each kind of node to six, thus having 36 processors in total. % the whole cluster.
+    We set the number of each kind of node to \skug{$24$ - check if this still holds }, thus having 144 processors in total. % the whole cluster.
 
     Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
     ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines; ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and large memory
     (see Table~\ref{tab:procs} in Appendix~\ref{sub:appx-cluster-config}~\cite{daghetpart_full_version}).
-    Note that, by nature,
-    memory sizes are normalized values, relative to each other, too.
-    Therefore, we additionally normalize memory weights of real-world workflows
-    to the maximum size of 192 to make sure they fit.
-    For simulated workflows, we increase memory sizes proportionally until the task
-    with the biggest memory requirement still
-    has a processor it could be executed on.
 
     To test various settings, we also vary the cluster configuration and consider
     variants of the default cluster presented above:\\
-    $\bullet$ {\em Small} and {\em large} clusters. While the default cluster consists of 36 nodes (6 of each kind), we
-    consider a small cluster with three processors of each kind ($18$ processors in total), and a
-    large cluster with ten processors of each kind ($60$ processors in total). \skug{leaving the big cluster inside for
-    the case we do want to include it}\\
-    $\bullet$ {\em Fat-and-thin} cluster. In this cluster, the fastest processors have the smallest amount of memory (thin),
-    while the slowest processors have the largest memories (fat).
-    The overall amount of memory in the cluster, as well as the overall speed of all processors remain the same as in the
-            {\em normal} cluster.
-%\end{itemize}
+    $\bullet$ {\em tiny}, {\em small} and {\em large} clusters. While the default cluster consists of 144 nodes (24 of each kind), we
+    consider a small cluster with $18$ processors of each kind ($108$ processors in total), a tiny cluster with $72$ nodes and a
+    large cluster with $36$ processors of each kind ($216$ processors in total). \skug{check for cluster sizes and naming}\\
+
 
 
     \subsection{Results \skug{Full: 3, Polished: 2}}
     \subsubsection{Static experiments}
+    \paragraph{Small cluster}
+
+   On the small cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
+    The successful schedules were achieved almost exclusively on the tiny workflows and one one 200-task workflow.
+    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm could schedule
+    $94.9\%$ of workflows, thus having the smallest failure rate of $5\%$.
+
+
     \paragraph{Normal cluster}
 
     On the normal cluster, the baseline produces invalid results in $40$\% of small workflows and $66.6$\% of middle-sized
