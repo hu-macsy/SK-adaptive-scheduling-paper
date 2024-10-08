@@ -806,15 +806,15 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \subsection{Results \skug{Full: 3, Polished: 2}}
     \subsubsection{Static experiments}
-    \paragraph{Small cluster}
+    \paragraph{Tiny cluster}
 
-   On the small cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
+    On the tiny cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
     The successful schedules were achieved almost exclusively on the tiny workflows and one one 200-task workflow.
     \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm could schedule
     $94.9\%$ of workflows, thus having the smallest failure rate of $5\%$.
 
-
     \paragraph{Normal cluster}
+    \skug{OLD DATA here, rewrite}
 
     On the normal cluster, the baseline produces invalid results in $40$\% of small workflows and $66.6$\% of middle-sized
     and big workflows.
@@ -885,6 +885,16 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     takes $5.1$ minutes.
     For the big workflows, again, \heftbl and \heftblc show a better runtime ($5$ and $5.4$ minutes, respectively).
     \heftmm takes $13.9$ minutes on average.
+    \subsubsection{Dynamic experiments}
+    \paragraph{Tiny cluster}
+    The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
+    situation - that is, if the scheduler assumed its memory to be smaller than it actually was and assigned it to a processor
+    with not enough memory capacity.
+    Due to an extremely constrained memory in the tiny cluster, only 20 experiments out of 290 ended with a valid makespan
+    in case of \heftbl, 33 in case of \heftblc and 29 in case of \heftmm.
+    In case of \heftmm, the makespan without recomputation would have been, on average, $5.77$ times longer than with the recomputation.
+
+
     \subsubsection{Summary}
 
     \section{Conclusion  \skug{Full: 0, Polished: 0}}
