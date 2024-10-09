@@ -146,14 +146,17 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     
 
     %%% MOTIVATION %%%
-    Today's computing platforms are often heterogeneous, 
+    Modern computing platforms are often heterogeneous, meaning they feature varying CPU speeds
+    and memory sizes. In general, varying memory sizes make it more challenging to compute
+    a schedule that respects all memory constraints -- meaning that no task is executed on a 
+    processor with less memory than needed for the task. This is, however, very important to
+    avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
+    Hence, building on previous related work~\cite{TODO}, we consider a scheduling problem 
+    formulation that takes memory sizes as explicit constraints into account. Its objective is
+    the very common \emph{makespan}, which acts as proxy for the total execution time of a
+    workflow.
     
     \begin{itemize}
-      \item Heterogeneous means: different CPU speeds, different mem sizes
-      \item With different mem sizes: more difficult to adhere to mem constraints
-      \item Adhering to memory constraints is very important to avoid execution failures.
-      \item In this paper, we formulate the problem that takes memories into consideration (using (nearly the) model from ICPP paper)
-      \item Objective: makespan (proxy for total execution time)
       \item HEFT (see book chapter) is one of the most popular heuristics (cite a review).
       \item However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
         Note: 2 papers that deal with memory sizes, but model is very different!
