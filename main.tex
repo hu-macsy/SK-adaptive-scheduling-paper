@@ -156,21 +156,23 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     the very common \emph{makespan}~\cite{liu2018survey}, 
     which acts as proxy for the total execution time of a workflow.
     
-    A seminal list-based scheduling heuristic for workflows is HEFT 
+    A seminal list scheduling heuristic for workflows is HEFT 
     (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
-    It has two phases: (i) each task is assigned a priority and (ii) the tasks are assigned
+    It has two phases: (i) each task is assigned a priority and (ii) the tasks in a priority-ordered list are assigned
     to processors, where the ``ready'' task with the highest priority is scheduled next.
     HEFT has been extended (e.g.\ by Shi and Dongarra~\cite{SHI2006665}) and adjusted for a variety of different scheduling problem formulations. 
     Yet, none of them adheres to memory constraints -- also see our discussion of related work
     in Section~\ref{sec:related-work}. (\skug{check in related work if true!}).
         \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
         
+    Another limitation in practice of HEFT (and many other scheduling strategies) is their 
+    assumption that the task running times provided to them are accurate. In practice this is 
+    not the case and deviations from user estimates or historical measurements are 
+    very common~\cite{TODO}. As a consequence, one should adapt the schedule when \emph{major}
+    deviations occur. List-based schedulers such as HEFT are, however, not designed for 
+    such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement?}
+%    and would compute a completely new schedule from scratch.
     
-    \begin{itemize}
-      \item Many scheduling strategies assume that task running times provided to them are accurate. This is not really the case
-        in practice. Thus, one needs to adapt the schedule when major deviations occur (which is the case in practice).
-        List-based schedulers such as HEFT are not designed for adaptation and would compute a completely schedule from scratch.
-    \end{itemize}
 
     %%% CONTRIBUTION %%%
     \paragraph*{Contribution}
