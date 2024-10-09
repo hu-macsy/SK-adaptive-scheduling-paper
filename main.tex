@@ -139,14 +139,11 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     while the edges model I/O dependencies between the tasks~\cite{adhikari2019survey,liuPacitti}.
     Large workflows with resource-hungry tasks can easily exhaust the capabilities of a 
     single computer and are thus executed on a parallel or distributed platform.
-    An efficient execution of the workflows on such platforms requires not only to map the tasks
-    to a particular processor, but also a good task schedule, \iec an execution order
+    An efficient execution of the workflows on such platforms requires to map the tasks
+    to a particular processor; to increase utilization by reusing finished processors,
+    one also needs a task schedule, \iec a valid execution order that respects the dependencies
     and possibly also starting times for the tasks.
     
-    
-    \begin{itemize}
-      \item This also allows to reuse processors, which is important to achieve good HW utilization / makespans (explain!).
-    \end{itemize}
 
     %%% MOTIVATION %%%
     \begin{itemize}
@@ -154,6 +151,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
       \item With different mem sizes: more difficult to adhere to mem constraints
       \item Adhering to memory constraints is very important to avoid execution failures.
       \item In this paper, we formulate the problem that takes memories into consideration (using (nearly the) model from ICPP paper)
+      \item Objective: makespan (proxy for total execution time)
       \item HEFT (see book chapter) is one of the most popular heuristics (cite a review).
       \item However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
         Note: 2 papers that deal with memory sizes, but model is very different!
