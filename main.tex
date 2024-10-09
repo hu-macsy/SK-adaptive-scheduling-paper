@@ -130,20 +130,38 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 %    TODO: Insert abstract
 
     %%% CONTEXT %%%
-    Only mapping tasks to processors is not enough.
-    Reusing processors is important to achieve good makespans.
+    \begin{itemize}
+      \item What is a scientific workflow?
+      \item Scientific workflows are all over the place $\rightarrow$ important!
+      \item Scheduling (order, maybe even concrete starting times) is important for efficient workflow executions
+      \item Only mapping tasks to processors is not enough.
+      \item This also allows to reuse processors, which is important to achieve good HW utilization / makespans (explain!).
+    \end{itemize}
 
     %%% MOTIVATION %%%
-    HEFT is one of the most popular heuristics (cite a review).
-    However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
+    \begin{itemize}
+      \item Heterogeneous means: different CPU speeds, different mem sizes
+      \item With different mem sizes: more difficult to adhere to mem constraints
+      \item Adhering to memory constraints is very important to avoid execution failures.
+      \item In this paper, we formulate the problem that takes memories into consideration (using (nearly the) model from ICPP paper)
+      \item HEFT (see book chapter) is one of the most popular heuristics (cite a review).
+      \item However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
+        Note: 2 papers that deal with memory sizes, but model is very different!
+      \item Many scheduling strategies assume that task running times provided to them are accurate. This is not really the case
+        in practice. Thus, one needs to adapt the schedule when major deviations occur (which is the case in practice).
+        List-based schedulers such as HEFT are not designed for adaptation and would compute a completely schedule from scratch.
+    \end{itemize}
 
     %%% CONTRIBUTION %%%
-    In this paper, we formulate the problem that takes memories into consideration.
-    We propose three HEFT-based heuristics that take memory size into account: \heftbl, \heftblc, and \heftmm.
-    The difference is the way they order tasks for scheduling.
-    We compare our heuristics to a baseline HEFT variant that does not take memory sizes into account.
-
-    We find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
+    \paragraph*{Contribution}
+    \begin{itemize}
+      \item We propose three HEFT-based heuristics that take memory sizes into account: \heftbl, \heftblc, and \heftmm.
+      \item The difference between the new heuristics is the way they rank tasks (for processor assignment).
+      \item Static: we compare our heuristics to a baseline HEFT variant that does not take memory sizes into account.
+      \item Static: we find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
+      \item Adaptive: runtime system built, simulates workflow executions and deviations in running times and mem requirements of tasks
+      \item Answering requests of the runtime system for adaptation, the scheduler computes an improved schedule based on the reported deviations.
+    \end{itemize}
 
 
     \section{Model} %: \skug{Full: 4, polished: 3}}
