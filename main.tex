@@ -130,34 +130,62 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 %    TODO: Insert abstract
 
     %%% CONTEXT %%%
-    \begin{itemize}
-      \item What is a scientific workflow?
-      \item Scientific workflows are all over the place $\rightarrow$ important!
-      \item Scheduling (order, maybe even concrete starting times) is important for efficient workflow executions
-      \item Only mapping tasks to processors is not enough.
-      \item This also allows to reuse processors, which is important to achieve good HW utilization / makespans (explain!).
-    \end{itemize}
+    The analysis of massive datasets, originating from fields such as genomics, 
+    remote sensing, or biomedical imaging -- to name just a few -- has become ubiquitous in science;
+    this often takes the form of workflows, \iec separate software components chained together
+    in some kind of complex pipeline~\cite{DBLP:journals/dbsk/LeserHDEGHKKKKK21}.
+    These workflows are usually represented as directed acyclic graphs (DAGs).
+    The DAG vertices represent the software components (or, more generally, the workflow \emph{tasks}),
+    while the edges model I/O dependencies between the tasks~\cite{adhikari2019survey,liuPacitti}.
+    Large workflows with resource-intensive tasks can easily exceed the capabilities of a 
+    single computer and are therefore executed on a parallel or distributed platform.
+    An efficient execution of the workflows on such platforms requires mapping tasks
+    to specific processors; to increase utilization by reusing finished processors,
+    one also needs a task schedule (\iec a valid execution order that respects the dependencies)
+    and possibly also starting times for the tasks.
+    
 
     %%% MOTIVATION %%%
-    \begin{itemize}
-      \item Heterogeneous means: different CPU speeds, different mem sizes
-      \item With different mem sizes: more difficult to adhere to mem constraints
-      \item Adhering to memory constraints is very important to avoid execution failures.
-      \item In this paper, we formulate the problem that takes memories into consideration (using (nearly the) model from ICPP paper)
-      \item HEFT (see book chapter) is one of the most popular heuristics (cite a review).
-      \item However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
-        Note: 2 papers that deal with memory sizes, but model is very different!
-      \item Many scheduling strategies assume that task running times provided to them are accurate. This is not really the case
-        in practice. Thus, one needs to adapt the schedule when major deviations occur (which is the case in practice).
-        List-based schedulers such as HEFT are not designed for adaptation and would compute a completely schedule from scratch.
-    \end{itemize}
+    Modern computing platforms are often heterogeneous, meaning they feature varying CPU speeds
+    and memory sizes. In general, varying memory sizes make it more challenging to compute
+    a schedule that respects all memory constraints -- meaning that no task is executed on a 
+    processor with less memory than needed for the task. This is, however, very important to
+    avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
+    Hence, building on previous related work~\cite{TODO}, we consider a scheduling problem 
+    formulation that takes memory sizes as explicit constraints into account. Its objective is
+    the very common \emph{makespan}~\cite{liu2018survey}, 
+    which acts as proxy for the total execution time of a workflow.
+    
+    A seminal list scheduling heuristic for workflows is HEFT 
+    (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
+    It has two phases: (i) each task is assigned a priority and (ii) the tasks in a priority-ordered list are assigned
+    to processors, where the ``ready'' task with the highest priority is scheduled next.
+    HEFT has been extended (e.g.\ by Shi and Dongarra~\cite{SHI2006665}) and adjusted for a variety of different scheduling problem formulations. 
+    Yet, none of them adheres to memory constraints -- also see our discussion of related work
+    in Section~\ref{sec:related-work}. (\skug{check in related work if true!}).
+        \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
+        
+    Another limitation in practice of HEFT (and many other scheduling strategies) is their 
+    assumption that the task running times provided to them are accurate. In practice this is 
+    not the case and deviations from user estimates or historical measurements are 
+    very common~\cite{TODO}. As a consequence, one should adapt the schedule when \emph{major}
+    deviations occur. List-based schedulers such as HEFT are, however, not designed for 
+    such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement?}
+%    and would compute a completely new schedule from scratch.
+    
 
     %%% CONTRIBUTION %%%
-    \paragraph*{Contribution}
+    \paragraph*{Contribution} In this paper, we first propose three HEFT-based heuristics
+    that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm
+    (M behind HEFT for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
+    BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
+    and MM for \underline{m}inimum \underline{m}emory traversal).
+    The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
+    We compare the static schedule produced by these heuristics with a HEFT variant as
+    baseline that does not take memory sizes into account. \hmey{Need to clarify: 
+    why is this SotA?}
+    
     \begin{itemize}
-      \item We propose three HEFT-based heuristics that take memory sizes into account: \heftbl, \heftblc, and \heftmm.
-      \item The difference between the new heuristics is the way they rank tasks (for processor assignment).
-      \item Static: we compare our heuristics to a baseline HEFT variant that does not take memory sizes into account.
       \item Static: we find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
       \item Adaptive: runtime system built, simulates workflow executions and deviations in running times and mem requirements of tasks
       \item Answering requests of the runtime system for adaptation, the scheduler computes an improved schedule based on the reported deviations.
@@ -166,12 +194,11 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \section{Model} %: \skug{Full: 4, polished: 3}}
 
-    We first describe the target applications, which are (large scientific) workflows for which we
-    do not have a perfect a priori knowlodge,
+    We first describe the model for our target applications, which are (large scientific) workflows for which we do not have perfect a priori knowledge,
     in Section~\ref{sec.mod.work}.  Next, we define the execution
     environment, a heterogeneous system (in terms of processor speed and memory size),
     in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
-    Section~\ref{sec.mod.pb}. The key notations are summarized in Table~\ref{tabnotation}.
+    Section~\ref{sec.mod.pb}. The key notation is summarized in Table~\ref{tabnotation}.
 
     \subsection{Workflow}
     \label{sec.mod.work}
@@ -191,6 +218,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
         r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
     \]
 \AB{I transformed the sum into a max, correct? Or maybe we could assume $r_u=m_u$? }
+\hmey{I  recall a discussion of the sum with Svetlana, but the text says max, it seems.}
 
     The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
     $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
@@ -328,6 +356,9 @@ on the estimated task parameters.
 
 
     \section{Related work: \skug{Full: 5, Polished: 4}}
+    \label{sec:related-work}
+    
+    \hmey{Question: Does it make sense to place related work before the model (which is more common)?}
 
     We discuss relevant scheduling approaches that either reuse processors, or respect memory requirements of the processors.
 
