@@ -363,52 +363,53 @@ on the estimated task parameters.
     
     \hmey{Question: Does it make sense to place related work before the model (which is more common)?}
 
-    We discuss relevant scheduling approaches that either reuse processors, or respect memory requirements of the processors.
+    We discuss relevant scheduling approaches that reuse processors or respect the memory requirements of the processors.
 
     \subsection{Early list schedulers with unlimited processors}
     An entire cluster of works on list schedulers has been carried out as early as the 90s.
     They all assume a DAG-shaped workflow with makespan weights on tasks, and an unlimited amount of homogeneous processors
-    with the speed of 1.
+    with the speed of 1.\hmey{needs refs or at least a survey pointer}
 
-    The \textit{task duplication}-based approaches note that sometimes running a task twice on different machines can
+    The \textit{task duplication}-based approaches exploit that sometimes running a task twice on different machines can
     help reduce the makespan by saving communication costs.
-    The two approaches are scheduling with the partial duplication~(SPD), and withe the full duplication~(SFD).
+    The two categories are scheduling with partial duplication~(SPD), and with full duplication~(SFD).
     For a join task (a task whose incoming degree is larger than its outgoing degree), SPD finds a critical immediate
-    parent (the one that gives the largest start time to the join task) and duplicate only it.
+    parent (the one that gives the largest start time to the join task) and duplicates only it.
     SFD duplicates all parents of a join node.
-    \cite{dfrn1997} is a task duplication algorithm.
-    The authors duplicate first (create copies of all parent tasks) and then reduce (remove) the ones that can be removed without harming
-    the makespan.
-    The critical path fast duplication algorithm \texttt{CPFD}~\cite{5727760} classifies tasks into three categories: a critical
-    path task, and in-branch task, or out-branch task.
+    Ref.~\cite{dfrn1997} proposes a task duplication algorithm. \hmey{The prev. sentence sounds odd since we are in the paragraph on task duplication.}
+    It duplicates first (creates copies of all parent tasks) and then reduces (removes) the ones that can be removed without harming the makespan.
+    The critical path fast duplication algorithm \texttt{CPFD}~\cite{5727760} classifies tasks into three categories: critical
+    path task, in-branch task, or out-branch task.
     It schedules critical path tasks first, then in-branch tasks.
+    \hmey{I'm missing the connection to our paper. Or vice versa, how is our contribution
+    connected to these works? (Einordnung in den Forschungskontext) For example, do we do similar things? Are there interesting limitations we overcome?}
 
     Linear clustering~\cite{KWOK1999381} acts on critical paths in the workflow.
     It assigns the current critical path to one processor, removes all these tasks from the workflow, recomputes the critical
     path and repeats the procedure.
-    \texttt{Heaviest node first} algorithm~\cite{SHIRAZI1990222} assigns the tasks level by level, and in each level,
-    schedules the heaviest (with largest computation time)  ones first.
+    \texttt{Heaviest node first}~\cite{SHIRAZI1990222} \hmey{Really typewriter for algorithms?
+    Plus: this is not done consistently yet!} assigns the tasks level by level; 
+    in each level, it schedules the one with largest computation time first.
 
 
     \subsection{Static list schedulers, especially HEFT-based algorithms}
 
     Introduced in 2002, HEFT~\cite{topcuoglu2002performance} is a list-based heuristic.
-    It and all its successors consist of two phases: task ordering, and task assignment.
+    It and all its successors consist of two phases: task prioritization/ordering and task assignment.
     In the first phase, the algorithms compute bottom levels of the tasks based on some priorities (create the list),
     and then schedule tasks in the order of these priorities.
-    The modifications of HEFT revolve around the way the priorities of tasks are computed, and the logic
-    of processor assignment.
+    The modifications of HEFT revolve around the way the priorities of the tasks are computed and the logic of the processor assignment.
     All such algorithms assume a heterogeneous execution environment.
 
-    So, during task prioritization phase~\cite{sulaiman2021hybrid} compute the standard deviation of the computation cost
-    (between processors) and add it to the mean value to account for the differences between processor speeds.
+    So, during the task prioritization phase, Ref.~\cite{sulaiman2021hybrid} computes the standard deviation of the computation cost
+    (between processors) and adds it to the mean value to account for the differences between processor speeds.
     In the processor choice phase, they duplicate the entry task and the longest parent tasks during idle times on the processor.
 
-    \cite{alebrahim2017task} compute a the bottom level based on the difference of execution times on
-    the fastest and the slowest processors, divided by the speedup (speeds ratio) of these two processors.
+    Ref.~\cite{alebrahim2017task} computes the bottom level based on the difference of execution times on
+    the fastest and the slowest processors, divided by the speed ratio of these two processors.
     When doing processor selection, the authors differentiate between the lowest execution time and earliest finishing time.
-    They choose the processor with the lowest execution time, and cross over to other processors sometimes.
-    They build upon~\cite{shetti2013optimization}.
+    They choose the processor with the lowest execution time and cross over to other processors sometimes.
+    They build upon~\cite{shetti2013optimization}.\hmey{Last sentence ``hangs in the air''. Either drop or connect it properly.}
 
     PEFT (Predict earliest finish time) algorithm~\cite{arabnejad2014list} is a HEFT variant that computes an Optimistic
     Cost Table OCT.
