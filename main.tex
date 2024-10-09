@@ -890,6 +890,30 @@ of the graph that minimizes the peak memory usage.
     consider a small cluster with $18$ processors of each kind ($108$ processors in total), a tiny cluster with $72$ nodes and a
     large cluster with $36$ processors of each kind ($216$ processors in total). \skug{check for cluster sizes and naming}\\
 
+    \subsubsection{Runtime System}
+
+    To simulate the execution of a workflow, we implemented a runtime system.
+    It read the historical data and builds weights for tasks.
+    These weights are then treated as the ``truth'' about the execution during the simulation.
+    In the case without errors, these values are being sent to the scheduler.
+    However, if errors have to be simulated, the runtime system applies a deviation function to the values.
+    The deviation function computed a normally distributed deviated value, where the correct value is the mean and the deviation
+    is $10\%$.
+    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and\skug{todo cite someone Jonathan cites}.
+
+    So, the scheduler receives deviated values and makes decision based on them.
+    This leads to several types of possible issues:
+    \begin{itemize}
+        \item Processor is blocked by another task. If the scheduler underestimated the execution time of a task, it will block another
+        one from starting.
+        \item The parent has not finished yet. A similar situation, but a task could start on its processor, but one or more of its parents a
+        are not ready yet.
+        \item Not enough memory. If the scheduler underestimated the amount of memory a task requires, this task might not be able
+        to execute on a chosen processor.
+        \item A task took lees than expected. We only consider this case if a task took more than 10\% less than expected. In this
+        case we want to exploit the newly acquired free time by possibly starting other tasks earlier.
+    \end{itemize}
+
 
 
     \subsection{Results \skug{Full: 3, Polished: 2}}
