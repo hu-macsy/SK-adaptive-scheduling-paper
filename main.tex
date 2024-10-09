@@ -15,6 +15,7 @@
 \usepackage{hyperref}
 \usepackage{numprint}
 \usepackage{todonotes}
+\usepackage{graphicx}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -43,6 +44,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
 \newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
+\newcommand{\willchange}[1]{{\color{orange}[AB: #1]}}
 
 \begin{document}
 
@@ -873,13 +875,20 @@ of the graph that minimizes the peak memory usage.
 
 
     \subsection{Results \skug{Full: 3, Polished: 2}}
+
+    \subsubsection{Preliminary experiments}
+
+    Our preliminary experiments have shown that evicting large or small files does not give a notable change in makespan.
+
+
     \subsubsection{Static experiments}
     \paragraph{Tiny cluster}
 
     On the tiny cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
-    The successful schedules were achieved almost exclusively on the tiny workflows and one one 200-task workflow.
+    The successful schedules were achieved exclusively on the tiny workflows (with only one 200-task size-increased
+    workflow among them).
     \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm could schedule
-    $94.9\%$ of workflows, thus having the smallest failure rate of $5\%$.
+    $94.9\%$ of workflows, thus having the smallest failure rate of $5.1\%$.
 
     \paragraph{Normal cluster}
     \skug{OLD DATA here, rewrite}
@@ -939,28 +948,33 @@ of the graph that minimizes the peak memory usage.
     $31$\% on middle-sied workflows ($45.2$\% and $44.9$\% on \heftbl and \heftblc, respectively),
     and $34$\% on big workflows ($50.1$\% and $50.2$\% for \heftbl and \heftblc).
 
-    \subsubsection{Impact of cluster composition}
-    On the {\em fat-and-thin} cluster, the baseline produces $60$\% invalid results on small workflows, $83.3$\% on
-    middle-sized and $88.9$\% on big workflows, and therefore performs worse than on the normal cluster.
 
-    The relative makespans are $14-29$\% worse for small workflows, $22-40$\% worse on middle-sized workflows and $16-35$\%
-    on big workflows.
-    \wrt failures, all heuristics again manage to schedule all workflows.
-    \subsubsection{Behavior of workflow types when scaling workflow size}
-    \subsubsection{Running times}
-    The geometric means of runtimes of all heuristics on small workflows lie between $0.9$ and $2.2$ seconds.
-    For middle-sized workflows, the runtimes for \heftbl and \heftblc are close to $2$ minutes, while \heftmm
-    takes $5.1$ minutes.
-    For the big workflows, again, \heftbl and \heftblc show a better runtime ($5$ and $5.4$ minutes, respectively).
-    \heftmm takes $13.9$ minutes on average.
+
     \subsubsection{Dynamic experiments}
     \paragraph{Tiny cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
     situation - that is, if the scheduler assumed its memory to be smaller than it actually was and assigned it to a processor
     with not enough memory capacity.
-    Due to an extremely constrained memory in the tiny cluster, only 20 experiments out of 290 ended with a valid makespan
-    in case of \heftbl, 33 in case of \heftblc and 29 in case of \heftmm.
-    In case of \heftmm, the makespan without recomputation would have been, on average, $5.77$ times longer than with the recomputation.
+    Due to an extremely constrained memory in the tiny cluster, only 134 experiments out of 1160 for all algorithm variants
+    ended with a valid makespan withjout recomputation. $13$ experiments ended with a valid makespan after recomputation in case of \heft,
+   $16$ in case of \heftmm, $50$ in case of \heftblc and $55$ in case of \heftbl.
+    Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
+    There were valid final makespans with no recomputation only for the smallest workflows - $56$ original ones, $47$ 200-task ones,
+    $25$ 1000-task ones and $6$ 2000-task ones.
+
+    With growing size of the workflow, the excess makespan of not recomputing grows - from $13.9\%$ to $20\%$ for \heftbl,
+    from $12.7\%$ to $18.7\%$ on \heftblc (but there is no data for the 2000-task workflows in this case), $12.1\%$ to $23.5\%$
+    for \heftmm.
+    The larger variations for \heft can be explained by the small amount of data - for example, there were only 2 200-task
+    workflows for this case.
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.495\columnwidth] {images/UpdatesMss2}
+        \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm for different . Smaller is better.}
+        \label{fig:updates-ms}
+        \vspace{-0.3cm}
+    \end{figure}
 
 
     \subsubsection{Summary}
