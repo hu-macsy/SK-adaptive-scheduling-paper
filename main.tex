@@ -130,11 +130,21 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 %    TODO: Insert abstract
 
     %%% CONTEXT %%%
+    Data analysis on massive data sets (stemming from areas such as genomics, 
+    remote sensing, or biomedical imaging -- to name just a few) has become ubiquitous in science;
+    it often happens in the form of workflows, \iec separate software components chained together
+    in some kind of complex pipeline~\cite{DBLP:journals/dbsk/LeserHDEGHKKKKK21}.
+    Such workflows are usually represented as directed acyclic graphs (DAGs).
+    The DAG vertices represent the software components (more general: the workflow \emph{tasks}),
+    while the edges model I/O dependencies between the tasks~\cite{adhikari2019survey,liuPacitti}.
+    Large workflows with resource-hungry tasks can easily exhaust the capabilities of a 
+    single computer and are thus executed on a parallel or distributed platform.
+    An efficient execution of the workflows on such platforms requires not only to map the tasks
+    to a particular processor, but also a good task schedule, \iec an execution order
+    and possibly also starting times for the tasks.
+    
+    
     \begin{itemize}
-      \item What is a scientific workflow?
-      \item Scientific workflows are all over the place $\rightarrow$ important!
-      \item Scheduling (order, maybe even concrete starting times) is important for efficient workflow executions
-      \item Only mapping tasks to processors is not enough.
       \item This also allows to reuse processors, which is important to achieve good HW utilization / makespans (explain!).
     \end{itemize}
 
