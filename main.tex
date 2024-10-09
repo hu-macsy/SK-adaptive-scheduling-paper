@@ -227,8 +227,8 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     Each task may have multiple parents and children.
 
 
-Furthermore, we place ourself in a context where we do not have a perfect knowledge
-of the task parameters ($w_u$ and $m_u$) before they start their execution,
+Furthermore, we place ourselves in a context where we do not have perfect knowledge
+of the task parameters ($w_u$ and $m_u$) before the tasks start their execution,
 but only estimates. \AB{Add motivation: related work with variable task durations for instance...}
 Hence, scheduling decisions are made on these estimated parameters, and
 may be reconsidered at runtime when a task starts its execution and we know
@@ -246,9 +246,10 @@ its exact parameters.
     to another processor; it then stays in the communication buffer until it has been sent.
     The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
     We assume that all processors are connected with the same bandwidth~$\beta$.
+    \hmey{Maybe mention that variable bandwidths are part of future work...?}
 
     We keep track of the current ready time of each processor and each communication
-    channel, $\rt_j$ and $\rt_{j,j'}$, for all processors~$(j,j')$.
+    channel, $\rt_j$ and $\rt_{j,j'}$, for each processor $j$ and all pairs~$(j,j')$.
     Initially, all the ready times are set to~$0$.
     We also keep track of the currently available memory, $availM_j$ and $availC_j$,
     on the processor memory and communication buffer, respectively.
@@ -293,14 +294,16 @@ its exact parameters.
 \subsection{Optimization problem}
 \label{sec.mod.pb}
 
-The goal is to find a schedule of the DAG~$G$ onto the $k$ processors,
+The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
 so that the makespan (total execution time) is minimized while
 respecting memory constraints. If a processor runs out of memory to execute
-a task, the schedule is said to be {\em invalid}.
+a task \hmey{mapped to it}, the schedule is said to be {\em invalid}.
 
 Since tasks are subject to variability, we aim at minimizing the actual makespan
 achieved at the end of the execution, while decisions may be taken building
 on the estimated task parameters.
+
+\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
 
 %    \paragraph{Workflow-related changes}
 %
