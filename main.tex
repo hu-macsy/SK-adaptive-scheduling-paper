@@ -805,7 +805,7 @@ of the graph that minimizes the peak memory usage.
     However, also when the hardware of the infrastructure does not change, the set of nodes provided as a scheduling target might change due to release or occupation in shared cluster infrastructures.
     As infrastructure information and resource predictions are dynamically updated and provided to the scheduler during the workflow runtime, the previous schedule becomes invalid and a new one must be calculated.
 
-    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures of approximately 15\% is shown~\cite{}.
+    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures of approximately 15\% is shown~\cite{TODO}.
     Online prediction methods were able to significantly reduce the error during runtime, with the reduction reaching up to one-third of the cold-start error~\cite{baderDiedrichDynamic2023,witt2019learning}.
 %For instance, Nadeen~et~al.\cite{} report an error of 10\%, 11\%, and 15\% while the task prediction errors shows a normal and exponential distribution.
 %Bader~et~al.~ report a prediction error between 13\% and 17\% for their method, showing an exponential task error distribution.
@@ -967,62 +967,8 @@ of the graph that minimizes the peak memory usage.
     \paragraph{Normal cluster}
     \skug{OLD DATA here, rewrite}
 
-    On the normal cluster, the baseline produces invalid results in $40$\% of small workflows and $66.6$\% of middle-sized
-    and big workflows.
-    In most cases, the failures of the baseline can be traced to choosing the processor with not enough memory when several
-    options are available.
-    Due to not taking memories into account, the baseline chooses a processor with already full memory, while there can
-    be another processor with the same speed that still has enough memory.
-    In this case, \heftbl produces the same makespan while producing a valid solution.
-    The heuristics produce valid results by default and also manage to find a solution in all cases (on all workflow sizes).
-
-    The excess makespans produced by the heuristics are shown in Figure~\ref{fig:excess-ms}.
-    On the normal cluster and among small workflows, the makespans produced by \heftbl and \heftblc are virtually indistinguishable
-    from those of the baseline (no change and $0.4$\% change), while \heftmm produces  $18$\% worse makespans.
-    For middle-sized ones \heftmm is $9$\% worse,  \heftblc $0.9$\% worse.
-    For the big workflows however, while results of \heftbl and \heftblc are still barely worse ($<1$\% worse),
-     \heftmm is only $5.8$\% worse.
-    The heuristics pay off more on larger workflows.
-
-    \begin{figure}[tb]
-        \centering
-        \includegraphics[width=0.495\columnwidth] {images/ms-relative-3groups}
-        \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm for different . Smaller is better.}
-       \label{fig:excess-ms}
-        \vspace{-0.3cm}
-    \end{figure}
-    \subsubsection{Memory usage}
-    Minimizing memory usage is an interesting measure of the quality of the solution produced by a heuristic.
-    We studied the average peak memory consumption in our cluster.
-    We looked at the maximum memory usage on each processor during a task execution, and averaged it over all processors
-    in the execution environment.
-
-    The results adhere to the intuition: \heftmm produces consistently smaller memory usage among all the heuristics.
-    So, for small workflows, the average memory occupation by \heftbl and \heftblc is $11.8$\% and $11.7$\%, respectively,
-    while \heftmm manged to occupy $10.2$\% of memories.
-    For middle-sized workflows, \heftbl and \heftblc occupied $27.8$\% and $28.2$\%, respectively, while \heftmm occupied
-    $21$\%.
-    For the big workflows, \heftmm occupied $20.9$\% against $33.7$\% by \heftbl and $27.6$\% by \heftblc.
-    Interestingly, for big workflows, \heftmm occupied on average even a little less that for the middle-sized ones.
-    This means that the bound of exploiting parallelization has been achieved for workflows around the size of middle-sized ones,
-    and for the big workflows, the makespan is not improved by ``spreading'' the workflow more.
-
-    \subsubsection{Impact of cluster size}
-    On a cluster with only $18$ processors ($3$ of each kind), the baseline makes more failures: from $43.8$\%  (small workflows)
-    to $77.8$\% (mid-sized) and $88.9$\% (big workflows).
-    At the same time, each heuristic is unable to schedule one big workflow and one middle-sized one.
-    On the workflows that they are able to schedule, \heftbl and \heftblc produce makespans that are $<1$\% bigger than
-    those of the baseline on small and middle-sized workflows.
-    On the big workflows, they produce makespans that are $3.5$\% and $2.3$\% bigger respectively.
-    The performance of \heftmm improves more with workflow size: it goes from producing $16$\% bigger makespans on small
-    workflows, to $8$\% on middle-sized ones, to $7$\% on big workflows.
-
-   Like in the normal cluster, \heftmm again consistently shows smaller peak memory usage in the cluster.
-    It utilizes on average $15$\% of memory on small workflows ($17.7$\% for \heftbl and \heftblc),
-    $31$\% on middle-sied workflows ($45.2$\% and $44.9$\% on \heftbl and \heftblc, respectively),
-    and $34$\% on big workflows ($50.1$\% and $50.2$\% for \heftbl and \heftblc).
-
-
+    Preliminary data: HEFT has 50\% failures, our algorithms have no failures.
+    memory utilization blc is 5\% better, makespan 1\% worse.
 
     \subsubsection{Dynamic experiments}
     \paragraph{Tiny cluster}
