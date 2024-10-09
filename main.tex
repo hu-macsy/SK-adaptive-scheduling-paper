@@ -175,11 +175,17 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     
 
     %%% CONTRIBUTION %%%
-    \paragraph*{Contribution}
+    \paragraph*{Contribution} In this paper, we first propose three HEFT-based heuristics
+    that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm
+    (M behind HEFT for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
+    BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
+    and MM for \underline{m}inimum \underline{m}emory traversal).
+    The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
+    We compare the static schedule produced by these heuristics with a HEFT variant as
+    baseline that does not take memory sizes into account. \hmey{Need to clarify: 
+    why is this SotA?}
+    
     \begin{itemize}
-      \item We propose three HEFT-based heuristics that take memory sizes into account: \heftbl, \heftblc, and \heftmm.
-      \item The difference between the new heuristics is the way they rank tasks (for processor assignment).
-      \item Static: we compare our heuristics to a baseline HEFT variant that does not take memory sizes into account.
       \item Static: we find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
       \item Adaptive: runtime system built, simulates workflow executions and deviations in running times and mem requirements of tasks
       \item Answering requests of the runtime system for adaptation, the scheduler computes an improved schedule based on the reported deviations.
