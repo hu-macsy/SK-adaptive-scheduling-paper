@@ -153,13 +153,20 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
     Hence, building on previous related work~\cite{TODO}, we consider a scheduling problem 
     formulation that takes memory sizes as explicit constraints into account. Its objective is
-    the very common \emph{makespan}, which acts as proxy for the total execution time of a
-    workflow.
+    the very common \emph{makespan}~\cite{liu2018survey}, 
+    which acts as proxy for the total execution time of a workflow.
+    
+    A seminal list-based scheduling heuristic for workflows is HEFT 
+    (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
+    It has two phases: (i) each task is assigned a priority and (ii) the tasks are assigned
+    to processors, where the ``ready'' task with the highest priority is scheduled next.
+    HEFT has been extended (e.g.\ by Shi and Dongarra~\cite{SHI2006665}) and adjusted for a variety of different scheduling problem formulations. 
+    Yet, none of them adheres to memory constraints -- also see our discussion of related work
+    in Section~\ref{sec:related-work}. (\skug{check in related work if true!}).
+        \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
+        
     
     \begin{itemize}
-      \item HEFT (see book chapter) is one of the most popular heuristics (cite a review).
-      \item However, existing HEFT variations do not take memory sizes into consideration (\skug{check in related work if true!}).
-        Note: 2 papers that deal with memory sizes, but model is very different!
       \item Many scheduling strategies assume that task running times provided to them are accurate. This is not really the case
         in practice. Thus, one needs to adapt the schedule when major deviations occur (which is the case in practice).
         List-based schedulers such as HEFT are not designed for adaptation and would compute a completely schedule from scratch.
@@ -341,6 +348,9 @@ on the estimated task parameters.
 
 
     \section{Related work: \skug{Full: 5, Polished: 4}}
+    \label{sec:related-work}
+    
+    \hmey{Question: Does it make sense to place related work before the model (which is more common)?}
 
     We discuss relevant scheduling approaches that either reuse processors, or respect memory requirements of the processors.
 
