@@ -411,12 +411,12 @@ on the estimated task parameters.
     They choose the processor with the lowest execution time and cross over to other processors sometimes.
     They build upon~\cite{shetti2013optimization}.\hmey{Last sentence ``hangs in the air''. Either drop or connect it properly.}
 
-    PEFT (Predict earliest finish time) algorithm~\cite{arabnejad2014list} is a HEFT variant that computes an Optimistic
-    Cost Table OCT.
-    OCT is computed per task-processor pair and stores the longest shortest path from this task to the target task, if this
+    PEFT (Predict earliest finish time)~\cite{arabnejad2014list} is a HEFT variant that computes an Optimistic
+    Cost Table (OCT).
+    The OCT is computed per task-processor pair and stores the longest shortest path from this task to the target task if this
     processor is chosen for this task.
     Ranking is based on OCT values.
-    Processor choice stage minimizes the Optimistic EFT, which is EFT plus the the longest path to the exit node for each task.
+    The processor choice stage minimizes the optimistic EFT, which is EFT plus the longest path to the exit node for each task.
 
     The HSIP (Heterogeneous Scheduling with Improved task Priorities)~\cite{wang2016hsip} has an improved first step in
     comparison to HEFT.
