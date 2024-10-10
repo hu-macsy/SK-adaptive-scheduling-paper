@@ -152,12 +152,16 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     a schedule that respects all memory constraints -- meaning that no task is executed on a 
     processor with less memory than needed for the task. This is, however, very important to
     avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
-    Hence, building on previous related \hmey{You may want to add other refs not from us} work~\cite{gou2020partitioning,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
+    Hence, building on previous related %\hmey{You may want to add other refs not from us} 
+    work~\cite{gou2020partitioning,He21,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
     formulation that takes memory sizes as explicit constraints into account. Its objective is
     the very common \emph{makespan}~\cite{liu2018survey}, 
     which acts as proxy for the total execution time of a workflow.
-    
-    A seminal list scheduling heuristic for workflows on heterogeneous platforms is HEFT 
+
+    While previous work with memory constraints has been focusing on partitioning the graph, 
+    and not reusing processors during execution, 
+    a seminal list scheduling heuristic for workflows on heterogeneous platforms, without accounting
+    for the memory constraint, is HEFT 
     (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
     It has two phases: (i) each task is assigned a priority; and (ii) the tasks in a priority-ordered list are assigned
     to processors, where the ``ready'' task with the highest priority is scheduled next on the processor
@@ -197,201 +201,45 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     \end{itemize}
 
 
-    \section{Model} %: \skug{Full: 4, polished: 3}}
-
-    We first describe the model for our target applications, which are (large scientific) workflows for which we do not have perfect a priori knowledge,
-    in Section~\ref{sec.mod.work}.  Next, we define the execution
-    environment, a heterogeneous system (in terms of processor speed and memory size),
-    in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
-    Section~\ref{sec.mod.pb}. The key notation is summarized in Table~\ref{tabnotation}.
-
-    \subsection{Workflow}
-    \label{sec.mod.work}
-    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
-    $E$ is a set of directed edges of the form $e=(u,v)$, with $u,v\in V$, expressing precedence constraints between tasks.
-    Each task~$u \in V$  is performing $w_u$ operations, and it also
-    requires some amount of memory to be executed, denoted as~$m_u$.
-    Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
-   Note that $m_u$ is the total memory usage
-    of a task during its execution, including input and output files currently being read and written,
-    and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
-    between the input files
-    (total size of the files to be received from the parents),
-    the output files (total size of the files to be sent to the children),
-    and the total memory size~$m_u$ (usually achieving the maximum):
-    \[
-        r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
-    \]
-
-    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
-    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
-    The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
-    $ \children{u} = \{v \in V: (u,v) \in E\}$. A task without children is called a {\it target task}.
-    Each task may have multiple parents and children.
-
-
-Furthermore, we place ourselves in a context where we do not have perfect knowledge
-of the task parameters ($w_u$ and $m_u$) before the tasks start their execution,
-but only estimates. \AB{Add motivation: related work with variable task durations for instance...}
-Hence, scheduling decisions are made on these estimated parameters, and
-may be reconsidered at runtime when a task starts its execution and we know
-its exact parameters.
-
-
-    \subsection{Execution environment}
-    \label{sec.mod.plat}
-
-    The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
-    consists of $k$ processors $p_1, \dots, p_k$.
-    Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$, a communication
-    buffer of size $MC_j$ and a speed~$s_j$.
-    We can decide to evict some data from the main memory if we are sending the data
-    to another processor; it then stays in the communication buffer until it has been sent.
-    The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
-    We assume that all processors are connected with the same bandwidth~$\beta$.
-    \hmey{Maybe mention that variable bandwidths are part of future work...?}
-
-    We keep track of the current ready time of each processor and each communication
-    channel, $\rt_j$ and $\rt_{j,j'}$, for each processor $j$ and all pairs~$(j,j')$.
-    Initially, all the ready times are set to~$0$.
-    We also keep track of the currently available memory, $availM_j$ and $availC_j$,
-    on the processor memory and communication buffer, respectively.
-    Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
-    that are in the memory of size $\MM_j$ but may be evicted to be communicated if
-    more memory is needed on~$p_j$. They are ordered by non-decreasing size and
-    correspond to some $c_{u,v}$.
-
-    We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
-    the memory requirement; it transforms the workflow into a series-parallel graph
-    and then finds the traversal that leads to the minimum memory consumption.
-
-    \begin{table}[h]
-        \begin{center}
-            \begin{tabular}{rl}
-                \hline
-                \textbf{Symbol}                       & \textbf{Meaning}                                         \\
-                \hline
-                $G = (V, E)$                          & Workflow graph, set of vertices (tasks) and edges        \\
-                $\parents{u}$, $\children{u}$         & Parents of a task $u$, children of a task $u$            \\
-                $m_u$                                 & Memory weight of task $u$                                \\
-                $w_u$                                 & Workload of task $u$  (normalized execution time)          \\
-                $c_{u,v}$                             & Communication volume along the edge $(u,v)\in E$         \\
-                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates     \\
-                $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
-                $\cluster$, $k$                    & Computing system and its number of processors           \\
-                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
-                $M_j$, $MC_j$, $s_j$                               & Memory size, comm. buffer size, and speed of proc.\ $p_j$                          \\
-                $\beta$                     & Bandwidth in the compute system                                \\
-                $\bottomlevel{u}$                      & Bottom weight of task $u$ \\
-                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
-                $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
-                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
-                \hline
-            \end{tabular}
-        \end{center}
-        \caption{Notation} \label{tabnotation}
-    \end{table}
 
 
 
-\subsection{Optimization problem}
-\label{sec.mod.pb}
-
-The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
-so that the makespan (total execution time) is minimized while
-respecting memory constraints. If a processor runs out of memory to execute
-a task mapped on it, the schedule is said to be {\em invalid}.
-
-Since tasks are subject to variability, we aim at minimizing the actual makespan
-achieved at the end of the execution, while decisions may be taken building
-on the estimated task parameters.
-
-\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
-
-%    \paragraph{Workflow-related changes}
-%
-%    \begin{itemize}
-%        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
-%        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
-%
-%    \end{itemize}
-%
-%    The following changes are not a part of this article's scope:
-%
-%    \begin{itemize}
-%        \item The workflow structure changes: edges or tasks come in or leave.
-%    \end{itemize}
-%
-%    \paragraph{Execution environment-related changes }
-%
-%
-%    \begin{itemize}
-%        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
-%        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
-%
-%    \end{itemize}
-%
-%    The following changes are not a part of this article's scope:
-%
-%    \begin{itemize}
-%        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
-%    \end{itemize}
-%
-%    \subsection{Time of changes }
-%
-%    We consider discrete time in seconds.
-%    The time point(s) at which the changes happen is unambiguously defined.
-%
-%    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
-%    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
-%    The start time of the source task in the workflow is zero.
-%    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
-%
-%    \subsection{Changes and knowledge horizon - important questions TBA}
-%
-%    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
-%
-%    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
-%    However, how do we model the following:
-%    \begin{itemize}
-%        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
-%        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
-%        \item How many times of change do we model - one per workflow run, or multiple?
-%        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
-%    \end{itemize}
 
 
-    \section{Related work: \skug{Full: 5, Polished: 4}}
+    \section{Related work} %: \skug{Full: 5, Polished: 4}}
     \label{sec:related-work}
-    
-    \hmey{Question: Does it make sense to place related work before the model (which is more common)?}
+   
+   First, we focus on HEFT-like scheduling heuristics from the literature  that do not necessarily  
+   consider memory constraints. Then, we discuss memory-aware scheduling algorithms. 
+   Finally, we move to related work on dynamic or adaptive algorithms. 
+ %   \hmey{Question: Does it make sense to place related work before the model (which is more common)?}
 
-    We discuss relevant scheduling approaches that reuse processors or respect the memory requirements of the processors.
-
-    \subsection{Early list schedulers with unlimited processors}
-    An entire cluster of works on list schedulers has been carried out as early as the 90s.
-    They all assume a DAG-shaped workflow with makespan weights on tasks, and an unlimited amount of homogeneous processors
-    with the speed of 1~\cite{benoit2013survey}.\hmey{needs refs or at least a survey pointer}
-    \skug{actually, Anne cited them, so citing her :-)}
-
-    The \textit{task duplication}-based approaches exploit that sometimes running a task twice on different machines can
-    help reduce the makespan by saving communication costs.
-    The two categories are scheduling with partial duplication~(SPD), and with full duplication~(SFD).
-    For a join task (a task whose incoming degree is larger than its outgoing degree), SPD finds a critical immediate
-    parent (the one that gives the largest start time to the join task) and duplicates only it.
-    SFD duplicates all parents of a join node.
-    The algorithm by~\cite{dfrn1997} duplicates first (creates copies of all parent tasks) and then reduces (removes) the ones that can be removed without harming the makespan.
-    The critical path fast duplication algorithm CPFD~\cite{5727760} classifies tasks into three categories: critical
-    path task, in-branch task, or out-branch task.
-    It schedules critical path tasks first, then in-branch tasks.
-    \hmey{I'm missing the connection to our paper. Or vice versa, how is our contribution
-    connected to these works? (Einordnung in den Forschungskontext) For example, do we do similar things? Are there interesting limitations we overcome?}
-
-    Linear clustering~\cite{KWOK1999381} acts on critical paths in the workflow.
-    It assigns the current critical path to one processor, removes all these tasks from the workflow, recomputes the critical
-    path and repeats the procedure.
-    Heaviest node first~\cite{SHIRAZI1990222} assigns the tasks level by level;
-    in each level, it schedules the one with largest computation time first.
+%    We discuss relevant scheduling approaches that reuse processors or respect the memory requirements of the processors.
+%
+%    \subsection{Early list schedulers with unlimited processors}
+%    An entire cluster of works on list schedulers has been carried out as early as the 90s.
+%    They all assume a DAG-shaped workflow with makespan weights on tasks, and an unlimited amount of homogeneous processors
+%    with the speed of 1~\cite{benoit2013survey}.\hmey{needs refs or at least a survey pointer}
+%    \skug{actually, Anne cited them, so citing her :-)}
+%
+%    The \textit{task duplication}-based approaches exploit that sometimes running a task twice on different machines can
+%    help reduce the makespan by saving communication costs.
+%    The two categories are scheduling with partial duplication~(SPD), and with full duplication~(SFD).
+%    For a join task (a task whose incoming degree is larger than its outgoing degree), SPD finds a critical immediate
+%    parent (the one that gives the largest start time to the join task) and duplicates only it.
+%    SFD duplicates all parents of a join node.
+%    The algorithm by~\cite{dfrn1997} duplicates first (creates copies of all parent tasks) and then reduces (removes) the ones that can be removed without harming the makespan.
+%    The critical path fast duplication algorithm CPFD~\cite{5727760} classifies tasks into three categories: critical
+%    path task, in-branch task, or out-branch task.
+%    It schedules critical path tasks first, then in-branch tasks.
+%    \hmey{I'm missing the connection to our paper. Or vice versa, how is our contribution
+%    connected to these works? (Einordnung in den Forschungskontext) For example, do we do similar things? Are there interesting limitations we overcome?}
+%
+%    Linear clustering~\cite{KWOK1999381} acts on critical paths in the workflow.
+%    It assigns the current critical path to one processor, removes all these tasks from the workflow, recomputes the critical
+%    path and repeats the procedure.
+%    Heaviest node first~\cite{SHIRAZI1990222} assigns the tasks level by level;
+%    in each level, it schedules the one with largest computation time first.
 
 
     \subsection{Static list schedulers, especially HEFT-based algorithms}
@@ -595,6 +443,178 @@ on the estimated task parameters.
 
     An online scheduling algorithm~\cite{Witt2018POS} assumes a DAG-structured workflow and learns task characteristics.
     They prioritize tasks that have failed before or are well-predictable.
+
+
+
+
+
+
+
+
+
+    \section{Model} %: \skug{Full: 4, polished: 3}}
+
+    We first describe the model for our target applications, which are (large scientific) workflows for which we do not have perfect a priori knowledge,
+    in Section~\ref{sec.mod.work}.  Next, we define the execution
+    environment, a heterogeneous system (in terms of processor speed and memory size),
+    in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
+    Section~\ref{sec.mod.pb}. The key notation is summarized in Table~\ref{tabnotation}.
+
+    \subsection{Workflow}
+    \label{sec.mod.work}
+    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
+    $E$ is a set of directed edges of the form $e=(u,v)$, with $u,v\in V$, expressing precedence constraints between tasks.
+    Each task~$u \in V$  is performing $w_u$ operations, and it also
+    requires some amount of memory to be executed, denoted as~$m_u$.
+    Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
+   Note that $m_u$ is the total memory usage
+    of a task during its execution, including input and output files currently being read and written,
+    and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
+    between the input files
+    (total size of the files to be received from the parents),
+    the output files (total size of the files to be sent to the children),
+    and the total memory size~$m_u$ (usually achieving the maximum):
+    \[
+        r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
+    \]
+
+    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
+    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
+    The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
+    $ \children{u} = \{v \in V: (u,v) \in E\}$. A task without children is called a {\it target task}.
+    Each task may have multiple parents and children.
+
+
+Furthermore, we place ourselves in a context where we do not have perfect knowledge
+of the task parameters ($w_u$ and $m_u$) before the tasks start their execution,
+but only estimates. \AB{Add motivation: related work with variable task durations for instance...}
+Hence, scheduling decisions are made on these estimated parameters, and
+may be reconsidered at runtime when a task starts its execution and we know
+its exact parameters.
+
+
+    \subsection{Execution environment}
+    \label{sec.mod.plat}
+
+    The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
+    consists of $k$ processors $p_1, \dots, p_k$.
+    Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$, a communication
+    buffer of size $MC_j$ and a speed~$s_j$.
+    We can decide to evict some data from the main memory if we are sending the data
+    to another processor; it then stays in the communication buffer until it has been sent.
+    The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
+    We assume that all processors are connected with the same bandwidth~$\beta$.
+    \hmey{Maybe mention that variable bandwidths are part of future work...?}
+
+    We keep track of the current ready time of each processor and each communication
+    channel, $\rt_j$ and $\rt_{j,j'}$, for each processor $j$ and all pairs~$(j,j')$.
+    Initially, all the ready times are set to~$0$.
+    We also keep track of the currently available memory, $availM_j$ and $availC_j$,
+    on the processor memory and communication buffer, respectively.
+    Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
+    that are in the memory of size $\MM_j$ but may be evicted to be communicated if
+    more memory is needed on~$p_j$. They are ordered by non-decreasing size and
+    correspond to some $c_{u,v}$.
+
+    We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
+    the memory requirement; it transforms the workflow into a series-parallel graph
+    and then finds the traversal that leads to the minimum memory consumption.
+
+    \begin{table}[h]
+        \begin{center}
+            \begin{tabular}{rl}
+                \hline
+                \textbf{Symbol}                       & \textbf{Meaning}                                         \\
+                \hline
+                $G = (V, E)$                          & Workflow graph, set of vertices (tasks) and edges        \\
+                $\parents{u}$, $\children{u}$         & Parents of a task $u$, children of a task $u$            \\
+                $m_u$                                 & Memory weight of task $u$                                \\
+                $w_u$                                 & Workload of task $u$  (normalized execution time)          \\
+                $c_{u,v}$                             & Communication volume along the edge $(u,v)\in E$         \\
+                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates     \\
+                $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
+                $\cluster$, $k$                    & Computing system and its number of processors           \\
+                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
+                $M_j$, $MC_j$, $s_j$                               & Memory size, comm. buffer size, and speed of proc.\ $p_j$                          \\
+                $\beta$                     & Bandwidth in the compute system                                \\
+                $\bottomlevel{u}$                      & Bottom weight of task $u$ \\
+                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
+                $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
+                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
+                \hline
+            \end{tabular}
+        \end{center}
+        \caption{Notation} \label{tabnotation}
+    \end{table}
+
+
+
+\subsection{Optimization problem}
+\label{sec.mod.pb}
+
+The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
+so that the makespan (total execution time) is minimized while
+respecting memory constraints. If a processor runs out of memory to execute
+a task mapped on it, the schedule is said to be {\em invalid}.
+
+Since tasks are subject to variability, we aim at minimizing the actual makespan
+achieved at the end of the execution, while decisions may be taken building
+on the estimated task parameters.
+
+\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
+
+%    \paragraph{Workflow-related changes}
+%
+%    \begin{itemize}
+%        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
+%        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
+%
+%    \end{itemize}
+%
+%    The following changes are not a part of this article's scope:
+%
+%    \begin{itemize}
+%        \item The workflow structure changes: edges or tasks come in or leave.
+%    \end{itemize}
+%
+%    \paragraph{Execution environment-related changes }
+%
+%
+%    \begin{itemize}
+%        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
+%        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
+%
+%    \end{itemize}
+%
+%    The following changes are not a part of this article's scope:
+%
+%    \begin{itemize}
+%        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
+%    \end{itemize}
+%
+%    \subsection{Time of changes }
+%
+%    We consider discrete time in seconds.
+%    The time point(s) at which the changes happen is unambiguously defined.
+%
+%    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
+%    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
+%    The start time of the source task in the workflow is zero.
+%    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
+%
+%    \subsection{Changes and knowledge horizon - important questions TBA}
+%
+%    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
+%
+%    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
+%    However, how do we model the following:
+%    \begin{itemize}
+%        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
+%        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
+%        \item How many times of change do we model - one per workflow run, or multiple?
+%        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
+%    \end{itemize}
+
 
     \section{Scheduling heuristics} %Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
 \label{sec.heuristics}
