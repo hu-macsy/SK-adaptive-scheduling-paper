@@ -221,8 +221,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     \[
         r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
     \]
-\AB{I transformed the sum into a max, correct? Or maybe we could assume $r_u=m_u$? }
-\hmey{I  recall a discussion of the sum with Svetlana, but the text says max, it seems.}
+    \AB{I transformed the sum into a max, correct? Or maybe we could assume $r_u=m_u$? }
+    \hmey{I  recall a discussion of the sum with Svetlana, but the text says max, it seems.}
+    \skug{it used to be  a sum, but not anymore since the collaboration with B1}
 
     The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
     $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
@@ -372,7 +373,8 @@ on the estimated task parameters.
     \subsection{Early list schedulers with unlimited processors}
     An entire cluster of works on list schedulers has been carried out as early as the 90s.
     They all assume a DAG-shaped workflow with makespan weights on tasks, and an unlimited amount of homogeneous processors
-    with the speed of 1.\hmey{needs refs or at least a survey pointer}
+    with the speed of 1~\cite{benoit2013survey}.\hmey{needs refs or at least a survey pointer}
+    \skug{actually, Anne cited them, so citing her :-)}
 
     The \textit{task duplication}-based approaches exploit that sometimes running a task twice on different machines can
     help reduce the makespan by saving communication costs.
@@ -380,9 +382,8 @@ on the estimated task parameters.
     For a join task (a task whose incoming degree is larger than its outgoing degree), SPD finds a critical immediate
     parent (the one that gives the largest start time to the join task) and duplicates only it.
     SFD duplicates all parents of a join node.
-    Ref.~\cite{dfrn1997} proposes a task duplication algorithm. \hmey{The prev. sentence sounds odd since we are in the paragraph on task duplication.}
-    It duplicates first (creates copies of all parent tasks) and then reduces (removes) the ones that can be removed without harming the makespan.
-    The critical path fast duplication algorithm \texttt{CPFD}~\cite{5727760} classifies tasks into three categories: critical
+    The algorithm by~\cite{dfrn1997} duplicates first (creates copies of all parent tasks) and then reduces (removes) the ones that can be removed without harming the makespan.
+    The critical path fast duplication algorithm CPFD~\cite{5727760} classifies tasks into three categories: critical
     path task, in-branch task, or out-branch task.
     It schedules critical path tasks first, then in-branch tasks.
     \hmey{I'm missing the connection to our paper. Or vice versa, how is our contribution
@@ -391,8 +392,7 @@ on the estimated task parameters.
     Linear clustering~\cite{KWOK1999381} acts on critical paths in the workflow.
     It assigns the current critical path to one processor, removes all these tasks from the workflow, recomputes the critical
     path and repeats the procedure.
-    \texttt{Heaviest node first}~\cite{SHIRAZI1990222} \hmey{Really typewriter for algorithms?
-    Plus: this is not done consistently yet!} assigns the tasks level by level; 
+    Heaviest node first~\cite{SHIRAZI1990222} assigns the tasks level by level;
     in each level, it schedules the one with largest computation time first.
 
 
@@ -432,7 +432,7 @@ on the estimated task parameters.
     The decision is whether the task be assigned to the processor with the lowest execution time or to the processor that
     produces the lowest finish time.
 
-    The \texttt{SDC} algorithm~\cite{SHI2006665} considers the percentage of feasible processors in addition to task’s
+    The SDC algorithm~\cite{SHI2006665} considers the percentage of feasible processors in addition to task’s
     average execution cost in its weight.
     The selected task is then assigned to a processor which minimizes its Adjusted Earliest Finish Time (AEFT) that
     additionally notes how large the communication between current node and its children will be on the
@@ -969,10 +969,25 @@ of the graph that minimizes the peak memory usage.
     $94.9\%$ of workflows, thus having the smallest failure rate of $5.1\%$.
 
     \paragraph{Normal cluster}
-    \skug{OLD DATA here, rewrite}
 
-    Preliminary data: HEFT has 50\% failures, our algorithms have no failures.
-    memory utilization blc is 5\% better, makespan 1\% worse.
+    On a normal cluster, the baseline \heft had $24.2\%$ success rate ($75.7\%$ failure rate).
+    All the heuristics could schedule all workflows. \skug{check this tomorrow for two weird failures}.
+
+    Figure~\ref{fig:ms-relations} shows the relations of the makespans foound by the heuristics to the makespans found by the baseline.
+    On average, the makespans found by \heftbl are $7.8\%$ worse than those found by the baseline, the makespans of \heftblc are $8\%$
+    worse, and those found by \heftmm are $71\%$ worse.
+
+    \skug{TODO: how much worse are makespans for SUCCESSFUL hefts? presulmably almost identical}
+
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.495\columnwidth] {images/MsRelations}
+        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline. Smaller is better.}
+        \label{fig:ms-relations}
+        \vspace{-0.3cm}
+    \end{figure}
+
 
     \subsubsection{Dynamic experiments}
     \paragraph{Tiny cluster}
