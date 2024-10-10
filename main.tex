@@ -46,6 +46,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
 \newcommand{\willchange}[1]{{\color{orange}[AB: #1]}}
 
+\renewcommand{\iec}{i.e., }
 \begin{document}
 
     \title{Memory-aware Adaptive Scheduling of Scientific Workflows On Heterogeneous Architectures\\
@@ -147,7 +148,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     %%% MOTIVATION %%%
     Modern computing platforms are often heterogeneous, meaning they feature varying CPU speeds
-    and memory sizes. In general, varying memory sizes make it more challenging to compute
+    and memory sizes. In general, having different memory sizes per CPUs makes it more challenging to compute
     a schedule that respects all memory constraints -- meaning that no task is executed on a 
     processor with less memory than needed for the task. This is, however, very important to
     avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
@@ -156,17 +157,20 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     the very common \emph{makespan}~\cite{liu2018survey}, 
     which acts as proxy for the total execution time of a workflow.
     
-    A seminal list scheduling heuristic for workflows is HEFT 
+    A seminal list scheduling heuristic for workflows on heterogeneous platforms is HEFT 
     (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
-    It has two phases: (i) each task is assigned a priority and (ii) the tasks in a priority-ordered list are assigned
-    to processors, where the ``ready'' task with the highest priority is scheduled next.
-    HEFT has been extended (e.g.\ by Shi and Dongarra~\cite{SHI2006665}) and adjusted for a variety of different scheduling problem formulations. 
-    Yet, none of them adheres to memory constraints -- also see our discussion of related work
-    in Section~\ref{sec:related-work}. (\skug{check in related work if true!}).
-        \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
+    It has two phases: (i) each task is assigned a priority; and (ii) the tasks in a priority-ordered list are assigned
+    to processors, where the ``ready'' task with the highest priority is scheduled next on the processor
+    where it would complete its execution first. 
+    HEFT has been extended (e.g., by Shi and Dongarra~\cite{SHI2006665}) and adjusted 
+    for a variety of different scheduling problem formulations. 
+    Yet, none of them adhere to memory constraints as we propose -- see discussion of related work
+    in Section~\ref{sec:related-work}. 
+%    (\skug{check in related work if true!}).
+%        \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
         
     Another limitation in practice of HEFT (and many other scheduling strategies) is their 
-    assumption that the task running times provided to them are accurate. In practice this is 
+    assumption that the task running times provided to them are accurate. In practice, this is 
     not the case and deviations from user estimates or historical measurements are 
     very common~\cite{TODO}. As a consequence, one should adapt the schedule when \emph{major}
     deviations occur. List-based schedulers such as HEFT are, however, not designed for 
@@ -181,9 +185,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
     and MM for \underline{m}inimum \underline{m}emory traversal).
     The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
-    We compare the static schedule produced by these heuristics with a HEFT variant as
-    baseline that does not take memory sizes into account. \hmey{Need to clarify: 
-    why is this SotA?}
+    We compare the static schedule produced by these heuristics with the classical HEFT as
+    baseline, which however does not take memory sizes into account. 
+    \hmey{Need to clarify: why is this SotA?}
     
     \begin{itemize}
       \item Static: we find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
@@ -642,8 +646,8 @@ in case there is not enough memory available on some processors.
     we keep the minimum $FT(v,p_j)$ and assign task~$v$
     to processor~$p_j$.
 
-    \textit{Assignment to processor}
-    When assigning the task, we set the ready time of the processor~$j$ $rt_j$ to the finish time of the task.
+    \textit{Assignment to processor. }
+    When assigning the task, we set the ready time $rt_j$ of  processor~$j$ to be the finish time of the task.
     For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
     communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
     communication time $c( u,v) / \beta$.
@@ -805,7 +809,7 @@ of the graph that minimizes the peak memory usage.
     However, also when the hardware of the infrastructure does not change, the set of nodes provided as a scheduling target might change due to release or occupation in shared cluster infrastructures.
     As infrastructure information and resource predictions are dynamically updated and provided to the scheduler during the workflow runtime, the previous schedule becomes invalid and a new one must be calculated.
 
-    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures of approximately 15\% is shown~\cite{}.
+    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures of approximately 15\% is shown~\cite{TODO}.
     Online prediction methods were able to significantly reduce the error during runtime, with the reduction reaching up to one-third of the cold-start error~\cite{baderDiedrichDynamic2023,witt2019learning}.
 %For instance, Nadeen~et~al.\cite{} report an error of 10\%, 11\%, and 15\% while the task prediction errors shows a normal and exponential distribution.
 %Bader~et~al.~ report a prediction error between 13\% and 17\% for their method, showing an exponential task error distribution.
@@ -967,62 +971,8 @@ of the graph that minimizes the peak memory usage.
     \paragraph{Normal cluster}
     \skug{OLD DATA here, rewrite}
 
-    On the normal cluster, the baseline produces invalid results in $40$\% of small workflows and $66.6$\% of middle-sized
-    and big workflows.
-    In most cases, the failures of the baseline can be traced to choosing the processor with not enough memory when several
-    options are available.
-    Due to not taking memories into account, the baseline chooses a processor with already full memory, while there can
-    be another processor with the same speed that still has enough memory.
-    In this case, \heftbl produces the same makespan while producing a valid solution.
-    The heuristics produce valid results by default and also manage to find a solution in all cases (on all workflow sizes).
-
-    The excess makespans produced by the heuristics are shown in Figure~\ref{fig:excess-ms}.
-    On the normal cluster and among small workflows, the makespans produced by \heftbl and \heftblc are virtually indistinguishable
-    from those of the baseline (no change and $0.4$\% change), while \heftmm produces  $18$\% worse makespans.
-    For middle-sized ones \heftmm is $9$\% worse,  \heftblc $0.9$\% worse.
-    For the big workflows however, while results of \heftbl and \heftblc are still barely worse ($<1$\% worse),
-     \heftmm is only $5.8$\% worse.
-    The heuristics pay off more on larger workflows.
-
-    \begin{figure}[tb]
-        \centering
-        \includegraphics[width=0.495\columnwidth] {images/ms-relative-3groups}
-        \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm for different . Smaller is better.}
-       \label{fig:excess-ms}
-        \vspace{-0.3cm}
-    \end{figure}
-    \subsubsection{Memory usage}
-    Minimizing memory usage is an interesting measure of the quality of the solution produced by a heuristic.
-    We studied the average peak memory consumption in our cluster.
-    We looked at the maximum memory usage on each processor during a task execution, and averaged it over all processors
-    in the execution environment.
-
-    The results adhere to the intuition: \heftmm produces consistently smaller memory usage among all the heuristics.
-    So, for small workflows, the average memory occupation by \heftbl and \heftblc is $11.8$\% and $11.7$\%, respectively,
-    while \heftmm manged to occupy $10.2$\% of memories.
-    For middle-sized workflows, \heftbl and \heftblc occupied $27.8$\% and $28.2$\%, respectively, while \heftmm occupied
-    $21$\%.
-    For the big workflows, \heftmm occupied $20.9$\% against $33.7$\% by \heftbl and $27.6$\% by \heftblc.
-    Interestingly, for big workflows, \heftmm occupied on average even a little less that for the middle-sized ones.
-    This means that the bound of exploiting parallelization has been achieved for workflows around the size of middle-sized ones,
-    and for the big workflows, the makespan is not improved by ``spreading'' the workflow more.
-
-    \subsubsection{Impact of cluster size}
-    On a cluster with only $18$ processors ($3$ of each kind), the baseline makes more failures: from $43.8$\%  (small workflows)
-    to $77.8$\% (mid-sized) and $88.9$\% (big workflows).
-    At the same time, each heuristic is unable to schedule one big workflow and one middle-sized one.
-    On the workflows that they are able to schedule, \heftbl and \heftblc produce makespans that are $<1$\% bigger than
-    those of the baseline on small and middle-sized workflows.
-    On the big workflows, they produce makespans that are $3.5$\% and $2.3$\% bigger respectively.
-    The performance of \heftmm improves more with workflow size: it goes from producing $16$\% bigger makespans on small
-    workflows, to $8$\% on middle-sized ones, to $7$\% on big workflows.
-
-   Like in the normal cluster, \heftmm again consistently shows smaller peak memory usage in the cluster.
-    It utilizes on average $15$\% of memory on small workflows ($17.7$\% for \heftbl and \heftblc),
-    $31$\% on middle-sied workflows ($45.2$\% and $44.9$\% on \heftbl and \heftblc, respectively),
-    and $34$\% on big workflows ($50.1$\% and $50.2$\% for \heftbl and \heftblc).
-
-
+    Preliminary data: HEFT has 50\% failures, our algorithms have no failures.
+    memory utilization blc is 5\% better, makespan 1\% worse.
 
     \subsubsection{Dynamic experiments}
     \paragraph{Tiny cluster}
@@ -1054,6 +1004,8 @@ of the graph that minimizes the peak memory usage.
     \subsubsection{Summary}
 
     \section{Conclusion  \skug{Full: 0, Polished: 0}}
+
+Extend to heterogeneous bandwidths. 
 
 Further variability commented out from the paper: changing DAG structure; changing platform...
 
