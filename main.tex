@@ -152,7 +152,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     a schedule that respects all memory constraints -- meaning that no task is executed on a 
     processor with less memory than needed for the task. This is, however, very important to
     avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
-    Hence, building on previous related \hmey{You may want to add other refs not from us} work~\cite{DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
+    Hence, building on previous related \hmey{You may want to add other refs not from us} work~\cite{gou2020partitioning,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
     formulation that takes memory sizes as explicit constraints into account. Its objective is
     the very common \emph{makespan}~\cite{liu2018survey}, 
     which acts as proxy for the total execution time of a workflow.
@@ -175,6 +175,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     very common~\cite{hirales2012multiple}. As a consequence, one should adapt the schedule when \emph{major}
     deviations occur. List-based schedulers such as HEFT are, however, not designed for 
     such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement? Please add ref (if any)}
+    \AB{Actually, we adapt HEFT as well, I'll reformulate...}
 %    and would compute a completely new schedule from scratch.
     
 
@@ -221,9 +222,6 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     \[
         r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
     \]
-    \AB{I transformed the sum into a max, correct? Or maybe we could assume $r_u=m_u$? }
-    \hmey{I  recall a discussion of the sum with Svetlana, but the text says max, it seems.}
-    \skug{it used to be  a sum, but not anymore since the collaboration with B1}
 
     The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
     $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
@@ -302,7 +300,7 @@ its exact parameters.
 The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
 so that the makespan (total execution time) is minimized while
 respecting memory constraints. If a processor runs out of memory to execute
-a task \hmey{mapped to it}, the schedule is said to be {\em invalid}.
+a task mapped on it, the schedule is said to be {\em invalid}.
 
 Since tasks are subject to variability, we aim at minimizing the actual makespan
 achieved at the end of the execution, while decisions may be taken building
@@ -717,14 +715,17 @@ of the graph that minimizes the peak memory usage.
     In this case ($Res <0$), we try evicting
     some data from memory so that we have enough memory to execute task~$v$.
     We need to evict at least $Res$ data.
-    For now, we propose a greedy approach, evicting the smallest files of $\PD_j$ until $Res$ data has been evicted,
-    in order to avoid costly communications.
-    \AB{FYI We initially discussed evicting the largest files, but this leads to
-    large communications and does not seem efficient after all... Maybe we can think of another
-    approach that would take into account both data size and bottom level...}
+    We propose a greedy approach, evicting the largest files of $\PD_j$ until $Res$ data has been evicted. 
+    A variant where the smallest files are evicted first has been tested, and it led to comparable results. 
+%    
+%    in order to avoid costly communications.
+%    \AB{FYI We initially discussed evicting the largest files, but this leads to
+%    large communications and does not seem efficient after all... Maybe we can think of another
+%    approach that would take into account both data size and bottom level...}
     While tentatively evicting files, we remove them from the list of pending memories and move them into a list
     of memories pending in the communication buffer.
-    We keep track of the available buffer size, too - each time a file gets moved into the pending in buffer, the available buffer size is reduced by its weight.
+    We keep track of the available buffer size, too -- each time a file gets moved into the pending in buffer, 
+    the available buffer size is reduced by its weight.
 
     If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
     or if while doing so we exceeded the size of the available buffer,
@@ -734,9 +735,11 @@ of the graph that minimizes the peak memory usage.
     \noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
     Its starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
     must be orchestrated from predecessor tasks $u\notin T(p_j)$.
-    The starting time is then
-    \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} } \]
-    Its finish time on $p_j$ is then
+    The starting time is therefore:\\[-.7cm]
+    
+   {\footnotesize{ \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} .} \]}}
+   
+  \noindent  Finally, its finish time on $p_j$ is 
     $FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
 
 
@@ -798,7 +801,7 @@ of the graph that minimizes the peak memory usage.
         at least for the fork? What worst-case can we think of? }
 
 
-    \subsection{Dynamic Scenario}
+    \section{Dynamic scenario}
 
     In a workflow execution environment, the scheduling method interacts with the runtime environment, which provides information such as resource estimates.
     This information may include, memory usage, runtime, graph structures, or the status of the underlying infrastructure.
@@ -816,7 +819,7 @@ of the graph that minimizes the peak memory usage.
 % @Svetlana, willst du sowas für deine Experimente? Also die Daten, welche du dann konfigurieren kannst?
     Such a dynamic execution environment necessitates for a dynamic scheduling method where the schedule can be recomputed during the workflow execution.
 
-    \subsection{Retracing the effects of change on an existing schedule}
+    \subsection*{Retracing the effects of change on an existing schedule}
     After the monitoring system has reported changes, we need to assess their impact on the existing schedule.
     These changes can invalidate the schedule (\eg if there is not enough memory for some tasks to execute anymore),
     they can lead to a later finishing time (\eg if some tasks longer and delay other tasks), or they can have no effect (\eg if new processors
