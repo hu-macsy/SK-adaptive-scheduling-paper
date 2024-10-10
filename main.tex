@@ -985,9 +985,18 @@ of the graph that minimizes the peak memory usage.
 
     \begin{figure}[tb]
         \centering
-        \includegraphics[width=0.495\columnwidth] {images/MsRelations2}
+        \includegraphics[width=1.1\columnwidth] {images/MsRelations2}
         \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline. Smaller is better.}
         \label{fig:ms-relations}
+        \vspace{-0.3cm}
+    \end{figure}
+
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size}
+        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline, by workflow size. Smaller is better.}
+        \label{fig:ms-relations-by-workflow}
         \vspace{-0.3cm}
     \end{figure}
 
@@ -1019,7 +1028,6 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
-
     \subsubsection{Dynamic experiments}
     \paragraph{Tiny cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
@@ -1046,6 +1054,24 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
+    \subsubsection{Runtimes of the algorithm}
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=1.1\columnwidth] {images/runtimes-logarithmic}
+        \caption{Runtimes of the heuristics and the baseline. The y axis ist logarithmic.}
+        \label{fig:runtimes-log}
+        \vspace{-0.3cm}
+    \end{figure}
+
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=1.1\columnwidth] {images/runtimes-absolute}
+        \caption{Runtimes of the heuristics and the baseline.}
+        \label{fig:runtimes-abs}
+        \vspace{-0.3cm}
+    \end{figure}
 
     \subsubsection{Summary}
 
