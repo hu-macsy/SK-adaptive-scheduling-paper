@@ -487,10 +487,10 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 Furthermore, we place ourselves in a context where we do not have perfect knowledge
 of the task parameters ($w_u$ and $m_u$) before the tasks start their execution,
-but only estimates. \AB{Add motivation: related work with variable task durations for instance...}
+but only estimates~\cite{rahman2013,GARG2015256}.  
+%. \AB{Add motivation: related work with variable task durations for instance...}
 Hence, scheduling decisions are made on these estimated parameters, and
-may be reconsidered at runtime when a task starts its execution and we know
-its exact parameters.
+may be reconsidered at runtime when a task starts its execution and we know its exact parameters.
 
 
     \subsection{Execution environment}
@@ -504,7 +504,7 @@ its exact parameters.
     to another processor; it then stays in the communication buffer until it has been sent.
     The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
     We assume that all processors are connected with the same bandwidth~$\beta$.
-    \hmey{Maybe mention that variable bandwidths are part of future work...?}
+%    \hmey{Maybe mention that variable bandwidths are part of future work...?}
 
     We keep track of the current ready time of each processor and each communication
     channel, $\rt_j$ and $\rt_{j,j'}$, for each processor $j$ and all pairs~$(j,j')$.
@@ -520,7 +520,7 @@ its exact parameters.
     the memory requirement; it transforms the workflow into a series-parallel graph
     and then finds the traversal that leads to the minimum memory consumption.
 
-    \begin{table}[h]
+    \begin{table}
         \begin{center}
             \begin{tabular}{rl}
                 \hline
@@ -561,7 +561,10 @@ Since tasks are subject to variability, we aim at minimizing the actual makespan
 achieved at the end of the execution, while decisions may be taken building
 on the estimated task parameters.
 
-\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
+Note that the problem is already NP-hard even in the homogeneous case and 
+without memory constraints, because of the DAG structure of the application. 
+Hence, we focus on the design of efficient scheduling heuristics. 
+%\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
 
 %    \paragraph{Workflow-related changes}
 %
@@ -674,7 +677,7 @@ in case there is not enough memory available on some processors.
     \label{sec.heftm}
     Like the original HEFT, the memory-aware versions of HEFT consist of two stages:
     first, they compute the task ranks,
-    and second, they assign tasks to processors in the order defined in the first step.
+    and second, they assign tasks to processors in the order defined in the first stage.
     We consider three variants of HEFT accounting for memory usage (HEFTM), which only
     differ in the order they consider tasks to be scheduled in the first stage.
 
@@ -721,8 +724,8 @@ of the graph that minimizes the peak memory usage.
 
     \smallskip
     \noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-    \[Res = availM_j - m_v - \sum_{u \in \Pi(v), u\notin T(p_j)}  \{c_{u,v}\}
-    - \sum_{w\in Succ(v)}  \{c_{v,w}\}.\]
+    $$Res = availM_j - m_v - \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
+    - \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\}.$$
 
     $T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
     already in the memory of~$p_j$. However, the files from the
@@ -782,43 +785,44 @@ of the graph that minimizes the peak memory usage.
         communication time $c( u,v) / \beta$.
         We also remove the incoming files from either the pending memories or pending data in buffers of these other
         processors, and increase the available memories or available buffer sizes on these processors.
-        \item We compute the correct amount of available memory for $p_j$ (for when the task is done).
-        For each predecessor that is mapped to the same processor, we remove the pending memory corresponding to the weight of
+        \item We compute the correct amount of available memory for~$p_j$ (for when the task is done).
+        Then, for each predecessor that is mapped to the same processor, 
+        we remove the pending memory corresponding to the weight of
         the incoming edge, also freeing the same amount of available memory (increasing $availM_j$).
-        For each successor, on the other hand, we add the edge weights to pending memories and reduce $availM_j$ by the corresponding
-        amount.
+        For each successor, we rather add the edge weights to pending memories and reduce $availM_j$ 
+        by the corresponding amount.
     \end{itemize}
 
-    \subsection{The fork}
-    We look at the behavior of these heuristics on a fork graph,
-    where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
-    to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
-
-    Without memory, this problem is NP-complete; this is equivalent
-    to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
-    and with two processors. Half of the tasks must be sent to the processor
-    on which $T_0$ is not executed, and the optimal makespan is
-    $w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
-
-    However, with an infinite number of identical processors, it can be
-    solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$;
-    the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
-    while the remaining $n-k$ tasks are executed locally (try all values of $k$).
-
-    With heterogeneous processors, it is probably NP-complete again
-    because we could ensure that there are only two processors fast enough
-    and get back to the 2-partition...
-
-    We also had an example where evicting large files first in step 2
-    can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
-    $f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
-    imposes that we free one unit of memory before executing one
-    of the tasks\ldots Actually the new version with BLC would start
-    considering $T_2$ and be fine in this case\ldots
-
-
-    \AB{Can we prove that we have (maybe) a 2-approximation,
-        at least for the fork? What worst-case can we think of? }
+%    \subsection{The fork}
+%    We look at the behavior of these heuristics on a fork graph,
+%    where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
+%    to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
+%
+%    Without memory, this problem is NP-complete; this is equivalent
+%    to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
+%    and with two processors. Half of the tasks must be sent to the processor
+%    on which $T_0$ is not executed, and the optimal makespan is
+%    $w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
+%
+%    However, with an infinite number of identical processors, it can be
+%    solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$;
+%    the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
+%    while the remaining $n-k$ tasks are executed locally (try all values of $k$).
+%
+%    With heterogeneous processors, it is probably NP-complete again
+%    because we could ensure that there are only two processors fast enough
+%    and get back to the 2-partition...
+%
+%    We also had an example where evicting large files first in step 2
+%    can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
+%    $f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
+%    imposes that we free one unit of memory before executing one
+%    of the tasks\ldots Actually the new version with BLC would start
+%    considering $T_2$ and be fine in this case\ldots
+%
+%
+%    \AB{Can we prove that we have (maybe) a 2-approximation,
+%        at least for the fork? What worst-case can we think of? }
 
 
     \section{Dynamic scenario}
