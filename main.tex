@@ -152,7 +152,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     a schedule that respects all memory constraints -- meaning that no task is executed on a 
     processor with less memory than needed for the task. This is, however, very important to
     avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
-    Hence, building on previous related work~\cite{TODO}, we consider a scheduling problem 
+    Hence, building on previous related \hmey{You may want to add other refs not from us} work~\cite{DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
     formulation that takes memory sizes as explicit constraints into account. Its objective is
     the very common \emph{makespan}~\cite{liu2018survey}, 
     which acts as proxy for the total execution time of a workflow.
@@ -172,9 +172,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
     Another limitation in practice of HEFT (and many other scheduling strategies) is their 
     assumption that the task running times provided to them are accurate. In practice, this is 
     not the case and deviations from user estimates or historical measurements are 
-    very common~\cite{TODO}. As a consequence, one should adapt the schedule when \emph{major}
+    very common~\cite{hirales2012multiple}. As a consequence, one should adapt the schedule when \emph{major}
     deviations occur. List-based schedulers such as HEFT are, however, not designed for 
-    such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement?}
+    such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement? Please add ref (if any)}
 %    and would compute a completely new schedule from scratch.
     
 
