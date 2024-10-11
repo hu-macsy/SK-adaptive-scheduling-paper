@@ -996,22 +996,47 @@ of the graph that minimizes the peak memory usage.
     \skug{insert more abt how the runtime system hanfles data reads}
 
     \subsubsection{Target computing systems}
-    \skug{Check that the description of speeds and memories is plausible and consistent with experimental setup. esp check for 19200 -> 192 GB.}
+    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
+    is represented as 192 000 (with 3 zeroes). For the memory-constrained cluster (192 00 with 2 zeroes) I will say that it has 10 times
+    less memory - 19.2 GB. Other processors will be dealt with similarly.}
 
     To fully benefit from the historical data, the  {\em default} experimental environment
     that we consider is a cluster based on the same six
     kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
-    We set the number of each kind of node to \skug{$24$ - check if this still holds }, thus having 144 processors in total. % the whole cluster.
+    We set the number of each kind of node to $12$, thus having 72 processors in total. % the whole cluster.
 
     Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
-    ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines; ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and large memory
-    (see Table~\ref{tab:procs} in Appendix~\ref{sub:appx-cluster-config}~\cite{daghetpart_full_version}).
+    ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines;
+    ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
+    large memory (see Table~\ref{tab:procs}).
 
-    To test various settings, we also vary the cluster configuration and consider
-    variants of the default cluster presented above:\\
-    $\bullet$ {\em tiny}, {\em small} and {\em large} clusters. While the default cluster consists of 144 nodes (24 of each kind), we
-    consider a small cluster with $18$ processors of each kind ($108$ processors in total), a tiny cluster with $72$ nodes and a
-    large cluster with $36$ processors of each kind ($216$ processors in total). \skug{check for cluster sizes and naming}\\
+    \begin{table}[htb]
+        \begin{center}
+            \begin{tabular}{rcc}
+                \toprule
+                Processor name %& Amount
+                &  CPU speed (GHz)  &Memory size (GB) \\
+                \midrule
+                local                    & 4                    & 16     \\
+                A1                      & 32                   & 32     \\
+                A2                      & 6                    & 64     \\
+                N1                      & 12                   & 16     \\
+                N2                      & 8                    & 8      \\
+                C2                      & 32                   & 192    \\
+                \bottomrule
+            \end{tabular}
+        \end{center}
+        \caption{Cluster configuration (default).}
+        \label{tab:procs}
+    \end{table}
+
+    To more constrained settings, we also vary the cluster configuration and consider
+    a memory-constrained cluster.
+    Like the default cluster, it consists of 72 nodes (12 of each kind), but we
+    give each node $10$ times less memory.
+    So, the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, $A2$ has $6.4$~\GB instead
+    of $64$~GB etc.
+    The processor speeds and their relations stay unchanged.
 
     \subsubsection{Runtime System}
 
@@ -1047,7 +1072,7 @@ of the graph that minimizes the peak memory usage.
 
 
     \subsubsection{Static experiments}
-    \paragraph{Tiny cluster}
+    \paragraph{Memory-constrained cluster}
 
     On the tiny cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
     The successful schedules were achieved exclusively on the tiny workflows (with only one 200-task size-increased
