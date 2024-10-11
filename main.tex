@@ -1164,7 +1164,7 @@ of the graph that minimizes the peak memory usage.
     workflow among them).
     \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm
     could still schedule all of the workflows, including even the largest ones.
-    As also observed on the normal cluster, \heftmm seems to be less affested by the size of the workflow when scheduling
+    As also observed on the normal cluster, \heftmm seems to be less affected by the size of the workflow when scheduling
     it.
     The makespans it produces are larger, but it seems to order the vertices in a similar way on both the small and the large workflows,
     rather than resorting to more memory-consuming ordering that other heuristics and the baseline produces.
@@ -1205,7 +1205,16 @@ of the graph that minimizes the peak memory usage.
     \end{figure}
 
     \subsubsection{Runtimes of the algorithm}
-
+    To be able to answer the runtime system without holding it up for too long, the scheduler needs to provide a fast answer.
+    Our bottom-level-based heuristics \heftbl and \heftblc provide smaller runtimes and also scale better with growing workflow
+    sizes~(see Fig.~\ref{fig:runtimes-abs} and Fig.~\ref{fig:runtimes-abs}).
+    Their runtimes are similar and grow from tens of miliseconds for the smallest workflows to $25-27$ seconds for the largest workflows.
+    \heftmm, however, needs to compute a memory-optimal traversal of the entire workflow to compute the ranks of the tasks,
+    so its runtime scales from also rens of miliseconds for the smalest workflows to thousands of seconds - $1172.7$ for \numprint{20000}-task workflows and
+    $2994.9$ seconds for the largest, \numprint{30000}-task workflows.
+    This increased runtime is, though, offset by the unique $100\%$ success rate this algorithm shows when scheduling large
+    workflows in difficult (memory-constrained) setups.
+    
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/runtimes-logarithmic}
