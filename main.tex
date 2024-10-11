@@ -1158,14 +1158,17 @@ of the graph that minimizes the peak memory usage.
 
     \paragraph{Memory-constrained cluster}
 
-    On the tiny cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
-    The successful schedules were achieved exclusively on the tiny workflows (with only one 200-task size-increased
+    On the memory-constrained cluster, \heft could produce valid assignments in $14$ experiments out of $290$~($4.8\%$
+    success rate).
+    The successful schedules were achieved exclusively on the tiny workflows (with only two 200-task size-increased
     workflow among them).
-    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm could schedule
-    $94.9\%$ of workflows, thus having the smallest failure rate of $5.1\%$.
-
-
-    \paragraph{Memory-constrained cluster}
+    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm
+    could still schedule all of the workflows, including even the largest ones.
+    As also observed on the normal cluster, \heftmm seems to be less affested by the size of the workflow when scheduling
+    it.
+    The makespans it produces are larger, but it seems to order the vertices in a similar way on both the small and the large workflows,
+    rather than resorting to more memory-consuming ordering that other heuristics and the baseline produces.
+    This makes it especially valuable for very large workflows in situations of very constrained memory in the cluster.
 
     \begin{figure}[tb]
         \centering
