@@ -937,10 +937,16 @@ of the graph that minimizes the peak memory usage.
 
 
 
-\section{Experimental evaluation: \skug{Full: 3, Polished: 3}}
+\section{Experimental evaluation} %: \skug{Full: 3, Polished: 3}}
 \label{sec:expe}
 
-\subsection{Setup: \skug{Full: 5, Polished: 4}}
+We first describe the experimental setup in Section~\ref{sec:setup}. 
+Then, we report results on static experiments to assess the performance
+of the memory-aware heuristics in Section~\ref{sec.expe.static}, before
+discussing the heuristics behavior in a dynamic setting in Section~\ref{sec.expe.dyn}. 
+Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}. 
+
+\subsection{Experimental setup} %: \skug{Full: 5, Polished: 4}}
     \label{sec:setup}
 
     All algorithms are implemented in C++ and compiled with g++ (v.8.5.0).
@@ -1065,7 +1071,9 @@ of the graph that minimizes the peak memory usage.
 
 
 
-    \subsection{Results \skug{Full: 3, Polished: 2}}
+
+\subsection{Results in a static setting} % \skug{Full: 3, Polished: 2}}
+\label{sec.expe.static}
 
     \subsubsection{Preliminary experiments}
 
@@ -1179,7 +1187,11 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
-    \subsubsection{Dynamic experiments}
+    
+    
+\subsection{Dynamic experiments}
+\label{sec.expe.dyn}
+
     \paragraph{Tiny cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
     situation - that is, if the scheduler assumed its memory to be smaller than it actually was and assigned it to a processor
@@ -1205,7 +1217,10 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
-    \subsubsection{Running times of the algorithm}
+
+\subsection{Running times of the heuristics}
+\label{sec.expe.t}
+
     To be able to answer the runtime system without holding it up for too long, the scheduler needs to provide a fast answer.
     Our bottom-level-based heuristics \heftbl and \heftblc provide smaller running times and also scale better with growing workflow
     sizes~(see Fig.~\ref{fig:runtimes-abs} and Fig.~\ref{fig:runtimes-abs}).
@@ -1233,7 +1248,8 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
-    \subsubsection{Summary}
+%    \subsubsection{Summary}
+
 
 \section{Conclusion  \skug{Full: 0, Polished: 0}}
 \label{sec:conc}
