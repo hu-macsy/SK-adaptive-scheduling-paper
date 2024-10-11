@@ -1238,18 +1238,18 @@ of the graph that minimizes the peak memory usage.
 \section{Conclusion  \skug{Full: 0, Polished: 0}}
 \label{sec:conc}
 
- \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately a half of them in a memory-constrained
+ \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately half of them in a memory-constrained
     one.
-    They provide a runtime that scales well with the growing size of a workflow.
+    They provide a running time that scales well with the growing size of a workflow.
 
     \heftmm can schedule even the largest workflows even on the memory-constrained cluster.
-    It is the only heuristic that had $100\%$ success rate.
-    However, the makespans it produces are larger than those of the the other two
+    It is the only heuristic that has $100\%$ success rate in our experiments.
+    However, the makespans it produces are larger than those of the the other two.
 
-Extend to heterogeneous bandwidths. 
-
-Further variability commented out from the paper: changing DAG structure; changing platform...
-
+\begin{itemize}
+  \item Extend to heterogeneous bandwidths. 
+  \item Further variability commented out from the paper: changing DAG structure; changing platform...
+\end{itemize}
 
     \bibliographystyle{abbrv}%IEEEtran}
     \bibliography{references}
