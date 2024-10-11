@@ -16,6 +16,7 @@
 \usepackage{numprint}
 \usepackage{todonotes}
 \usepackage{graphicx}
+\usepackage{booktabs}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -1034,7 +1035,7 @@ of the graph that minimizes the peak memory usage.
     a memory-constrained cluster.
     Like the default cluster, it consists of 72 nodes (12 of each kind), but we
     give each node $10$ times less memory.
-    So, the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, $A2$ has $6.4$~\GB instead
+    So, the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, $A2$ has $6.4$~GB instead
     of $64$~GB etc.
     The processor speeds and their relations stay unchanged.
 
@@ -1236,6 +1237,14 @@ of the graph that minimizes the peak memory usage.
 
 \section{Conclusion  \skug{Full: 0, Polished: 0}}
 \label{sec:conc}
+
+ \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately a half of them in a memory-constrained
+    one.
+    They provide a runtime that scales well with the growing size of a workflow.
+
+    \heftmm can schedule even the largest workflows even on the memory-constrained cluster.
+    It is the only heuristic that had $100\%$ success rate.
+    However, the makespans it produces are larger than those of the the other two
 
 Extend to heterogeneous bandwidths. 
 
