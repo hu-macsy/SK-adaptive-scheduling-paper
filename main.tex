@@ -952,15 +952,16 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     All algorithms are implemented in C++ and compiled with g++ (v.8.5.0).
     The experiments are managed by simexpal~\cite{DBLP:journals/algorithms/AngrimanGLMNPT19} and executed on workstations with 192 GB RAM and 2x 12-Core Intel Xeon 6126 @3.2 GHz
     and CentOS 8 as OS.
-    Code, input data, and experiment scripts are available for review under \skug{\url{insert link}}.
+    Code, input data, and experiment scripts are available to allow reproducibility of results, at~\skug{\url{insert link}}.
 
-    Next, we describe the set of workflows used in the evaluation and then the clusters on which the
+    We first describe the set of workflows used for the evaluation, and then the clusters on which the
     workflows are scheduled.
 
     \subsubsection{Workflow instances}
-    \skug{Todo: describe the workflows the same asin the abstract}
-    We run our experiments on a dataqset comprised of real-world workflows: ones used in~\cite{lotaru} (atacseq, bacass, chipseq,
-    eager and methylseq), and ones obtained by increasing their size using the WFGen generator~\cite{COLEMAN202216}.
+  %  \skug{Todo: describe the workflows the same asin the abstract}
+    We run  experiments on a dataset that consists of real-world workflows: 
+    we use workflows coming from~\cite{lotaru} (atacseq, bacass, chipseq,
+    eager and methylseq), and also we increase their size using the WFGen generator~\cite{COLEMAN202216}.
 
 
     \paragraph{Workflow graphs}
@@ -1000,18 +1001,18 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     We give it an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
     These values align with the findings of~\cite{lotaru} about small tasks.
 %
-    \skug{insert more abt how the runtime system hanfles data reads}
+ %   \skug{insert more abt how the runtime system hanfles data reads}
 
     \subsubsection{Target computing systems}
-    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
-    is represented as 192 000 (with 3 zeroes). For the memory-constrained cluster (192 00 with 2 zeroes) I will say that it has 10 times
-    less memory - 19.2 GB. Other processors will be dealt with similarly.}
+%    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
+%    is represented as 192 000 (with 3 zeroes). For the memory-constrained cluster (192 00 with 2 zeroes) I will say that it has 10 times
+%    less memory - 19.2 GB. Other processors will be dealt with similarly.}
 
     To fully benefit from the historical data, the  {\em default} experimental environment
     that we consider is a cluster based on the same six
     kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
-    We set the number of each kind of node to $12$, thus having 72 processors in total. % the whole cluster.
-
+    We set the number of each kind of node to $12$, thus having 72 processors in total.  % the whole cluster.
+%
     Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
     ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines;
     ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
@@ -1019,36 +1020,38 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
 
     \begin{table}[htb]
         \begin{center}
-            \begin{tabular}{rcc}
+            \begin{tabular}{c|c|cc}
                 \toprule
-                Processor name %& Amount
-                &  CPU speed (GHz)  &Memory size (GB) \\
+                Processor  %& Amount
+                &  CPU speed   & \multicolumn{2}{c}{Memory size (GB)} \\
+                name & (GHz) & {\em default} & {\em mem-constrained} \\
                 \midrule
-                local                    & 4                    & 16     \\
-                A1                      & 32                   & 32     \\
-                A2                      & 6                    & 64     \\
-                N1                      & 12                   & 16     \\
-                N2                      & 8                    & 8      \\
-                C2                      & 32                   & 192    \\
+                local                    & 4                    & 16     & 1.6 \\
+                A1                      & 32                   & 32     & 3.2 \\
+                A2                      & 6                    & 64    & 6.4 \\
+                N1                      & 12                   & 16     & 1.6 \\
+                N2                      & 8                    & 8      & 0.8\\
+                C2                      & 32                   & 192   &  19.2\\
                 \bottomrule
             \end{tabular}
         \end{center}
-        \caption{Cluster configuration (default).}
+        \caption{Cluster configuration.}
         \label{tab:procs}
     \end{table}
 
-    To more constrained settings, we also vary the cluster configuration and consider
-    a memory-constrained cluster.
-    Like the default cluster, it consists of 72 nodes (12 of each kind), but we
-    give each node $10$ times less memory.
-    So, the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, $A2$ has $6.4$~GB instead
-    of $64$~GB etc.
-    The processor speeds and their relations stay unchanged.
+    We also consider a more constrained setting, by varying the cluster configuration. The
+     {\em memory-constrained cluster} is consisting of 72 nodes (12 of each kind) as the default cluster,
+     but each node has 10 times less memory. Hence,  
+     the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, 
+     $A2$ has $6.4$~GB instead, of $64$~GB etc.
+    The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
 
-    \subsubsection{Runtime System}
+
+
+    \subsubsection{Runtime system}
 
     To simulate the execution of a workflow, we implemented a runtime system.
-    It read the historical data and builds weights for tasks.
+    It reads the historical data and builds weights for tasks.
     These weights are then treated as the ``truth'' about the execution during the simulation.
     In the case without errors, these values are being sent to the scheduler.
     However, if errors have to be simulated, the runtime system applies a deviation function to the values.
