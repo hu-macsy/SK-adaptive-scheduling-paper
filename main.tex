@@ -1058,7 +1058,8 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     However, in the dynamic setting, the runtime system applies a deviation function to the values.
     The deviation function computes a normally distributed deviated value, where the initial value
     is the mean and the deviation is~$10\%$.
-    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and\skug{todo cite someone Jonathan cites}.
+    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and
+    other works dedicated to predicting runtimes of tasks~\cite{da2015online,da2013toward}.
 
     Hence, the scheduler receives deviated values and makes decision based on them.
     This leads to several types of possible issues:
@@ -1094,7 +1095,6 @@ Hence, we only present results with the eviction of largest files first.
 
     \subsubsection{Scheduling on the default cluster}
 
-    \skug{TODO for all pictures: substitute 0 in sizes through <100. Will be done in one commit for all.}
 %    \paragraph{Normal cluster}
 
     On the default cluster,  the three memory-aware heuristics are able to schedule all workflows
@@ -1197,20 +1197,20 @@ Hence, we only present results with the eviction of largest files first.
 
 \subsubsection{Scheduling on the memory-constrained cluster}
 
-    On the memory-constrained cluster, \heft could produce valid assignments in only $14$ experiments 
+    On the memory-constrained cluster, \heft could produce valid assignments in only $14$ experiments
     out of $290$~($4.8\%$ success rate).
     The successful schedules were achieved exclusively on the tiny workflows (with only two 200-task size-increased
     workflow among them).
     \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$ of them, while \heftmm
-    could still schedule all the workflows, including even the largest ones, see Figure~\ref{fig:success-rates-tiny}. 
-    As also observed on the normal cluster, \heftmm seems to be less affected by the size of the workflow 
-    when scheduling it than the other heuristics. 
+    could still schedule all the workflows, including even the largest ones, see Figure~\ref{fig:success-rates-tiny}.
+    As also observed on the normal cluster, \heftmm seems to be less affected by the size of the workflow
+    when scheduling it than the other heuristics.
 
     Similarly to the default cluster, we observe that relative makespan of \heftmm is usually greater
     than those of \heft (see Fig.~\ref{fig:ms-relations-by-workflow-constrained}), but \heft schedules are
-    almost all invalid. It is therefore very interesting to resort to \heftmm for large workflows 
+    almost all invalid. It is therefore very interesting to resort to \heftmm for large workflows
     in a constrained cluster, since tasks are processed in an order that minimizes
-    the memory usage of schedule. 
+    the memory usage of schedule.
 %
 %    The makespans it produces are larger, but it seems to order the vertices in a similar way on both the small and the large workflows,
 %    rather than resorting to more memory-consuming ordering that other heuristics and the baseline produces.
@@ -1219,24 +1219,24 @@ Hence, we only present results with the eviction of largest files first.
 %
 
     Memory usages on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained},
-    and we observe that the memory footprint of \heftmm remains constant with workflow size. 
+    and we observe that the memory footprint of \heftmm remains constant with workflow size.
 
 
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/success-rates-tiny}
         \caption{Success rates on the memory-constrained cluster. Higher is better. }
-%        by algorithm by workflow size. 
+%        by algorithm by workflow size.
         \label{fig:success-rates-tiny}
         \vspace{-0.3cm}
     \end{figure}
-    
+
 
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size-constrained}
-        \caption{Relative makespans on the memory-constrained cluster. 
-%        produced by the heuristics to the makespan produced by the baseline, by workflow size. 
+        \caption{Relative makespans on the memory-constrained cluster.
+%        produced by the heuristics to the makespan produced by the baseline, by workflow size.
         Smaller is better.}
         \label{fig:ms-relations-by-workflow-constrained}
         \vspace{-0.3cm}
@@ -1254,7 +1254,7 @@ Hence, we only present results with the eviction of largest files first.
         \vspace{-0.3cm}
     \end{figure}
 
-     
+
     
 \subsection{Dynamic experiments}
 \label{sec.expe.dyn}
