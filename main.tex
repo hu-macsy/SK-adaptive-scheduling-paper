@@ -1072,22 +1072,30 @@ of the graph that minimizes the peak memory usage.
 
 
     \subsubsection{Static experiments}
-    \paragraph{Memory-constrained cluster}
 
-    On the tiny cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
-    The successful schedules were achieved exclusively on the tiny workflows (with only one 200-task size-increased
-    workflow among them).
-    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm could schedule
-    $94.9\%$ of workflows, thus having the smallest failure rate of $5.1\%$.
-
+    \skug{TODO for all pictures: substitute 0 in sizes through <100. Will be done in one commit for all.}
     \paragraph{Normal cluster}
 
-    On a normal cluster, the baseline \heft had $24.2\%$ success rate ($75.7\%$ failure rate).
-    All the heuristics could schedule all workflows. \skug{check this tomorrow for two weird failures}.
+    On a normal cluster,  all three of our heuristics were able to schedule all workflows(Figure~\ref{fig:success-rates-large}).
+    The baseline \heft had $24.2\%$ success rate ($75.7\%$ failure rate).
+    It was able to schedule preliminarily small workflows, with no workflows over the size of $4000$ tasks being scheduled
+    correctly.
+    Small workflows are less constrained by the memory requirement, so in the situation of abundant processing resources, even
+    a not memory-aware approach is able to produce valid schedules.
+    However, this advantage quickly vanishes as workflows grow larger.
 
-    Figure~\ref{fig:ms-relations} shows the relations of the makespans foound by the heuristics to the makespans found by the baseline.
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.9\columnwidth] {images/success-rates-large}
+        \caption{Success rates on the \skug{normal} cluster.}
+        \label{fig:success-rates-large}
+        \vspace{-0.3cm}
+    \end{figure}
+
+    Figure~\ref{fig:ms-relations-by-workflow} shows the relations of the makespans found by the heuristics to the
+    makespans found by the baseline (including invalid ones), by workflow size.
     On average, the makespans found by \heftbl are $7.8\%$ worse than those found by the baseline, the makespans of \heftblc are $8\%$
-    worse, and those found by \heftmm are $71\%$ worse.
+    worse, and those found by \heftmm are $82.6\%$ worse.
 
     \skug{TODO: how much worse are makespans for SUCCESSFUL hefts? presulmably almost identical}
 
@@ -1095,7 +1103,10 @@ of the graph that minimizes the peak memory usage.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/MsRelations2}
-        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline. Smaller is better.}
+        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline. Smaller is better.
+        \skug{SUGESTION: remove this picture, as it duplicates Fig 3}
+        }
+
         \label{fig:ms-relations}
         \vspace{-0.3cm}
     \end{figure}
@@ -1104,20 +1115,36 @@ of the graph that minimizes the peak memory usage.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size}
-        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline, by workflow size. Smaller is better.}
+        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline, by workflow
+        size. Smaller is better. \skug{CHECK this pictue. It might have a wrong mean function}}
         \label{fig:ms-relations-by-workflow}
         \vspace{-0.3cm}
     \end{figure}
 
     \paragraph{Memory Usage}
 
+    The percentage of memory occupied by the schedule is another its important characteristic.
+    Fig.~\ref{fig:mem-usages-normal} shows the percentage of memory occupied on average by the schedule produced by different
+    algorithms, by workflow size.
+
+    \heftmm continuously outperforms other heuristics in memory usage, using from $46\%$ less memory on the smallest
+    workflows to $4$ times less memory on the largest \numprint{30000}-task workflows.
+    If we consider the invalid \heft schedules, too, we see that they would require more and more memory on average.
+    This is because some assignments require more that $100\%$ of memory (which makes them invalid).
+    We can assess the degree of invalidity by comparing \heft memory usage with the memory usage of \heftbl.
+    \heftbl differs from the baseline only in the sense that it respects available memory on the processors.
+    For the largest workflows, \heft schedules require almost double the memory of \heftbl.
+
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal}
         \caption{Memory usage by algorithm by workflow size. Includes invalid heft schedules}
-        \label{fig:mem-usages}
+        \label{fig:mem-usages-normal}
         \vspace{-0.3cm}
     \end{figure}
+
+    Figure~\ref{fig:mem-usages-onlyvalid} shows memory usages if only valid heft schedules are presented.
+    There are no valid heft scheduler from middle-sized and large workflows, so no red bars are present.
 
     \begin{figure}[tb]
         \centering
@@ -1127,13 +1154,15 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
-    \begin{figure}[tb]
-        \centering
-        \includegraphics[width=1.1\columnwidth] {images/success-rates-large}
-        \caption{Success rates on the \skug{normal} cluster.}
-        \label{fig:success-rates-large}
-        \vspace{-0.3cm}
-    \end{figure}
+
+
+    \paragraph{Memory-constrained cluster}
+
+    On the tiny cluster, \heft could produce valid assignments in $14$ experiments out of $290$ ($4.8\%$).
+    The successful schedules were achieved exclusively on the tiny workflows (with only one 200-task size-increased
+    workflow among them).
+    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm could schedule
+    $94.9\%$ of workflows, thus having the smallest failure rate of $5.1\%$.
 
 
     \paragraph{Memory-constrained cluster}
