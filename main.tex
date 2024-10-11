@@ -1205,21 +1205,21 @@ of the graph that minimizes the peak memory usage.
         \vspace{-0.3cm}
     \end{figure}
 
-    \subsubsection{Runtimes of the algorithm}
+    \subsubsection{Running times of the algorithm}
     To be able to answer the runtime system without holding it up for too long, the scheduler needs to provide a fast answer.
-    Our bottom-level-based heuristics \heftbl and \heftblc provide smaller runtimes and also scale better with growing workflow
+    Our bottom-level-based heuristics \heftbl and \heftblc provide smaller running times and also scale better with growing workflow
     sizes~(see Fig.~\ref{fig:runtimes-abs} and Fig.~\ref{fig:runtimes-abs}).
-    Their runtimes are similar and grow from tens of miliseconds for the smallest workflows to $25-27$ seconds for the largest workflows.
+    Their running times are similar and grow from tens of miliseconds for the smallest workflows to $25-27$ seconds for the largest workflows.
     \heftmm, however, needs to compute a memory-optimal traversal of the entire workflow to compute the ranks of the tasks,
-    so its runtime scales from also rens of miliseconds for the smalest workflows to thousands of seconds - $1172.7$ for \numprint{20000}-task workflows and
+    so its runnning time scales from also rens of miliseconds for the smalest workflows to thousands of seconds - $1172.7$ for \numprint{20000}-task workflows and
     $2994.9$ seconds for the largest, \numprint{30000}-task workflows.
-    This increased runtime is, though, offset by the unique $100\%$ success rate this algorithm shows when scheduling large
+    This increased running time is, though, offset by the unique $100\%$ success rate this algorithm shows when scheduling large
     workflows in difficult (memory-constrained) setups.
     
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/runtimes-logarithmic}
-        \caption{Runtimes of the heuristics and the baseline. The y axis ist logarithmic.}
+        \caption{Running times of the heuristics and the baseline. The y axis ist logarithmic.}
         \label{fig:runtimes-log}
         \vspace{-0.3cm}
     \end{figure}
@@ -1228,7 +1228,7 @@ of the graph that minimizes the peak memory usage.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/runtimes-absolute}
-        \caption{Runtimes of the heuristics and the baseline.}
+        \caption{Running times of the heuristics and the baseline.}
         \label{fig:runtimes-abs}
         \vspace{-0.3cm}
     \end{figure}
@@ -1240,7 +1240,7 @@ of the graph that minimizes the peak memory usage.
 
  \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately a half of them in a memory-constrained
     one.
-    They provide a runtime that scales well with the growing size of a workflow.
+    They provide a running time that scales well with the growing size of a workflow.
 
     \heftmm can schedule even the largest workflows even on the memory-constrained cluster.
     It is the only heuristic that had $100\%$ success rate.
