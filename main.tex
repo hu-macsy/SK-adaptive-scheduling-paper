@@ -1269,14 +1269,20 @@ For which cluster do we have some results? }
     with not enough memory capacity.
     Due to an extremely constrained memory in the tiny cluster, only 134 experiments out of 1160 for all algorithm variants
     ended with a valid makespan without recomputation.
-    $13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
-    rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
-    only, the success rate of not recomputing is $92\%$.
-    In case of \heftmm, $16$ experiments ended with a successfully computed makespan without recomputation.
-    Because \heftmm managed to schedule all experiments, the rate is $5.5\%$ success without recomputation out of all successful
-    schedules with recomputation.
-    $50$ experiments were successful in case of \heftblc ($35\%$ out of all successful schedules) and $55$ in case of
-    \heftbl (roughly $50\%$ of all successful schedules).
+    In case of \heft, $14$ valid initial makespans were computed.
+    Out of them, $13$ managed to stay valid until the end, after all the update requests.
+    The same $13$ experiments ended with a valid makespan in case of no recomputation.
+    So, these workflows required so few resources that there was no point in re-scheduling them.
+    %$13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
+    %rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
+    %only, the success rate of not recomputing is $92\%$.
+    In case of \heftmm, all $290$ workflows could be scheduled initially and all the schedules remained valid until the end.
+    $16$ experiments ended with a successful makespan without recomputation.
+    The rate of successful schedules without recomputation is therefore $5.5\%$
+    \heftblc could produce $142$ valid initial schedules and kept $141$ of them valid until the end.
+    $50$ experiments were successful without recomputation, too, making it $35\%$ out of all successful final schedules.
+    \heftbl kept $105$ schedules valid until the end out of $110$ initial valid schedules.
+    $55$ were able to be kept valid until the end even without recomputation, roughly $50\%$ of all succeses.
 
     \heftbl and \heftblc were successful on smaller workflows and failed on larger ones, the success of the strategy without
     recomputation was limited to even the smallest of these smaller workflows.
