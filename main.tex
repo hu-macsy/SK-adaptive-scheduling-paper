@@ -17,6 +17,7 @@
 \usepackage{todonotes}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{balance}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -447,7 +448,11 @@ We now review related work in a dynamic setting. With no variation in task param
     performance measure $\phi$.
     Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
 
-\AB{Say why our approach in dynamic setting is different and novel}
+While several related work consider building a new schedule once some variation has been observed,
+we are not aware of work implementing a real runtime system that interacts with the scheduler,
+and tested on workflows with thousands of tasks, as we propose in this paper. Furthermore, 
+we are not aware of any previous work discussing dynamic algorithms combined with memory constraints. 
+%\AB{Say why our approach in dynamic setting is different and novel}
 
 %    \subsection{Other notable works}
 %
@@ -1046,7 +1051,8 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
      $A2$ has $6.4$~GB instead, of $64$~GB etc.
     The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
 
-
+Note that in both clusters, we set the size of the communication buffer to be equal
+to the memory size. \todo[inline]{Is this correct? }
 
     \subsubsection{Runtime system}
 
@@ -1243,9 +1249,6 @@ Hence, we only present results with the eviction of largest files first.
     \end{figure}
 
 
-
-
-
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-constrained-onlyvalid}
@@ -1347,19 +1350,57 @@ For which cluster do we have some results? }
 \section{Conclusion} %  \skug{Full: 0, Polished: 0}}
 \label{sec:conc}
 
- \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately half of them in a memory-constrained
-    one.
-    They provide a running time that scales well with the growing size of a workflow.
+We have formalized a scheduling problem in memory-constrained environments, where tasks
+may exceed the memory available on a processor and resort to communication buffers
+to store and communicate data between processors. In this context, we have 
+designed three memory-aware HEFT-based heuristics, which account for memory
+constraints while scheduling tasks. 
 
-    \heftmm can schedule even the largest workflows even on the memory-constrained cluster.
-    It is the only heuristic that has $100\%$ success rate in our experiments.
-    However, the makespans it produces are larger than those of the the other two.
+Two heuristics rely on an ordering of tasks based on the bottom level of tasks, with the objective
+of minimizing the makespan and hence scheduling critical tasks first. The third one, \heftmm,
+goes one step further and handles tasks in an order dictated by an efficient traversal
+of the graph in terms of memory requirements, hence reducing the memory used
+by the schedule. Experimental results on a large set of workflows coming from real-life applications
+demonstrate that the memory-aware heuristics are  successfully producing valid schedules. 
+In the most memory-constrained setting, \heftmm succeeds to schedule even the largest workflows,
+while other heuristics return invalid schedules exceeding the memory capacity of processors. 
+It comes at a price of a makespan that is not quite as good as the one obtained by \heftbl
+and \heftblc, which focus on makespan by ordering tasks by bottom level. 
+As expected, the baseline \heft that is not memory aware returns invalid schedules in almost
+all settings, except for very small workflows. 
 
-\begin{itemize}
-  \item Extend to heterogeneous bandwidths. 
-  \item Further variability commented out from the paper: changing DAG structure; changing platform...
-\end{itemize}
+%Hence, \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately half of them in a memory-constrained
+%    one.
+%    They provide a running time that scales well with the growing size of a workflow.
+%
+%    \heftmm can schedule even the largest workflows even on the memory-constrained cluster.
+%    It is the only heuristic that has $100\%$ success rate in our experiments.
+%    However, the makespans it produces are larger than those of the the other two.
 
+Another key contribution is that we have adapted these heuristics for a dynamic setting, where exact
+task parameters (execution times and memory requirements) are not know in advance. 
+We have implemented a runtime system that interacts with the scheduler, returning exact
+parameter values once a task arrives in the system, while only estimates are known for future tasks. 
+Some preliminary experiments have been conducted in this setting, and demonstrated that
+it is necessary to adapt the schedule on the fly in order to avoid an execution failure because
+of a shortage in memory. To the best of our knowledge, this is the first study of adaptive
+algorithms accounting for memory constraints. 
+
+This work could be extended in several directions. First, the model could be refined to include
+heterogeneous bandwidths, while we consider a homogeneous communication network. 
+More importantly, it would be interesting to consider other types of variability, for instance
+if new tasks appear in the graph (or disappear), or if there is variability in the platform, 
+with processors arriving and departing. We believe that we could adapt the current approach
+by recomputing schedules on the fly, and we plan to perform a new set of experiments
+to further assess the impact of dynamic scheduling. 
+
+%
+%\begin{itemize}
+%  \item Extend to heterogeneous bandwidths. 
+%  \item Further variability commented out from the paper: changing DAG structure; changing platform...
+%\end{itemize}
+
+\balance
     \bibliographystyle{abbrv}%IEEEtran}
     \bibliography{references}
 
