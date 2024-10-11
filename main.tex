@@ -1111,7 +1111,7 @@ Hence, we only present results with the eviction of largest files first.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=0.9\columnwidth] {images/success-rates-large}
-        \caption{Success rates on the \skug{normal} cluster.}
+        \caption{Success rates on the default cluster. Higher is better.}
         \label{fig:success-rates-large}
         \vspace{-0.3cm}
     \end{figure}
@@ -1145,8 +1145,8 @@ Hence, we only present results with the eviction of largest files first.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size}
-        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline, by workflow
-        size. Smaller is better.}
+        \caption{Relative makespans of heuristics normalized by \heft makespan, by workflow
+        size, on default cluster. Smaller is better.}
         \label{fig:ms-relations-by-workflow}
         \vspace{-0.3cm}
     \end{figure}
@@ -1155,7 +1155,7 @@ Hence, we only present results with the eviction of largest files first.
 
     Finally, we study the percentage of memory occupied by the schedule, which is another good indicator
     of the memory usage of the heuristic and its ability to produce valid schedules.  %its important characteristic.
-    Fig.~\ref{fig:mem-usages-normal} and~\ref{fig:mem-usages-onlyvalid} show the percentage of memory
+    Figures \ref{fig:mem-usages-normal} and~\ref{fig:mem-usages-onlyvalid} show the percentage of memory
     occupied on average by the schedule
     produced by the different heuristics, for different workflow sizes, first on all schedules (hence including
     \heft schedules that were not valid), and then only on valid schedules (hence, no results for \heft
@@ -1178,8 +1178,9 @@ Hence, we only present results with the eviction of largest files first.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal}
-        \caption{Memory usage by algorithm by workflow size. Includes invalid schedules for \heft. }
-        \label{fig:mem-usages-normal}
+        \caption{Memory usage on default cluster, including invalid \heft schedules. }
+ %by algorithm by workflow size
+         \label{fig:mem-usages-normal}
         \vspace{-0.3cm}
     \end{figure}
 
@@ -1187,7 +1188,7 @@ Hence, we only present results with the eviction of largest files first.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal-onlyvalid}
-        \caption{Memory usage by algorithm by workflow size. Includes only valid schedules for \heft. }
+        \caption{Memory usage on default cluster, including only valid \heft schedules. }
         \label{fig:mem-usages-onlyvalid}
         \vspace{-0.3cm}
     \end{figure}
@@ -1196,49 +1197,64 @@ Hence, we only present results with the eviction of largest files first.
 
 \subsubsection{Scheduling on the memory-constrained cluster}
 
-    On the memory-constrained cluster, \heft could produce valid assignments in $14$ experiments out of $290$~($4.8\%$
-    success rate).
+    On the memory-constrained cluster, \heft could produce valid assignments in only $14$ experiments 
+    out of $290$~($4.8\%$ success rate).
     The successful schedules were achieved exclusively on the tiny workflows (with only two 200-task size-increased
     workflow among them).
-    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$, while \heftmm
-    could still schedule all of the workflows, including even the largest ones.
-    As also observed on the normal cluster, \heftmm seems to be less affected by the size of the workflow when scheduling
-    it.
-    The makespans it produces are larger, but it seems to order the vertices in a similar way on both the small and the large workflows,
-    rather than resorting to more memory-consuming ordering that other heuristics and the baseline produces.
-    This makes it especially valuable for very large workflows in situations of very constrained memory in the cluster.
+    \heftbl could successfully schedule $38\%$ of workflows, \heftblc could schedule $49\%$ of them, while \heftmm
+    could still schedule all the workflows, including even the largest ones, see Figure~\ref{fig:success-rates-tiny}. 
+    As also observed on the normal cluster, \heftmm seems to be less affected by the size of the workflow 
+    when scheduling it than the other heuristics. 
+
+    Similarly to the default cluster, we observe that relative makespan of \heftmm is usually greater
+    than those of \heft (see Fig.~\ref{fig:ms-relations-by-workflow-constrained}), but \heft schedules are
+    almost all invalid. It is therefore very interesting to resort to \heftmm for large workflows 
+    in a constrained cluster, since tasks are processed in an order that minimizes
+    the memory usage of schedule. 
+%
+%    The makespans it produces are larger, but it seems to order the vertices in a similar way on both the small and the large workflows,
+%    rather than resorting to more memory-consuming ordering that other heuristics and the baseline produces.
+%    This makes it especially valuable for very large workflows in situations of very constrained memory in the cluster.
+%
+%
+
+    Memory usages on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained},
+    and we observe that the memory footprint of \heftmm remains constant with workflow size. 
+
 
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/success-rates-tiny}
-        \caption{Success rates by algorithm by workflow size. Taller is better. }
+        \caption{Success rates on the memory-constrained cluster. Higher is better. }
+%        by algorithm by workflow size. 
         \label{fig:success-rates-tiny}
         \vspace{-0.3cm}
     \end{figure}
+    
 
-    Memory usages on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained}.
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size-constrained}
+        \caption{Relative makespans on the memory-constrained cluster. 
+%        produced by the heuristics to the makespan produced by the baseline, by workflow size. 
+        Smaller is better.}
+        \label{fig:ms-relations-by-workflow-constrained}
+        \vspace{-0.3cm}
+    \end{figure}
+
+
+
 
 
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-constrained-onlyvalid}
-        \caption{Memory usage by different heuristics by workflow size.}
+        \caption{Memory usage on the memory-constrained  cluster. } % by different heuristics by workflow size.}
         \label{fig:memory-usage-constrained}
         \vspace{-0.3cm}
     \end{figure}
 
-    Relative makespans to the baseline (including the invalid values of the baseline) are shown in Fig.~\ref{fig:ms-relations-by-workflow-constrained}.
-
-    \begin{figure}[tb]
-        \centering
-        \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size-constrained}
-        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline, by workflow
-        size. Smaller is better.}
-        \label{fig:ms-relations-by-workflow-constrained}
-        \vspace{-0.3cm}
-    \end{figure}
-
-    
+     
     
 \subsection{Dynamic experiments}
 \label{sec.expe.dyn}
