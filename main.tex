@@ -1058,7 +1058,8 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     However, in the dynamic setting, the runtime system applies a deviation function to the values.
     The deviation function computes a normally distributed deviated value, where the initial value
     is the mean and the deviation is~$10\%$.
-    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and\skug{todo cite someone Jonathan cites}.
+    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and
+    other works dedicated to predicting runtimes of tasks~\cite{da2015online,da2013toward}.
 
     Hence, the scheduler receives deviated values and makes decision based on them.
     This leads to several types of possible issues:
@@ -1094,7 +1095,6 @@ Hence, we only present results with the eviction of largest files first.
 
     \subsubsection{Scheduling on the default cluster}
 
-    \skug{TODO for all pictures: substitute 0 in sizes through <100. Will be done in one commit for all.}
 %    \paragraph{Normal cluster}
 
     On the default cluster,  the three memory-aware heuristics are able to schedule all workflows
@@ -1111,7 +1111,7 @@ Hence, we only present results with the eviction of largest files first.
     \begin{figure}[tb]
         \centering
         \includegraphics[width=0.9\columnwidth] {images/success-rates-large}
-        \caption{Success rates on the \skug{normal} cluster.}
+        \caption{Success rates on the normal cluster.}
         \label{fig:success-rates-large}
         \vspace{-0.3cm}
     \end{figure}
