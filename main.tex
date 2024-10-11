@@ -448,7 +448,11 @@ We now review related work in a dynamic setting. With no variation in task param
     performance measure $\phi$.
     Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
 
-\AB{Say why our approach in dynamic setting is different and novel}
+While several related work consider building a new schedule once some variation has been observed,
+we are not aware of work implementing a real runtime system that interacts with the scheduler,
+and tested on workflows with thousands of tasks, as we propose in this paper. Furthermore, 
+we are not aware of any previous work discussing dynamic algorithms combined with memory constraints. 
+%\AB{Say why our approach in dynamic setting is different and novel}
 
 %    \subsection{Other notable works}
 %
@@ -1245,9 +1249,6 @@ Hence, we only present results with the eviction of largest files first.
     \end{figure}
 
 
-
-
-
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-constrained-onlyvalid}
@@ -1376,7 +1377,8 @@ We have implemented a runtime system that interacts with the scheduler, returnin
 parameter values once a task arrives in the system, while only estimates are known for future tasks. 
 Some preliminary experiments have been conducted in this setting, and demonstrated that
 it is necessary to adapt the schedule on the fly in order to avoid an execution failure because
-of a shortage in memory.
+of a shortage in memory. To the best of our knowledge, this is the first study of adaptive
+algorithms accounting for memory constraints. 
 
 This work could be extended in several directions. First, the model could be refined to include
 heterogeneous bandwidths, while we consider a homogeneous communication network. 
