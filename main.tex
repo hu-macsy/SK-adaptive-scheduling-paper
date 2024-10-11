@@ -1051,25 +1051,30 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     \subsubsection{Runtime system}
 
     To simulate the execution of a workflow, we implemented a runtime system.
-    It reads the historical data and builds weights for tasks.
-    These weights are then treated as the ``truth'' about the execution during the simulation.
-    In the case without errors, these values are being sent to the scheduler.
-    However, if errors have to be simulated, the runtime system applies a deviation function to the values.
-    The deviation function computed a normally distributed deviated value, where the correct value is the mean and the deviation
-    is $10\%$.
+    It reads the historical data and builds weights for tasks, as explained above. 
+%    These weights are then treated as the ``truth'' about the execution during the simulation.
+    In the static case, these values are being sent to the scheduler, which builds a schedule
+    according to these weights. 
+    However, in the dynamic setting, the runtime system applies a deviation function to the values.
+    The deviation function computes a normally distributed deviated value, where the initial value 
+    is the mean and the deviation is~$10\%$.
     This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and\skug{todo cite someone Jonathan cites}.
 
-    So, the scheduler receives deviated values and makes decision based on them.
+    Hence, the scheduler receives deviated values and makes decision based on them.
     This leads to several types of possible issues:
     \begin{itemize}
-        \item Processor is blocked by another task. If the scheduler underestimated the execution time of a task, it will block another
-        one from starting.
-        \item The parent has not finished yet. A similar situation, but a task could start on its processor, but one or more of its parents a
-        are not ready yet.
-        \item Not enough memory. If the scheduler underestimated the amount of memory a task requires, this task might not be able
-        to execute on a chosen processor.
-        \item A task took lees than expected. We only consider this case if a task took more than 10\% less than expected. In this
-        case we want to exploit the newly acquired free time by possibly starting other tasks earlier.
+        \item A processor is blocked by another task. If the scheduler underestimated the execution time of a task, 
+        it will block another one from starting.
+        \item A predecessor has not yet finished. 
+        The scheduler may request a task to start on its processor, while
+        some of the predecessors of the tasks have in fact not yet completed their execution, and the
+        task is therefore not yet ready. 
+%        A similar situation, but a task could start on its processor, but one or more of its parents a
+%        are not ready yet.
+        \item Not enough memory. If the scheduler underestimated the amount of memory a task requires, this task might not be able to execute on a chosen processor.
+        \item A task took less time than expected. We only consider this case if a task took more than 10\% less 
+        time than expected. In this
+        case, we want to exploit the newly acquired free time by possibly starting other tasks earlier.
     \end{itemize}
 
 
@@ -1078,23 +1083,30 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
 \subsection{Results in a static setting} % \skug{Full: 3, Polished: 2}}
 \label{sec.expe.static}
 
-    \subsubsection{Preliminary experiments}
+   % \subsubsection{Preliminary experiments}
+We first study the heuristics behavior when the weights do not change upon runtime, 
+hence the scheduler has a perfect knowledge of task memory requirements and execution times. 
+We have compared two eviction strategies, starting with large files first or small files first, 
+and did not report any significant changes in terms of validity of schedule or makespan. 
+Hence, we only present results with the eviction of largest files first. 
+%    Our preliminary experiments have shown that evicting large or small files does not give a notable change in makespan.
 
-    Our preliminary experiments have shown that evicting large or small files does not give a notable change in makespan.
 
-
-    \subsubsection{Static experiments}
+    \subsubsection{Scheduling on the default cluster}
 
     \skug{TODO for all pictures: substitute 0 in sizes through <100. Will be done in one commit for all.}
-    \paragraph{Normal cluster}
+%    \paragraph{Normal cluster}
 
-    On a normal cluster,  all three of our heuristics were able to schedule all workflows(Figure~\ref{fig:success-rates-large}).
-    The baseline \heft had $24.2\%$ success rate ($75.7\%$ failure rate).
-    It was able to schedule preliminarily small workflows, with no workflows over the size of $4000$ tasks being scheduled
-    correctly.
-    Small workflows are less constrained by the memory requirement, so in the situation of abundant processing resources, even
-    a not memory-aware approach is able to produce valid schedules.
-    However, this advantage quickly vanishes as workflows grow larger.
+    On the default cluster,  the three memory-aware heuristics are able to schedule all workflows 
+    (see Figure~\ref{fig:success-rates-large}), while 
+    the baseline \heft has $24.2\%$ success rate ($75.7\%$ failure rate). 
+    Indeed, \heft is only able to schedule small workflows, but no workflow over the size of $4000$ tasks     
+    can be scheduled correctly; some tasks run out of memory. As soon as we are not in a setting
+    with abundant processing resources for small workflows, it is hence necessary to adopt
+    a memory-aware strategy in order to produce valid schedules. 
+%    Small workflows are less constrained by the memory requirement, so in the situation of abundant processing resources, even
+%    a not memory-aware approach is able to produce valid schedules.
+%    However, this advantage quickly vanishes as workflows grow larger.
 
     \begin{figure}[tb]
         \centering
@@ -1104,24 +1116,30 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
         \vspace{-0.3cm}
     \end{figure}
 
-    Figure~\ref{fig:ms-relations-by-workflow} shows the relations of the makespans found by the heuristics to the
-    makespans found by the baseline (including invalid ones), by workflow size.
-    On average, the makespans found by \heftbl are $7.8\%$ worse than those found by the baseline, the makespans of \heftblc are $8\%$
-    worse, and those found by \heftmm are $82.6\%$ worse.
+   We also report in  Figure~\ref{fig:ms-relations-by-workflow}  the relative makespan found 
+   by the memory-aware heuristics, normalized to the
+   makespan achieved by \heft, often through an invalid over-optimistic schedule that exceeds
+   the bound on memory. 
+%    Figure~\ref{fig:ms-relations-by-workflow} shows the relations of the makespans found by the heuristics to the
+%    makespans found by the baseline (including invalid ones), by workflow size.
+    On average, the makespans found by \heftbl are $7.8\%$ worse than those found by the baseline, 
+    the makespans of \heftblc are $8\%$
+    worse, and those found by \heftmm are $82.6\%$ worse. These are still very encouraging results,
+    in particular for \heftbl and \heftblc, since the makespans of \heft correspond to invalid schedules. 
 
-    \skug{TODO: how much worse are makespans for SUCCESSFUL hefts? presulmably almost identical}
+ %   \skug{TODO: how much worse are makespans for SUCCESSFUL hefts? presulmably almost identical}
 
 
-    \begin{figure}[tb]
-        \centering
-        \includegraphics[width=1.1\columnwidth] {images/MsRelations2}
-        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline. Smaller is better.
-        \skug{SUGESTION: remove this picture, as it duplicates Fig 3}
-        }
-
-        \label{fig:ms-relations}
-        \vspace{-0.3cm}
-    \end{figure}
+%    \begin{figure}[tb]
+%        \centering
+%        \includegraphics[width=1.1\columnwidth] {images/MsRelations2}
+%        \caption{Relative makespans produced by the heuristics to the makespan produced by the baseline. Smaller is better.
+%        \skug{SUGESTION: remove this picture, as it duplicates Fig 3}
+%        }
+%
+%        \label{fig:ms-relations}
+%        \vspace{-0.3cm}
+%    \end{figure}
 
 
     \begin{figure}[tb]
@@ -1133,42 +1151,50 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
         \vspace{-0.3cm}
     \end{figure}
 
-    \paragraph{Memory Usage}
+%    \paragraph{Memory Usage}
 
-    The percentage of memory occupied by the schedule is another its important characteristic.
-    Fig.~\ref{fig:mem-usages-normal} shows the percentage of memory occupied on average by the schedule produced by different
-    algorithms, by workflow size.
+    Finally, we study the percentage of memory occupied by the schedule, which is another good indicator
+    of the memory usage of the heuristic and its ability to produce valid schedules.  %its important characteristic.
+    Fig.~\ref{fig:mem-usages-normal} and~\ref{fig:mem-usages-onlyvalid} show the percentage of memory 
+    occupied on average by the schedule 
+    produced by the different heuristics, for different workflow sizes, first on all schedules (hence including
+    \heft schedules that were not valid), and then only on valid schedules (hence, no results for \heft
+    on large workflow sizes). 
+%    
+%   Figure shows memory usages if only valid heft schedules are presented.
+%    There are no valid heft scheduler from middle-sized and large workflows, so no red bars are present.
 
-    \heftmm continuously outperforms other heuristics in memory usage, using from $46\%$ less memory on the smallest
+
+    \heftmm continuously outperforms other heuristics in terms of memory usage, 
+    using from $46\%$ less memory on the smallest
     workflows to $4$ times less memory on the largest \numprint{30000}-task workflows.
-    If we consider the invalid \heft schedules, too, we see that they would require more and more memory on average.
+    If we consider the invalid \heft schedules, too, we see that they would require more and more memory on average,
+    which explains why these schedules rapidly become invalid.
     This is because some assignments require more that $100\%$ of memory (which makes them invalid).
     We can assess the degree of invalidity by comparing \heft memory usage with the memory usage of \heftbl.
     \heftbl differs from the baseline only in the sense that it respects available memory on the processors.
-    For the largest workflows, \heft schedules require almost double the memory of \heftbl.
+    For the largest workflows, \heft schedules require almost twice the memory of \heftbl.
 
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal}
-        \caption{Memory usage by algorithm by workflow size. Includes invalid heft schedules}
+        \caption{Memory usage by algorithm by workflow size. Includes invalid schedules for \heft. }
         \label{fig:mem-usages-normal}
         \vspace{-0.3cm}
     \end{figure}
 
-    Figure~\ref{fig:mem-usages-onlyvalid} shows memory usages if only valid heft schedules are presented.
-    There are no valid heft scheduler from middle-sized and large workflows, so no red bars are present.
-
+ 
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal-onlyvalid}
-        \caption{Memory usage by algorithm by workflow size. Includes only valid heft schedules}
+        \caption{Memory usage by algorithm by workflow size. Includes only valid schedules for \heft. }
         \label{fig:mem-usages-onlyvalid}
         \vspace{-0.3cm}
     \end{figure}
 
 
 
-    \paragraph{Memory-constrained cluster}
+\subsubsection{Scheduling on the memory-constrained cluster}
 
     On the memory-constrained cluster, \heft could produce valid assignments in $14$ experiments out of $290$~($4.8\%$
     success rate).
