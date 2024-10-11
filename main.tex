@@ -1259,12 +1259,16 @@ Hence, we only present results with the eviction of largest files first.
 \subsection{Dynamic experiments}
 \label{sec.expe.dyn}
 
+
+\AB{Any info on success rate of adaptive heuristic compared to static ones? 
+For which cluster do we have some results? }
+
     \paragraph{Tiny cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
     situation - that is, if the scheduler assumed its memory to be smaller than it actually was and assigned it to a processor
     with not enough memory capacity.
     Due to an extremely constrained memory in the tiny cluster, only 134 experiments out of 1160 for all algorithm variants
-    ended with a valid makespan withjout recomputation. $13$ experiments ended with a valid makespan after recomputation in case of \heft,
+    ended with a valid makespan without recomputation. $13$ experiments ended with a valid makespan after recomputation in case of \heft,
    $16$ in case of \heftmm, $50$ in case of \heftblc and $55$ in case of \heftbl.
     Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
     There were valid final makespans with no recomputation only for the smallest workflows - $56$ original ones, $47$ 200-task ones,
@@ -1288,20 +1292,26 @@ Hence, we only present results with the eviction of largest files first.
 \subsection{Running times of the heuristics}
 \label{sec.expe.t}
 
-    To be able to answer the runtime system without holding it up for too long, the scheduler needs to provide a fast answer.
-    Our bottom-level-based heuristics \heftbl and \heftblc provide smaller running times and also scale better with growing workflow
-    sizes~(see Fig.~\ref{fig:runtimes-abs} and Fig.~\ref{fig:runtimes-abs}).
-    Their running times are similar and grow from tens of miliseconds for the smallest workflows to $25-27$ seconds for the largest workflows.
-    \heftmm, however, needs to compute a memory-optimal traversal of the entire workflow to compute the ranks of the tasks,
-    so its runnning time scales from also rens of miliseconds for the smalest workflows to thousands of seconds - $1172.7$ for \numprint{20000}-task workflows and
+    To be able to answer the runtime system without holding it up for too long, the scheduler needs to 
+    be able to compute a schedule rapidly. %provide a fast answer.
+    The bottom-level-based heuristics \heftbl and \heftblc provide smaller running times than \heftmm, 
+    and also scale better with growing workflow
+    sizes~(see Fig.~\ref{fig:runtimes-log}).
+    Their running times are similar and grow from tens of milliseconds for the smallest workflows to $25-27$ seconds 
+    for the largest workflows.
+    \heftmm, however, needs to compute a memory-optimal traversal of the entire workflow to compute the ranks 
+    of the tasks,
+    so its running time scales from also tens of milliseconds for the smallest workflows, 
+    to thousands of seconds - $1172.7$ for \numprint{20000}-task workflows and
     $2994.9$ seconds for the largest, \numprint{30000}-task workflows.
-    This increased running time is, though, offset by the unique $100\%$ success rate this algorithm shows when scheduling large
+    This increased running time is, though, offset by the unique $100\%$ success rate this algorithm 
+    obtained when scheduling large
     workflows in difficult (memory-constrained) setups.
     
     \begin{figure}[tb]
         \centering
         \includegraphics[width=1.1\columnwidth] {images/runtimes-logarithmic}
-        \caption{Running times of the heuristics and the baseline. The y axis ist logarithmic.}
+        \caption{Running times of the heuristics. The y axis is logarithmic.}
         \label{fig:runtimes-log}
         \vspace{-0.3cm}
     \end{figure}
@@ -1318,7 +1328,7 @@ Hence, we only present results with the eviction of largest files first.
 %    \subsubsection{Summary}
 
 
-\section{Conclusion  \skug{Full: 0, Polished: 0}}
+\section{Conclusion} %  \skug{Full: 0, Polished: 0}}
 \label{sec:conc}
 
  \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately half of them in a memory-constrained
