@@ -1265,17 +1265,27 @@ Hence, we only present results with the eviction of largest files first.
 \AB{Any info on success rate of adaptive heuristic compared to static ones? 
 For which cluster do we have some results? }
 
-    \paragraph{Tiny cluster}
+    \paragraph{Memory-constrained cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
     situation - that is, if the scheduler assumed its memory to be smaller than it actually was and assigned it to a processor
     with not enough memory capacity.
     Due to an extremely constrained memory in the tiny cluster, only 134 experiments out of 1160 for all algorithm variants
-    ended with a valid makespan without recomputation. $13$ experiments ended with a valid makespan after recomputation in case of \heft,
-   $16$ in case of \heftmm, $50$ in case of \heftblc and $55$ in case of \heftbl.
-    Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
-    There were valid final makespans with no recomputation only for the smallest workflows - $56$ original ones, $47$ 200-task ones,
-    $25$ 1000-task ones and $6$ 2000-task ones.
+    ended with a valid makespan without recomputation.
+    $13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
+    rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
+    only, the success rate of not recomputing is $92\%$.
+    In case of \heftmm, $16$ experiments ended with a successfully computed makespan without recomputation.
+    Because \heftmm managed to schedule all experiments, the rate is $5.5\%$ success without recomputation out of all successful
+    schedules with recomputation.
+    $50$ experiments were successful in case of \heftblc ($35\%$ out of all successful schedules) and $55$ in case of
+    \heftbl (roughly $50\%$ of all successful schedules).
 
+    \heftbl and \heftblc were successful on smaller workflows and failed on larger ones, the success of the strategy without
+    recomputation was limited to even the smallest of these smaller workflows.
+    So, the strategy without recomputation dfelivered valid makespans (independently of the algorithm) on $56$ original
+    workflows with $<100$ tasks, $47$ 200-task ones, $25$ 1000-task ones and $6$ 2000-task ones.
+
+    Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
     With growing size of the workflow, the excess makespan of not recomputing grows - from $13.9\%$ to $20\%$ for \heftbl,
     from $12.7\%$ to $18.7\%$ on \heftblc (but there is no data for the 2000-task workflows in this case), $12.1\%$ to $23.5\%$
     for \heftmm.
