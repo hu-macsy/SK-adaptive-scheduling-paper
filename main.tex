@@ -31,9 +31,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\cluster}{\,\mathcal{S}}
 
 \newcommand{\heft}{\algo{HEFT}\xspace}
-\newcommand{\heftmm}{\algo{HEFTM\_MM}\xspace}
-\newcommand{\heftbl}{\algo{HEFTM\_BL}\xspace}
-\newcommand{\heftblc}{\algo{HEFTM\_BLC}\xspace}
+\newcommand{\heftmm}{\algo{HEFTM-MM}\xspace}
+\newcommand{\heftbl}{\algo{HEFTM-BL}\xspace}
+\newcommand{\heftblc}{\algo{HEFTM-BLC}\xspace}
 
 
 \newcommand{\MM}{M}
@@ -893,8 +893,8 @@ of the graph that minimizes the peak memory usage.
     However, also when the hardware of the infrastructure does not change, the set of nodes provided as a scheduling target might change due to release or occupation in shared cluster infrastructures.
     As infrastructure information and resource predictions are dynamically updated and provided to the scheduler during the workflow runtime, the previous schedule becomes invalid and a new one must be calculated.
 
-    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures of approximately 15\% is shown~\cite{TODO}.
-    \AB{I have no idea what to cite there... Svetlana?}
+    For state-of-the-art memory prediction methods, a cold-start median prediction error for heterogeneous infrastructures
+    of approximately 15\% is shown~\cite{malik2013execution}.
     Online prediction methods were able to significantly reduce the error during runtime, with the reduction reaching up to one-third of the cold-start error~\cite{baderDiedrichDynamic2023,witt2019learning}.
 %For instance, Nadeen~et~al.\cite{} report an error of 10\%, 11\%, and 15\% while the task prediction errors shows a normal and exponential distribution.
 %Bader~et~al.~ report a prediction error between 13\% and 17\% for their method, showing an exponential task error distribution.
@@ -957,7 +957,7 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     All algorithms are implemented in C++ and compiled with g++ (v.8.5.0).
     The experiments are managed by simexpal~\cite{DBLP:journals/algorithms/AngrimanGLMNPT19} and executed on workstations with 192 GB RAM and 2x 12-Core Intel Xeon 6126 @3.2 GHz
     and CentOS 8 as OS.
-    Code, input data, and experiment scripts are available to allow reproducibility of results, at~\skug{\url{insert link}}.
+    Code, input data, and experiment scripts are available to allow reproducibility of results, at~\url{https://zenodo.org/records/13919214}~and~\url{https://zenodo.org/records/13919302}.
 
     We first describe the set of workflows used for the evaluation, and then the clusters on which the
     workflows are scheduled.
@@ -1052,7 +1052,7 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
     The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
 
 Note that in both clusters, we set the size of the communication buffer to be equal
-to the memory size. \todo[inline]{Is this correct? }
+to ten times the the memory size.
 
     \subsubsection{Runtime system}
 
@@ -1261,10 +1261,6 @@ Hence, we only present results with the eviction of largest files first.
     
 \subsection{Dynamic experiments}
 \label{sec.expe.dyn}
-
-
-\AB{Any info on success rate of adaptive heuristic compared to static ones? 
-For which cluster do we have some results? }
 
     \paragraph{Memory-constrained cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
