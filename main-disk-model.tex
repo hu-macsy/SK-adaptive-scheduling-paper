@@ -553,26 +553,41 @@ may be reconsidered at runtime when a task starts its execution and we know its 
 The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
 consists of $k$ processors $p_1, \dots, p_k$.
 Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$ and a speed~$s_j$.
-All processors have access to a common disk space of unlimited size.
+All processors have access to a common disk space of unlimited size, but of much slower speed.
 All communications happen over the disk - after one processor has finished writing data there, another one can read
 it into its individual memory.
-We can decide to evict some data from the individual memory onto the disk to free space in the individuaö memory.
-    This data can be read back into memory at any time later.
+We can decide to evict some data from the individual memory onto the disk to free space in the individual memory.
+This data can later be read back into memory at any time, or transferred to another processor.
 
+If the entire memory required by the task ~$u\in V$ fits in the free memory of a processor~$p_j$,
+    then the execution time of this task on this processor is expressed as $\frac{w_u}{s_j}$.
+If the memory requirement of the task exceeds the available memory on the processor, the task can still be executed there,
+    albeit slower.
+The part of memory requirement that exceeds the available memory will be offloaded to the disk, slowing down the execution.
 
-The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
-We assume that all processors are connected with the same bandwidth~$\beta$.
+    \[
+        w_{real} = \frac{w_u}{s_j} * (1 + (m_i - M_j)/m_i ) * q_s.
+
+    \]
+where $q_s$ sit he slowdown coefficient.
+%We assume that all processors are connected with the same bandwidth~$\beta$.
 %    \hmey{Maybe mention that variable bandwidths are part of future work...?}
 
-We keep track of the current ready time of each processor and each communication
-channel, $\rt_j$ and $\rt_{j,j'}$, for each processor $j$ and all pairs~$(j,j')$.
+Multiple processors can communicate with the disk in parallel, but the communication of each processor  with the disk is sequential.
+The processor can read and write at the same time, but only one file can be read and only one written at any point in time.
+We keep track of the current ready times of each processor $j$ , ready time for computation $\rt_j^c$,
+ready time for writing $\rt_j^w$, and ready time for reading $\rt_j^r$.
 Initially, all the ready times are set to~$0$.
-We also keep track of the currently available memory, $availM_j$ and $availC_j$,
-on the processor memory and communication buffer, respectively.
+We also keep track of the currently available memory, $availM_j$ on the processor memory.
+
 Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
-that are in the memory of size $\MM_j$ but may be evicted to be communicated if
-more memory is needed on~$p_j$. They are ordered by non-decreasing size and
-correspond to some $c_{u,v}$.
+that are in the memory of size $\MM_j$ but may be evicted to the disk
+more memory is needed on~$p_j$.
+They are ordered by non-decreasing size and correspond to some $c_{u,v}$.
+When scheduling a tass, the decision has to be made to execute this task on a processor with enough memory
+    without slowdown, but with possibly more time to read the input files, or to execute the same task
+    on a processor with less memory (and hence a slowdown), but potentially with a higher processor speed or with less times
+    spent reading files.
 
 We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
 the memory requirement; it transforms the workflow into a series-parallel graph
@@ -606,14 +621,23 @@ and then finds the traversal that leads to the minimum memory consumption.
     \end{table}
 
 
+\subsection{Scheduling approach - general description}
+
+In the first step, we order the tasks by non-increasing ranks (e.g. their bottom levels).
+In the next step, we repeatedly schedule ready tasks.
+For each task, we first choose the best processor to put it on - the one that minimizes the expected finishing time.
+For each processor, we compute this earliest finishing time by first calculating the earliest starting time on this processor.
+    It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
+
 
 \subsection{Optimization problem}
 \label{sec.mod.pb}
 
 The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
 so that the makespan (total execution time) is minimized while
-respecting memory constraints. If a processor runs out of memory to execute
-a task mapped on it, the schedule is said to be {\em invalid}.
+respecting memory constraints. \skug{do we still formulate it like that?}
+    %If a processor runs out of memory to execute
+%a task mapped on it, the schedule is said to be {\em invalid}.
 
 Since tasks are subject to variability, we aim at minimizing the actual makespan
 achieved at the end of the execution, while decisions may be taken building
