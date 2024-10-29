@@ -521,7 +521,9 @@ CHAGES IN THIS CHAPTER
     Each task~$u \in V$  is performing $w_u$ operations, and it also
     requires some amount of memory to be executed, denoted as~$m_u$.
     Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
-   Note that $m_u$ is the total memory usage
+   \skug{here?: For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
+    on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
+    Note that $m_u$ is the total memory usage
     of a task during its execution, including input and output files currently being read and written,
     and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
     between the input files
@@ -549,7 +551,7 @@ may be reconsidered at runtime when a task starts its execution and we know its 
 
     \subsection{Execution environment}
     \label{sec.mod.plat}
-
+\skug{changes here}
 The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
 consists of $k$ processors $p_1, \dots, p_k$.
 Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$ and a speed~$s_j$.
@@ -557,7 +559,8 @@ All processors have access to a common disk space of unlimited size, but of much
 All communications happen over the disk - after one processor has finished writing data there, another one can read
 it into its individual memory.
 We can decide to evict some data from the individual memory onto the disk to free space in the individual memory.
-This data can later be read back into memory at any time, or transferred to another processor.
+This data can later be read back into memory of the same or any other processpr at any time.
+\skug {check this statement: If data has been written on disk, it is removed from the local memory (no two copies can be kept at the same time).}
 
 If the entire memory required by the task ~$u\in V$ fits in the free memory of a processor~$p_j$,
     then the execution time of this task on this processor is expressed as $\frac{w_u}{s_j}$.
@@ -568,14 +571,17 @@ The part of memory requirement that exceeds the available memory will be offload
     \[
         w_{real} = \frac{w_u}{s_j} \* (1 + (m_i - M_j)/m_i ) \* q_s.
     \]
-where $q_s$ sit he slowdown coefficient.
+where $q_s$ sit he slowdown coefficient and $(m_i - M_j)/m_i$ is the part of the task memory that needs to be offloaded.
+    \skug{check this equation}
 %We assume that all processors are connected with the same bandwidth~$\beta$.
 %    \hmey{Maybe mention that variable bandwidths are part of future work...?}
 
 Multiple processors can communicate with the disk in parallel, but the communication of each processor  with the disk is sequential.
 The processor can read and write at the same time, but only one file can be read and only one written at any point in time.
-We keep track of the current ready times of each processor $j$ , ready time for computation $\rt_j^c$,
-ready time for writing $\rt_j^w$, and ready time for reading $\rt_j^r$.
+We keep track of the current ready times of each processor $j$, ready time for computation $\rt_j^c$ (when one task has finished
+computing and another one can start),
+ready time for writing $\rt_j^w$ (when a file has been written to disk and another file can be written), and ready time for
+ reading+$\rt_j^r$.
 Initially, all the ready times are set to~$0$.
 We also keep track of the currently available memory, $availM_j$ on the processor memory.
 
@@ -587,6 +593,8 @@ When scheduling a tass, the decision has to be made to execute this task on a pr
     without slowdown, but with possibly more time to read the input files, or to execute the same task
     on a processor with less memory (and hence a slowdown), but potentially with a higher processor speed or with less times
     spent reading files.
+
+
 
 We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
 the memory requirement; it transforms the workflow into a series-parallel graph
