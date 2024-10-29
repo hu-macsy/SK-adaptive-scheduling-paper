@@ -608,6 +608,8 @@ We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN2
 the memory requirement; it transforms the workflow into a series-parallel graph
 and then finds the traversal that leads to the minimum memory consumption.
 
+\skug{Todo: describe deviations}
+
     \begin{table}
         \begin{center}
             \begin{tabular}{rl}
@@ -642,8 +644,24 @@ In the first step, we order the tasks by non-increasing ranks (e.g. their bottom
 In the next step, we repeatedly schedule ready tasks.
 For each task, we first choose the best processor to put it on - the one that minimizes the expected finishing time.
 For each processor, we compute this earliest finishing time by first calculating the earliest starting time on this processor.
-    It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
+It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
+For the currently reviewed processor, we preliminarily schedule necessary file writes on other processors holding input files,
+and file reads on the current processor.
+Doing so, we respect the ready times on writes on other processors and reads on the current processor.
+We possibly plan ``into the past'' with ready and writes.
 
+The earliest finish time is calculated by adding the execution time (possibly with delay due to memory overflow) to the start time.
+Further scheduling decisions happen when another task finishes.
+\skug{check this: when a task finishes earlier or later than planned, we review our earlier scheduling decisions and may
+move the task execution to another processor if this proves more beneficial.}
+
+When a task finishes, we look at all of its sucessors, rather than only the ready ones.
+For tasks that lie further in the future, we try to plan rather early.
+Therefore, we employ lazy writes.
+We try to write the files for these tasks to the disk early.
+So, we preliminarily schedule these file writes. However, they are not high priority and can be cancelled.
+We keep two ready times on writes, one soft, with lazy writes, and another hard onw, with scheduled writes.
+If a task requires a write during the lazy write, we cancel it and move it to later point in time.
 
 \subsection{Optimization problem}
 \label{sec.mod.pb}
