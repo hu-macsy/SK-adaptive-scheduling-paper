@@ -524,8 +524,7 @@ CHAGES IN THIS CHAPTER
     Each task~$u \in V$  is performing $w_u$ operations, and it also
     requires some amount of memory to be executed, denoted as~$m_u$.
     Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
-   \skug{here?: For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
-    on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
+
     Note that $m_u$ is the total memory usage
     of a task during its execution, including input and output files currently being read and written,
     and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
@@ -577,7 +576,7 @@ If the memory requirement of the task exceeds the available memory on the proces
 The part of memory requirement that exceeds the available memory will be offloaded to the disk, slowing down the execution.
 
     \[
-        w_{real} = \frac{w_u}{s_j} \* (1 + (m_i - M_j)/m_i ) \* q_s.
+        w_{real} = \frac{w_u}{s_j} +    \frac{q_s \times w_u}{s_j} \frac{m_i - M_j}{m_i}
     \]
 where $q_s$ sit he slowdown coefficient and $(m_i - M_j)/m_i$ is the part of the task memory that needs to be offloaded.
     \skug{check this equation}
@@ -662,6 +661,9 @@ We try to write the files for these tasks to the disk early.
 So, we preliminarily schedule these file writes. However, they are not high priority and can be cancelled.
 We keep two ready times on writes, one soft, with lazy writes, and another hard onw, with scheduled writes.
 If a task requires a write during the lazy write, we cancel it and move it to later point in time.
+
+\skug{For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
+        on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
 
 \subsection{Optimization problem}
 \label{sec.mod.pb}
