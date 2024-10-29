@@ -43,6 +43,9 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\curC}{curC}
 \newcommand{\PD}{PD}
 
+\newcommand{\bw}{bw}
+\newcommand{\br}{br}
+
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
 \newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
@@ -547,15 +550,20 @@ but only estimates~\cite{rahman2013,GARG2015256}.
 %. \AB{Add motivation: related work with variable task durations for instance...}
 Hence, scheduling decisions are made on these estimated parameters, and
 may be reconsidered at runtime when a task starts its execution and we know its exact parameters.
-
+\AB{Variability only on $w_u$ for now}
 
     \subsection{Execution environment}
     \label{sec.mod.plat}
 \skug{changes here}
 The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
 consists of $k$ processors $p_1, \dots, p_k$.
-Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$ and a speed~$s_j$.
-All processors have access to a common disk space of unlimited size, but of much slower speed.
+Each processor $p_u$ ($1 \leq u \leq k$) has an individual memory of size $M_u$ and a speed~$s_u$.
+All processors have access to a shared disk of unlimited size, where they can write
+and read data: Processor~$p_u$ has a bandwidth $\bw_u$ (resp. $\br_u$) to write  (resp. read),
+and hence it takes a time $\frac{c_{u,v}}{bw_u}$ to write the data produced for~$p_v$, 
+if this data is evicted from memory. 
+
+%, but of much slower speed.
 All communications happen over the disk - after one processor has finished writing data there, another one can read
 it into its individual memory.
 We can decide to evict some data from the individual memory onto the disk to free space in the individual memory.
@@ -641,14 +649,17 @@ For each processor, we compute this earliest finishing time by first calculating
 \label{sec.mod.pb}
 
 The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
-so that the makespan (total execution time) is minimized while
-respecting memory constraints. \skug{do we still formulate it like that?}
+so that the makespan (total execution time) is minimized. 
+\AB{no more memory constraint, now the lack of memory just slows down the execution, correct?
+I'll probably add a few sentences here...}
+% while respecting memory constraints. \skug{do we still formulate it like that?}
     %If a processor runs out of memory to execute
 %a task mapped on it, the schedule is said to be {\em invalid}.
 
 Since tasks are subject to variability, we aim at minimizing the actual makespan
 achieved at the end of the execution, while decisions may be taken building
 on the estimated task parameters.
+\AB{Probably need to clarify offline vs online problem at some point...}
 
 Note that the problem is already NP-hard even in the homogeneous case and 
 without memory constraints, because of the DAG structure of the application. 
