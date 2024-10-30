@@ -761,6 +761,7 @@ Hence, we focus on the design of efficient scheduling heuristics.
         \item Expected and actual time of firing.
         \item A set of predecessor events. The event is called ready if all its predecessors have been finished.
         \item A set of successor events to keep track of.
+        \item For a write event, a boolean if this file should be removed from memory after being written.
     \end{itemize}
 
     Per processor, we keep the currently latest finishing task, read and write, and their estimated finishing times (ready times
@@ -808,11 +809,25 @@ Hence, we focus on the design of efficient scheduling heuristics.
     The scheduler also updates the ready times of the processors and updates the new currently last events there.
 
     \paragraph{On Task Start}
-    When a task start event is triggered, it determines the deviation of the runtime of the task.
+    When a task start event is triggered, it first determines if it can start.
+    If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
+    is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
+    with this new time.
+
+    If the task can start, the scheduler determines the deviation of the runtime of the task.
     It applies the deviation function on its estimated runtime (estimated finish minus estimated start time).
     It then adds this deviated runtime to its actual start time and receives an updated actual finish time.
     With this time, it updates the OnTaskFinish event of this task.
 
+    \paragraph{OnIoFinish}
+    When the io operation finishes, it removes itself from the predecessor sets of all its successor events.
+    It also sets their actual time to its own actual finish time.
+
+    \paragraph{OnIOStart}
+    When the IO operation starts, it updates the corresponding IoFinish event
+
+
+    After being triggered and completed, each event is deleted from the queue.
 
 
 --------------------------------------
