@@ -1032,37 +1032,61 @@ of the graph that minimizes the peak memory usage.
         by the corresponding amount.
     \end{itemize}
 
-%    \subsection{The fork}
-%    We look at the behavior of these heuristics on a fork graph,
-%    where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
-%    to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
-%
-%    Without memory, this problem is NP-complete; this is equivalent
-%    to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
-%    and with two processors. Half of the tasks must be sent to the processor
-%    on which $T_0$ is not executed, and the optimal makespan is
-%    $w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
-%
-%    However, with an infinite number of identical processors, it can be
-%    solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$;
-%    the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
-%    while the remaining $n-k$ tasks are executed locally (try all values of $k$).
-%
-%    With heterogeneous processors, it is probably NP-complete again
-%    because we could ensure that there are only two processors fast enough
-%    and get back to the 2-partition...
-%
-%    We also had an example where evicting large files first in step 2
-%    can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
-%    $f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
-%    imposes that we free one unit of memory before executing one
-%    of the tasks\ldots Actually the new version with BLC would start
-%    considering $T_2$ and be fine in this case\ldots
-%
-%
-%    \AB{Can we prove that we have (maybe) a 2-approximation,
-%        at least for the fork? What worst-case can we think of? }
 
+\hmey{BEGIN FORK}
+    \subsection{The fork}
+    We look at the behavior of these heuristics on a fork graph,
+    where there is a root task~$T_0$, producing $n$ files $f_1, \ldots, f_n$
+    to be used by tasks $T_1, \ldots, T_n$ ($f_i = c_{0,i}$).
+
+    Without memory, this problem is NP-complete; this is equivalent
+    to 2-partition if the tasks have $w_i=a_i$, and all files are of size~$f_i=0$,
+    and with two processors. Half of the tasks must be sent to the processor
+    on which $T_0$ is not executed, and the optimal makespan is
+    $w_0+\frac{1}{2}\sum_{1\leq i \leq n} w_i$.
+
+    However, with an infinite number of identical processors, it can be
+    solved in polynomial time: sort tasks by non-decreasing $f_i+w_i$;
+    the $k$ tasks with smallest $f_i+w_i$ are then sent to another processor,
+    while the remaining $n-k$ tasks are executed locally (try all values of $k$).
+
+    With heterogeneous processors, it is probably NP-complete again
+    because we could ensure that there are only two processors fast enough
+    and get back to the 2-partition...
+
+    We also had an example where evicting large files first in step 2
+    can lead to arbitrarily bad makespan. Consider a fork with $n=2$,
+    $f_1=1$, $w_1=2$, $f_2=100$, $w_2=1$, and memory constraint
+    imposes that we free one unit of memory before executing one
+    of the tasks\ldots Actually the new version with BLC would start
+    considering $T_2$ and be fine in this case\ldots
+
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{images/bad-blc-instance.png} \\[1ex]
+  \includegraphics[width=0.999\columnwidth]{images/blc-bad-cost.png} \\[1ex]
+  \includegraphics[width=0.58\columnwidth]{images/opt-cost.png}
+  \caption{Top: Example instance $I$, middle: BLC applied to $I$ leads to makespan $w_0 + nk/2 + k$, bottom: optimal solution has makespan $w_0 + n/2$.
+  \hmey{TODO: adapt resolution of figure and fix $\epsilon$ problem}}
+  \label{fig:fork-bad-blc-instance}
+\end{figure}
+  
+  
+Figure~\ref{fig:fork-bad-blc-instance} shows an instance where \heftblc\ performs very poorly.
+Since the sorting criterion $w_i + c_{0i}$ yields an arbitrary ordering of the tasks $T_i$ (with $1 \leq i \leq n$), we may
+assume that the algorithm processes the nodes in level $1$ of instance $I$ from left to right. 
+As shown in the middle part of the figure, $T_1$ is processed...
+\hmey{TODO: adapt with $\epsilon$ to enforce even tasks to be ``sent away''}
+This leads to a makespan
+of $w_0 + nk/2 + k$. The optimal solution, in turn, as shown in the bottom,
+requires only $w_0 + n/2$ timesteps. Since $k$ can be chosen arbitrarily large if the value $10$ is scaled accordingly,
+this instance shows that \heftblc\ may yield solutions with an arbitrarily large gap to optimality. 
+
+  
+\AB{Can we prove that we have (maybe) a 2-approximation,
+        at least for the fork? What worst-case can we think of? }
+\hmey{END FORK}
 
 
 \section{Dynamic scenario}
