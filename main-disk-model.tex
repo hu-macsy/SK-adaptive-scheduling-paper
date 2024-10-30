@@ -756,7 +756,7 @@ Hence, we focus on the design of efficient scheduling heuristics.
     Each event has several parameters:
     \begin{itemize}
         \item Event type: OnTaskStart, OnTaskFinish, OnIoStart, OnIoFinish
-        \item The action associated with the event: the task to be executed or an edge whose file needs to be read or written
+        \item The workflow entity associated with the event: the task to be executed or an edge whose file needs to be read or written
         \item The processor id on which the action should take place
         \item Expected and actual time of firing.
         \item A set of predecessor events. The event is called ready if all its predecessors have been finished.
@@ -764,11 +764,16 @@ Hence, we focus on the design of efficient scheduling heuristics.
         \item For a write event, a boolean if this file should be removed from memory after being written.
     \end{itemize}
 
-    Per processor, we keep the currently latest finishing task, read and write, and their estimated finishing times (ready times
-    for computation, reads and writes).
+    Per processor,  in addition to keeping the fixed values (memory, speed), we keep track also of the current state in its memory.
+    Because during and after execution of each even the state of the processor memory changes, we need to keep snapshots of what files
+    were in memory and how much of it was available.
+    Because keeping such snapshots for each timestap is too complicated, we only keep two timestamps.
+    First, we keep the information of available memory and tasks pending in memory during the execution of the last
+    task scheduled to this processor.
+    Then, we keep the same information on what it will be immediately after this task finishes.
 
 
-    \paragraph{On Task Finish}
+    \subsubsection{On Task Finish}
     When a task finishes, it first cleans after itself:
     \begin{itemize}
         \item It frees its memory: it increases the available memory on the processor by the amount it occupied
@@ -788,27 +793,49 @@ Hence, we focus on the design of efficient scheduling heuristics.
     that promises the earliest finish time.
     The finish time on each processor is calculated as follows:
 
+    \paragraph{Earliest start and finish time}
+    We find out when the last task on this processor finishes.
+    If there is enough memory to start our task after that, then the end of previous task is the earliest start time for our task.
+    If files need to be evicted first, we need to find a balance between evicting tasks (and waiting for their writes to finish),
+    then running our task, and starting the task immediately and letting it run longer due to memory overflow.
+    We compare the following cases:
     \begin{itemize}
-        \item For each incoming edge, its location is determined.
-        \begin{itemize}
-                 \item If the edge is in the memory of the target processor, nothing needs to be done
-                  \item If the edge is on the disk, it first needs to be read into the memory of the target processor (the computation is delayed by at least this read time).
-                 If there is not enough memory to hold the file, the task cannot be scheduled on this processor
-                  \item If the edge is in another processor's memory, it needs to be first written to disk, then read by the target processor. Same holds with memory amount estimation.
-        \end{itemize}
-        \item The finish time is the earliest start time (max of incoming edge times and the ready time of computation of the processor) plus compuation time of the task.
-        \item The computation time of the task is calculated with the memory overflow formula.
+        \item Evict everything, then start task
+        \item Greedily evict the largest file, starting the task
+        \item Not evicting anything, starting the task
     \end{itemize}
+    Whatever combination gives the best estimated finishing time for the task, we note the estimated starting time of the task in this case.
+     The finish time is the earliest start time  plus computation time of the task.
 
-    When a processor is chosen, the scheduler inserts new events into the queue:
+
+    \paragraph{Incoming edges} For each incoming edge, its location is determined.
+    If the edge is in the memory of the target processor, nothing needs to be done.
+    The estimated start and finish times for the task are unaffected.
+
+    If the edge is on the disk, it first needs to be read into the memory of the target processor.
+    We delay the reads to avoid holding unnecessary files in the memory.
+    When we preliminarily schedule a read, we first assess its length and other actions that happen on this processor in the meantime.
+    So, the first estimated start of the read is the estimated start time of the task minus the estimated length of the read.
+    We then see if this start of the read is happening during the runtime of the previous task or already after it (during the writes).
+    If the starting time of the read is during the execution of the previous task and there is enough memory to read this file, then we move the read
+    forward to the beginning of this previous task.
+    If there is not enough memory, then the entire read is rescheduled for after the task finishes.
+    The read will then be bottleneck and affect the eraliest start time of the desired task.
+
+     If the edge is in another processor's memory, it needs to be first written to disk, then read by the target processor.
+    So we look at the latest write on that processor, preliminarily schedule the write to disk and then proceed like in the
+    previous case, reading the file from disk.
+
+   \paragraph{When processor is chosen} When a processor is chosen, the scheduler inserts new events into the queue:
     \begin{itemize}
         \item For the task, OnTaskStart and OnTaskFinish events with the estimated trigger times, the OnTaskFinish event being dependent on the OnTaskStart event.
         \item For each io operation necessary for the execution: OnIoStart event of the corresponding type and on corresponding processor
         \item It connects all the event with predecessor-successor relations.
+        \item If files needed to be evicted
     \end{itemize}
     The scheduler also updates the ready times of the processors and updates the new currently last events there.
 
-    \paragraph{On Task Start}
+    \subsubsection{On Task Start}
     When a task start event is triggered, it first determines if it can start.
     If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
     is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
@@ -819,11 +846,11 @@ Hence, we focus on the design of efficient scheduling heuristics.
     It then adds this deviated runtime to its actual start time and receives an updated actual finish time.
     With this time, it updates the OnTaskFinish event of this task.
 
-    \paragraph{OnIoFinish}
+    \subsubsection{OnIoFinish}
     When the io operation finishes, it removes itself from the predecessor sets of all its successor events.
     It also sets their actual time to its own actual finish time.
 
-    \paragraph{OnIOStart}
+    \subsubsection{OnIOStart}
     When the IO operation starts, it updates the corresponding IoFinish event
 
 
