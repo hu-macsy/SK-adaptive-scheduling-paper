@@ -1107,7 +1107,7 @@ of the graph that minimizes the peak memory usage.
   \includegraphics[width=0.6\columnwidth]{images/bad-blc-instance.png} \\[1ex]
   \includegraphics[width=0.999\columnwidth]{images/blc-bad-cost.png} \\[1ex]
   \includegraphics[width=0.67\columnwidth]{images/opt-cost.png}
-  \caption{Top: Example instance $I$, middle: BLC applied to $I$ leads to makespan $w_0 + nk/2 + k$, bottom: optimal solution has makespan $w_0 + n/2$.
+  \caption{Top: Example instance $I$, middle: BLC applied to $I$ leads to makespan $w_0 + nk/2 + 1+\epsilon$, bottom: optimal solution has makespan $w_0 + n/2 + k$.
   \hmey{TODO: adapt resolution of figure}}
   \label{fig:fork-bad-blc-instance}
 \end{figure}
@@ -1116,11 +1116,11 @@ of the graph that minimizes the peak memory usage.
 Figure~\ref{fig:fork-bad-blc-instance} shows an instance where \heftblc\ performs very poorly.
 Since the sorting criterion $w_i + c_{0i}$ yields an arbitrary ordering of the tasks $T_i$ (with $1 \leq i \leq n$), we may
 assume that the algorithm processes the nodes in level $1$ of instance $I$ from left to right. 
-\hmey{As shown in the middle part of the figure, $T_1$ is processed...}
-This leads to a makespan
-of $w_0 + nk/2 + 1 + \epsilon$. The optimal solution, in turn, as shown in the bottom,
-requires only $w_0 + n/2 + k$ timesteps. This means that \heftblc\ may yield solutions whose 
-gap of optimality $\approx k$.
+As shown in the middle part of the figure, $T_1$ is processed on $P_1$ due the earliest finishing time on this processor.
+$T_2$ is then sent to $P_2$ because it finishes there $\epsilon$ timesteps earlier than on $P_1$. The same rationale applies
+to the other odd/even tasks. This leads to a makespan of $w_0 + nk/2 + 1 + \epsilon$. The optimal solution, in turn, as shown in the bottom,
+requires only $w_0 + n/2 + k$ timesteps (assuming $k > n\epsilon/2$). This means that \heftblc\ may yield solutions whose 
+gap of optimality is $\Omega(k)$.
 
   
 \AB{Can we prove that we have (maybe) a 2-approximation,
