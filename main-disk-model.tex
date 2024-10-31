@@ -1080,11 +1080,11 @@ of the graph that minimizes the peak memory usage.
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=0.5\columnwidth]{images/bad-blc-instance.png} \\[1ex]
+  \includegraphics[width=0.6\columnwidth]{images/bad-blc-instance.png} \\[1ex]
   \includegraphics[width=0.999\columnwidth]{images/blc-bad-cost.png} \\[1ex]
-  \includegraphics[width=0.58\columnwidth]{images/opt-cost.png}
+  \includegraphics[width=0.67\columnwidth]{images/opt-cost.png}
   \caption{Top: Example instance $I$, middle: BLC applied to $I$ leads to makespan $w_0 + nk/2 + k$, bottom: optimal solution has makespan $w_0 + n/2$.
-  \hmey{TODO: adapt resolution of figure and fix $\epsilon$ problem}}
+  \hmey{TODO: adapt resolution of figure}}
   \label{fig:fork-bad-blc-instance}
 \end{figure}
   
@@ -1092,12 +1092,11 @@ of the graph that minimizes the peak memory usage.
 Figure~\ref{fig:fork-bad-blc-instance} shows an instance where \heftblc\ performs very poorly.
 Since the sorting criterion $w_i + c_{0i}$ yields an arbitrary ordering of the tasks $T_i$ (with $1 \leq i \leq n$), we may
 assume that the algorithm processes the nodes in level $1$ of instance $I$ from left to right. 
-As shown in the middle part of the figure, $T_1$ is processed...
-\hmey{TODO: adapt with $\epsilon$ to enforce even tasks to be ``sent away''}
+\hmey{As shown in the middle part of the figure, $T_1$ is processed...}
 This leads to a makespan
-of $w_0 + nk/2 + k$. The optimal solution, in turn, as shown in the bottom,
-requires only $w_0 + n/2$ timesteps. Since $k$ can be chosen arbitrarily large if the value $10$ is scaled accordingly,
-this instance shows that \heftblc\ may yield solutions with an arbitrarily large gap to optimality. 
+of $w_0 + nk/2 + 1 + \epsilon$. The optimal solution, in turn, as shown in the bottom,
+requires only $w_0 + n/2 + k$ timesteps. This means that \heftblc\ may yield solutions whose 
+gap of optimality $\approx k$.
 
   
 \AB{Can we prove that we have (maybe) a 2-approximation,
