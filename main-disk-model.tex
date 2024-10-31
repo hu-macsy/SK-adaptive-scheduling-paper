@@ -1128,6 +1128,31 @@ gap of optimality is $\Omega(k)$.
 \hmey{END FORK}
 
 
+Here is the new fork example, that would lead to both \heftbl and \heftblc to get arbitrarily bad result. 
+Consider a fork with $n=2$, $w_0=0$, $w_1=1$, $w_2=2$. Furthermore, 
+$f_1=1$ and $f_2=K$, where $K$ is an arbitrarily large number. 
+The memory requirements of tasks are $m_0=K+1$, $m_1=1$, and $m_2=2K$, 
+while the memory size on each processor is~$2K$. 
+
+Both heuristics would first try to schedule task~$T_2$. At the end of $T_0$ on processor~1,
+the memory usage is $1+K$; to execute~$T_2$ on $p_1$, we would go up to $1+2K = f_1+m_2$, which
+exceeds the available memory on~$p_1$. If the offloading penalty $q_1$ is very high,
+we would rather schedule $T_2$ on $p_2$ at time $2K$ (write $f_2$ on disk, read it back from disk,
+assuming write/read bandwidths to be~$1$), hence completing execution at time~$2K+2$. 
+Then, $T_1$ is scheduled on $p_1$ and completes at time~$1$. 
+\AB{Actually, we can consider having a slow bandwidth as well, but offloading is even worth,
+hence that would be enough to take the decision to execute $T_2$ on~$p_2$. }
+
+However, if we schedule~$T_1$ first, we execute it on~$p_1$, free the memory of $f_1$, 
+and then we can execute~$T_2$ on $p_1$ as well without offloading, 
+hence an optimal makespan of~$3$. 
+
+However, \heftmm would behave nicely here, since the traversal to minimize peak memory
+would first consider~$T_1$ and lead to the optimal solution.  
+
+
+
+
 \section{Dynamic scenario}
 \label{sec:dyn}
 
