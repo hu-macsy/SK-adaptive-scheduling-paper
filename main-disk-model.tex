@@ -45,6 +45,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \newcommand{\bw}{bw}
 \newcommand{\br}{br}
+\newcommand{\Moff}[1]{m^{\text{off}}_{#1}}
 
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
@@ -585,14 +586,15 @@ If the entire memory required by  task ~$u\in V$ fits in the available memory of
 However, if the memory requirement of the task exceeds the available memory on the processor, 
 then task can still be executed there, but it will be slowed down. Indeed, 
 %    albeit slower.
-the part of memory requirement that exceeds the available memory on processor~$j$, $availM_j$, 
+the part of memory requirement that exceeds the available memory on processor~$j$ for task~$u$, 
+denoted by $\Moff{u}$, %M\text{off}_u$, 
 will be offloaded to the disk, slowing down the execution:
 
     \[
-        w_{real} = \frac{w_u}{s_j} +  q_s \times   (m_u - availM_j) , %   \frac{q_s \times w_u}{s_j} \frac{m_i - M_j}{m_i}
+        w_{real} = \frac{w_u}{s_j} +  q_j \times  \Moff{u}, %  (m_u - Mav_u) , %   \frac{q_s \times w_u}{s_j} \frac{m_i - M_j}{m_i}
     \]
-where $q_s$ is the slowdown coefficient, and $(m_u - availM_j)$ is the part 
-of the task memory that needs to be offloaded.
+where $q_j$ is the slowdown coefficient for $p_j$. %, and $(m_u - Mav_u)$ is the part 
+%of the task memory that needs to be offloaded.
 \AB{Svetlana please check, I think we said in the end that we use absolute value 
 of the amount of memory not fitting locally...}
 %    \skug{check this equation}
@@ -606,7 +608,7 @@ computing and another one can start),
 ready time for writing $\rt_j^w$ (when a file has been written to disk and another file can be written), and ready time for
  reading~$\rt_j^r$.
 Initially, all the ready times are set to~$0$.
-We also keep track of the currently available memory, $availM_j$ on the processor memory.
+We also keep track of the currently available memory, $availM_j$ on the processor memory. 
 
 Furthermore, $\PD_j$ is a priority queue with the {\em pending data}
 that are in the memory of processor~$p_j$,  but that may be evicted to the disk
@@ -657,21 +659,43 @@ and then finds the traversal that leads to the minimum memory consumption.
 \subsection{Optimization problem}
 \label{sec.mod.pb}
 
-The goal is to find a schedule of the DAG~$G$ for the $k$ processors,
-so that the makespan (total execution time) is minimized. 
-\AB{no more memory constraint, now the lack of memory just slows down the execution, correct?
-I'll probably add a few sentences here...}
+In the {\bf offline setting}, the goal is to find a {\em schedule} of the DAG~$G$ for the $k$ processors,
+so that the makespan (total execution time) is minimized. Formally, a schedule contains:
+\begin{itemize}
+\item for each task, its processor allocation and starting time, 
+as well as the amount of data offloaded for the execution of the task; 
+\item for each read and write operation to disk, the starting time of the operation; 
+\item for each data and processor, the time intervals during which the file is available
+on the local memory of the processor (once it has been generated or read, and before 
+it is used or evicted). 
+\end{itemize}
+
+
+\AB{I'm confused again about the offloading model, we need to talk}
+
+%\AB{no more memory constraint, now the lack of memory just slows down the execution, correct?
+%I'll probably add a few sentences here...}
 % while respecting memory constraints. \skug{do we still formulate it like that?}
     %If a processor runs out of memory to execute
 %a task mapped on it, the schedule is said to be {\em invalid}.
 
-Since tasks are subject to variability, we aim at minimizing the actual makespan
-achieved at the end of the execution, while decisions may be taken building
-on the estimated task parameters.
-\AB{Probably need to clarify offline vs online problem at some point...}
 
-Note that the problem is already NP-hard even in the homogeneous case and 
-without memory constraints, because of the DAG structure of the application. 
+\medskip
+We also consider the {\bf online setting} where tasks are subject to variability, 
+and then we know the exact time required to complete a task only when 
+it ends its execution. Hence, we aim at minimizing the actual makespan
+achieved at the end of the execution, while scheduling decisions 
+have to be taken building
+on the estimated task parameters.
+In this case, we do not build the whole schedule offline, but we build
+it on the fly, as tasks become ready (their predecessor tasks have been completed). 
+%\AB{Probably need to clarify offline vs online problem at some point...}
+
+
+Note that the offline problem is already NP-hard even in the homogeneous case and 
+without memory constraints (i.e., no need to offload data onto disk), and even for
+a graph without precedence constraints (independent tasks). 
+%because of the DAG structure of the application. 
 Hence, we focus on the design of efficient scheduling heuristics. 
 %\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
 
