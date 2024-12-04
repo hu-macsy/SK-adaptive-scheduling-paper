@@ -1,0 +1,170 @@
+
+\documentclass{article}
+\usepackage{xcolor}
+\newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
+\newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
+\newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
+
+\newcommand{\review}[1]{{\color{orange}[Reviewer: #1]}}
+
+
+\begin{document}
+    \title{Rebuttal}
+
+    \maketitle
+
+    \section{Writing and chapters 1-4}
+
+   Reviewer 2 found that the paper has similarities with paper [20].
+   We will rewrite the paragraphs that show unacceptable formulations.
+   However, the cited sentences are so similar because they refer to standard scheduling aspects.
+   As the reviewer notes, the approach of our paper and paper [20] are different.
+
+
+    We will also make the related work section more concise and address all minor comments related to the text.
+
+
+    \section{Model}
+
+    We designed our model to be realistic enough to represent the actual executions of the workflow, but still concise
+    enough to be able to formulate algorithms for it.
+
+    If running the heuristics is in the order of thousands of seconds,
+    is possible that a reassignment occurs that have already completed? What
+    happens in this case? It seems like a very important discussion to
+    claim  the advantage of dynamicity.
+
+    \review{I dont fully understand the argument of reusing finished processors during execution.
+    Is this referring to task reuse maybe? }
+    The reuse of processors refers to scheduling tasks on processors, rather than only mapping them there.
+    When in the authors of DagHetPart~[20] map a block of tasks to a processor, then this processor remains idle after
+    all tasks in this block have finished.
+    In our approach, this does not happen, because tasks are being put on processors under consideration of their ready times.
+    When a processor becomes free, it is likely that a new task will be assigned there soon.
+    This allows us to achieve better makespans than in the approaches with mapping.
+
+    \review{I disagree with the assumption that input files need to be loaded entirely; why not consider partial reads?
+    Is this a limitation introduced by the experimental data traces from Sec. VI-A(b)?}
+    In our approach, we assume that all input files need to be held in memory.
+    Attempting partial reads would unnecessarily complicate the algorithmic setup.
+    However, it does not bring a special knowledge, because sooner or later all the files will need to be in the memory
+    and at that point in time there should be enough of this memory.
+    This would not solve the problems with invalid schedules if there is not enough memory on processors to hold the input files.
+
+
+
+    \review{Is the notation in $r_u$ definition correct? It is confusing because  it is looking into all pairs as
+    bidirectional (from u to v and from v to  u).}
+    The definition of $r_u$ is not bidirectional, but rather contains the sums of weights of both incoming and outgoing edges.
+    In the second term, the edges (v,u) are incoming edges into our task u.
+    In the thrid term, the edges (u,v) are outgoing edges of the same task u.
+    v refers to different set of tasks in these terms.
+    We will explain this formula better, though.
+
+    \review{Section 4.a.3: How does the runtime handle nodes that are down?}
+    In our runtime model, processors do not fail.
+    The task can take much longer to execute on a processor than expected, but the execution finishes sooner or later.
+    Adding processor failures is a good use case for the future work.
+
+
+    \section{Description of the algorithms}
+
+    \review{Page 5, the greedy eviction approach: So the algorithm doesn't take into account whether the to-be-evicted
+    data could be required for some future next tasks on that processor?}
+    We evict files greedily, without taking into consideration when they will be required for the execution of a task,
+    because this would require a look into the future.
+    This look, however, is difficult, because the present (i.e. the assignment of the current task) is not defined yet
+    and the fitire depends on it.
+    It is possible that we evict a file that will be needed soon, but the fact that we are required to evist it means that
+    there was no (good) way of assigning the task without doing so.
+
+
+    \subsection{Description of the dynamic algorithm}
+    \review{Section V is quite confusing. Please provide an algorithm to describe the dynamic scenario.
+
+    Description of the method reads unclear.
+    }
+
+    We will improve the description of the dynamic scenario in Section V and describe all algorithms, especially the dynamic one
+    in more detail.
+
+
+    \section{Experimental evaluation}
+
+    \subsection{Description of experiments}
+
+
+    \review{Page 7, right column, 2nd paragraph: "set the size of the communication buffer to be equal to 10x the memory size" -- I thought communication buffer is allocated from a part of device memory, so its size can't be larger than the memory size.
+    Could you please explain why the communication buffer can be larger than the memory size?}
+    We model the communication buffer as some sort of larger, slower memory, similar to a hard drive disc.
+    Therefore, the size of the buffer is much larger than that of the memory, and we can store more files there.
+    These files then can wait to be consumed by their target task without unnecessarily filling the memory of their processor.
+
+    \review{The runtime system does not execute real workflows. It just simulates the execution, applying a deviation function.}
+    \skug{I have trouble formulating rebuttal for this. How do I say that we don't want to run actual workflow in actual cluster,
+        because this is crazy complicated to organize?}
+    Our simulation is based on the measured historical data.
+    The deviation function is also in accordance to values observed in practice.
+
+
+    \review{No comparison with other dynamic scheduling baselines, e.g., with reference [20] in the paper.}
+
+    TODO for Svetlana: say that comparison is unfair
+
+
+    Page 8, charts: How do you aggregate the numbers across many different workflow graphs to report in the charts? Average, median, etc.?
+
+
+    \subsection{Execution of experiments}
+
+    \review{Why is the memory footprint of HEFTM-MM decreasing in some cases in Fig. 4?}
+
+
+    For some larger workflows, HEFT-MM was able to achieve better memory usage.
+    For these size categories of workflows, HEFT-MM can achieve a better memory usage. On a sufficiently large cluster, a larger workflow is not necessarily always bad for the memory usage.
+    A large workflow brings more chances at parallel execution, and more variants of rearranging the tasks in relation to each other.
+    These freedoms can lead to a better memory usage in comparison to small workflows that offer less flexibility and require tasks to be executed in a more fixed order.
+
+    This is especially true on less fanned-out workflows like bacass.
+
+    Fig. 9: For workflow size < 100, why is the runtime of HEFT much higher than others'?
+
+    A better discussion on the experimental results could help deriving
+    insights on the suitability of the different heuristics in different
+    scenarios. First, it is unclear whether all workflow traces were mixed
+    in the evaluation and what are their computational requirements. Second,
+    in the static scenario, HEFTM-BL leads to a consistently higher memory
+    usage (Fig. 4), but minimises slowdown. Also, HEFTM-MM is consistently
+    more robust when it comes to deliver valid scheduling plans, even under
+    memory constraints. Are there any characteristics of the tested
+    workflows (besides task number) that can be aligned with this behaviour,
+    and to what extent can this be generalised? More comments below.
+
+
+
+
+    \section{For us to discuss}
+
+    \begin{itemize}
+        \item Page 4, 1st paragraph, ``mu is the best total memory usage of a task during its execution, including input and output files currently being read and written''
+        Doesn't this mean mu will always be at least as large as the size of the input files and the size of the output files combined? If so, ru should just be mu
+
+        The reviewer is right, the sentence they refer to is a bit confusing. We need to formulate this differently.
+        But I don't think we should include it explicitly, it is covered by ``addressing minor review points''.
+
+        \item  Page 7, left column, 2nd to last paragraph: Please report nonzero statistics for the real, historical data too.
+
+        don't understand this one
+        \item Reviewer 2: The experimental comparison is insufficient
+
+        Don't know if a reaction to this is necessary?
+        \item  Section 4.a.1.b: Please summarize execution time, memory requirement, and I/O size statistics for existing historical data as well.
+
+        should I address this separately?
+        \item
+        \item
+
+    \end{itemize}
+
+
+\end{document}
