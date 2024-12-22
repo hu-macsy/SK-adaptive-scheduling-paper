@@ -315,58 +315,65 @@ average when scheduled on the current processor.
 HEFT  can also be adapted in cloud-oriented environments~\cite{samadi2018eheft} and even combined with reinforcement learning techniques~\cite{yano2022cqga}.
 
 
-    \subsection{Memory-aware scheduling algorithms}
-    Respecting processor memories adds a constraint to a scheduling problem.
-    Therefore, only specifically memory-targeted algorithms address this issue.
-    Moreover, the way processor memories are represented in the model has a decisive impact on the way the constraint
-    is formulated and addressed in the algorithm.
+\subsection{Memory-aware scheduling algorithms}
+\label{sub:mem-aware-algs}
 %
-    Different models of memory available on processors and memory requirements of tasks have been presented.
+Only memory-aware scheduling algorithms are designed to respect memory constraints.
+%Respecting processor memories adds a constraint to a scheduling problem.
+%Therefore, only specifically memory-targeted algorithms address this issue.
+Moreover, the way processor memories are represented in the model has a decisive impact on the way the constraint
+is formulated and addressed in the algorithm.
+%
+Different models of memory available on processors and memory requirements of tasks have been presented.
 
-    Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each processor has an individual memory available.
-    Workflow tasks have no memory requirements, but they have input and output files that need to be stored in the memory.
-    A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a DAG is provided,
-    as well as an ILP solution to the scheduling problem.
-    The memory model requires deleting all input data upon starting of the task and adding all output files there.
+Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each processor has an individual memory available.
+Workflow tasks have no memory requirements, but they have input and output files that need to be stored in the memory.
+A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a workflow DAG is provided,
+as well as an integer linear programming (ILP) solution to the scheduling problem.
+The memory model requires the deletion of all input files when starting the task.
+% and adding all output files there.
+% TODO: This sounded strange. I changed ``input data'' to ``input files''.
+% How can I process input data when they are deleted? 
+% TODO: And what is ``there''?
 
-    In an assumed dual-memory systems~\cite{herrmann2014memory},  a processor can have access 
-    to a memory of two different
-    kinds (red or blue), and each task can be executed on only one sort of memory.
-    The communications happen only between these two kinds of processors (communications within 
-    each group are ignored).
-    The authors then formulate an ILP solution for this problem formulation.
+In an assumed dual-memory system~\cite{herrmann2014memory},  a processor can have access 
+to two different kinds of memory, and each task can be executed on only one sort of memory.
+Communication happens only between these two kinds of processors (communication within 
+each group is ignored).
+The authors then present an ILP-based solution for this problem formulation.
 
-    %The algorithm presented by Yao et al.
-    Yao et al.~\cite{yao2022memory} consider that each processor has an own internal memory and all
-    processors share a common external one. The internal (local) memory is used to store the task files.
-    The external memory is used to store evicted files to make room for the execution of a task on a processor.
-    All processors, including the original one, can access these files. 
-    Each edge %in~\cite{yao2022memory} 
-    has two weights -- the size of the files transferred along it,
-    and the time of communication along this edge.
-    The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
+%The algorithm presented by Yao et al.
+Yao et al.~\cite{yao2022memory} consider that each processor has an own internal memory and all
+processors share a common external one. The internal (local) memory is used to store the task files.
+The external memory is used to store evicted files to make room for the execution of a task on a processor.
+All processors, including the original one, can access these files. 
+Each edge %in~\cite{yao2022memory} 
+has two weights -- the size of the files transferred along it,
+and the time of communication along this edge.
+The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
 
-    In~\cite{ding2024ils}, there are connected processors with individual limited memories.
-    The collective set of memories forms the global memory, to which each processor has access, however the access time
-    to global memory is different.
-    Each memory access in the graph is modeled as a memory access token on the task, while the edges have no weights.
-    The solved problem is how to allocate initial input data in processor memories so that the overall
-    execution is minimized and the memories are not exceeded.
-    The authors propose an integer linear programming model.
-    %that minimizes the length of the critical path, including a greedy initial solution.
+In~\cite{ding2024ils}, the authors consider connected processors with individual limited memories.
+The collective set of memories forms the global memory to which each processor has access;
+however, the access time to global memory is different.
+Each memory access in the graph is modeled as a memory access token on the task, while the edges have no weights.
+The solved problem is how to allocate the initial input data in processor memories so that the overall
+execution is minimized and the memories are not exceeded.
+To this end, the authors propose an ILP model.
+%that minimizes the length of the critical path, including a greedy initial solution.
 
-    In~\cite{rodriguez2019exploration}, the authors assume memory requirement on tasks represented as tiles.
-    Each processor has individual memories to process the task, but only the shared memories store the tiles containing
-    memory tiles occupied by memory tiles.
+In~\cite{rodriguez2019exploration}, the authors assume memory requirements on tasks represented as tiles.
+Each processor has individual memories to process the task, but only the shared memories store the tiles containing
+memory tiles occupied by memory tiles.
 
-   Finally, there are some cloud-oriented models that include costs associated with memory usage~\cite{liang2020memory}.
-   
-   Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
-   platform that is fully heterogeneous, with individual memories, is the one from~\cite{DBLP:conf/icpp/KulaginaMB24},
-   but where a partition of the workflow is proposed, hence preventing processor reuse. 
-   Hence, in ~\cite{DBLP:conf/icpp/KulaginaMB24}, there is no need of communication buffers to store data 
-   that should be communicated
-   between two processors when tasks are ready to execute. 
+Finally, there are some cloud-oriented models that include costs associated with memory usage~\cite{liang2020memory}.
+
+Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
+platform that is fully heterogeneous, with individual memories, is the one from~\cite{DBLP:conf/icpp/KulaginaMB24}.
+Yet, they propose only a partitioning-based mapping of the workflow without processor reuse.
+Hence, in~\cite{DBLP:conf/icpp/KulaginaMB24}, there is no need for communication buffers to store data 
+that should be communicated between two processors when tasks are ready to execute. 
+% TODO: Why is the last sentence necessary? More specifically, why is it a consequence of the previous
+% sentence (as implied by ``Hence''?)?
 
 
     \subsection{Dynamic/adaptive algorithms}
