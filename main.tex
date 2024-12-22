@@ -83,7 +83,7 @@ exceeds the available memory, the execution fails.
 The typical goal is to execute the workflow without failures (i.e., satisfying the memory
 constraints) and with the shortest possible execution time (i.e., to minimize its makespan).
 
-To address this problem, we investigate in this paper the memory-aware scheduling of DAG-shaped workflows on
+To address this problem, we investigate the memory-aware scheduling of DAG-shaped workflows on
 heterogeneous platforms, where each processor can have a different speed and a different memory size.
 We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that (in contrast to the original) accounts for memory and
 includes eviction strategies for cases when it might be beneficial to remove some data from memory
@@ -232,9 +232,9 @@ and provide future working directions in Section~\ref{sec:conc}.
 \section{Related work} %: \skug{Full: 5, Polished: 4}}
 \label{sec:related-work}
 
-First, we focus on HEFT-like scheduling heuristics from the literature  that do not necessarily  
-consider memory constraints. Then, we discuss memory-aware scheduling algorithms. 
-Finally, we move to related work on dynamic or adaptive algorithms. 
+%First, we focus on HEFT-like scheduling heuristics from the literature  that do not necessarily  
+%consider memory constraints. Then, we discuss memory-aware scheduling algorithms. 
+%Finally, we move to related work on dynamic or adaptive algorithms. 
 
 %    We discuss relevant scheduling approaches that reuse processors or respect the memory requirements of the processors.
 %
@@ -264,22 +264,24 @@ Finally, we move to related work on dynamic or adaptive algorithms.
 %    in each level, it schedules the one with largest computation time first.
 
 
-\subsection{Static list schedulers, especially HEFT-based algorithms}
-\label{sub:static-list-schedulers}
+\noindent{\bf HEFT-based algorithms. }
+%\subsection{Static list schedulers, especially HEFT-based algorithms}
+%\label{sub:static-list-schedulers}
 %
-Introduced in 2002, HEFT~\cite{topcuoglu2002performance} is a list-based heuristic.
-HEFT and its successors consist of two phases: task prio\-ri\-tization/ordering and task assignment.
+Introduced in 2002, HEFT~\cite{topcuoglu2002performance} is a list-based heuristic, consisting 
+%HEFT and its successors consist 
+of two phases: task prio\-ri\-tization/ordering and task assignment.
 In the first phase, the algorithms compute bottom levels of the tasks based on some priorities (create the list),
 and then schedule tasks in the order of these priorities.
 The modifications of HEFT revolve around the way the priorities of the tasks are computed and the logic of the processor assignment.
 All such algorithms assume a heterogeneous execution environment.
 
-During the task prioritization phase in~\cite{sulaiman2021hybrid}, the standard deviation of the computation cost % (between processors) 
-is computed and added to the mean value to account for differences between processor speeds.
-% TODO: Why ``between processors''? And what exactly is ``computation cost'' in the first place?
-In the processor choice phase, the entry task and the longest parent tasks are duplicated 
-during idle times on the processor.
-% TODO: Context of previous sentence unclear. Why is this done? What is the difference to others / our work in this respect?
+%During the task prioritization phase in~\cite{sulaiman2021hybrid}, the standard deviation of the computation cost % (between processors) 
+%is computed and added to the mean value to account for differences between processor speeds.
+%% TODO: Why ``between processors''? And what exactly is ``computation cost'' in the first place?
+%In the processor choice phase, the entry task and the longest parent tasks are duplicated 
+%during idle times on the processor.
+%% TODO: Context of previous sentence unclear. Why is this done? What is the difference to others / our work in this respect?
 
 %    Ref.~\cite{alebrahim2017task} computes the bottom level based on the difference of execution times on
 %    the fastest and the slowest processors, divided by the speed ratio of these two processors.
@@ -287,41 +289,46 @@ during idle times on the processor.
 %    They choose the processor with the lowest execution time and cross over to other processors sometimes.
 %    They build upon~\cite{shetti2013optimization}.\hmey{Last sentence ``hangs in the air''. Either drop or connect it properly.}
 
-PEFT (Predict earliest finish time)~\cite{arabnejad2014list} is a HEFT variant that computes an Optimistic
-Cost Table (OCT).
-The OCT is computed per task-processor pair and stores the longest shortest path from this task to the target task if this
-processor is chosen for this task.
-% TODO: is ``target task'' defined/clear?
-Ranking is based on OCT values.
-The processor choice stage minimizes the optimistic EFT, which is EFT plus the longest path to the exit node for each task. % TODO: is ``exit node'' == ``target task''? 
+Some variants have been designed with various ways of ordering tasks, for instance based
+on an optimistic cost table in 
+PEFT (Predict earliest finish time)~\cite{arabnejad2014list}, or by combining the standard deviation
+with the communication cost weight on the tasks in HSIP (Heterogeneous Scheduling with Improved task Priorities)~\cite{wang2016hsip}. 
+% is a HEFT variant that computes an Optimistic
+%Cost Table (OCT).
+%The OCT is computed per task-processor pair and stores the longest shortest path from this task to the target task if this
+%processor is chosen for this task.
+%% TODO: is ``target task'' defined/clear?
+%Ranking is based on OCT values.
+%The processor choice stage minimizes the optimistic EFT, which is EFT plus the longest path to the exit node for each task. % TODO: is ``exit node'' == ``target task''? 
+%
+%The HSIP (Heterogeneous Scheduling with Improved task Priorities)~\cite{wang2016hsip} has an improved first step in
+%comparison to HEFT.
+%It combines the standard deviation with the communication cost weight on the tasks.
+%In the second stage, the algorithm duplicates the entry task if there is a need for it.
+%% TODO: Sounds like Ref. [32] above. What is the difference? (Why) Is it an improvement? Do we need to describe both?
 
-The HSIP (Heterogeneous Scheduling with Improved task Priorities)~\cite{wang2016hsip} has an improved first step in
-comparison to HEFT.
-It combines the standard deviation with the communication cost weight on the tasks.
-In the second stage, the algorithm duplicates the entry task if there is a need for it.
-% TODO: Sounds like Ref. [32] above. What is the difference? (Why) Is it an improvement? Do we need to describe both?
-
-The TSHCS (Task Scheduling for Heterogeneous Computing Systems) algorithm~\cite{alebrahim2017task} improves on HEFT
-by adding randomized decisions to the second phase.
-The decision is whether the task be assigned to the processor with the lowest execution time or to the processor that
-produces the lowest finish time.
-
+The TSHCS (Task Scheduling for Heterogeneous Computing Systems) algorithm~\cite{alebrahim2017task} 
+improves on HEFT by adding randomized decisions to the second phase.
+%The decision is whether the task be assigned to the processor with the lowest execution time or to the processor that
+%produces the lowest finish time.
 The SDC algorithm~\cite{SHI2006665} considers the percentage of feasible processors in addition to a task’s
 average execution cost in its weight.
-The selected task is then assigned to a processor which minimizes its Adjusted Earliest Finish Time (AEFT),
-which additionally notes how large the communication between the current node and its children will be on 
-average when scheduled on the current processor.
+%The selected task is then assigned to a processor which minimizes its Adjusted Earliest Finish Time (AEFT),
+%which additionally notes how large the communication between the current node and its children will be on 
+%average when scheduled on the current processor.
+HEFT  can also be adapted in cloud-oriented environments~\cite{samadi2018eheft} and even combined with reinforcement learning techniques~\cite{yano2022cqga}, but none of these variants of HEFT consider memory constraints, 
+to the best of our knowledge. 
 
-HEFT  can also be adapted in cloud-oriented environments~\cite{samadi2018eheft} and even combined with reinforcement learning techniques~\cite{yano2022cqga}.
-
-
-\subsection{Memory-aware scheduling algorithms}
-\label{sub:mem-aware-algs}
+\medskip
+%\subsection
+\noindent{\bf Memory-aware scheduling algorithms. }
+%\label{sub:mem-aware-algs}
 %
-Only memory-aware scheduling algorithms are designed to respect memory constraints.
-%Respecting processor memories adds a constraint to a scheduling problem.
-%Therefore, only specifically memory-targeted algorithms address this issue.
-Moreover, the way processor memories are represented in the model has a decisive impact on the way the constraint
+%Only memory-aware scheduling algorithms are designed to respect memory constraints.
+%%Respecting processor memories adds a constraint to a scheduling problem.
+%%Therefore, only specifically memory-targeted algorithms address this issue.
+%Moreover, 
+The way processor memories are represented in the model has a decisive impact on the way the constraint
 is formulated and addressed in the algorithm.
 %
 Different models of memory available on processors and memory requirements of tasks have been presented.
@@ -336,59 +343,65 @@ The memory model requires the deletion of all input files when starting the task
 % How can I process input data when they are deleted? 
 % TODO: And what is ``there''?
 
-In an assumed dual-memory system~\cite{herrmann2014memory},  a processor can have access 
+Other models consider for instance a 
+%In an assumed 
+dual-memory system~\cite{herrmann2014memory} where a processor can have access 
 to two different kinds of memory, and each task can be executed on only one sort of memory.
-Communication happens only between these two kinds of processors (communication within 
-each group is ignored).
+%Communication happens only between these two kinds of processors (communication within 
+%each group is ignored).
 The authors then present an ILP-based solution for this problem formulation.
-
+%
 %The algorithm presented by Yao et al.
-Yao et al.~\cite{yao2022memory} consider that each processor has an own internal memory and all
+Yao et al.~\cite{yao2022memory} consider that each processor has its own internal memory, and all
 processors share a common external one. The internal (local) memory is used to store the task files.
 The external memory is used to store evicted files to make room for the execution of a task on a processor.
-All processors, including the original one, can access these files. 
-Each edge %in~\cite{yao2022memory} 
-has two weights -- the size of the files transferred along it,
-and the time of communication along this edge.
-The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
-
-In~\cite{ding2024ils}, the authors consider connected processors with individual limited memories.
-The collective set of memories forms the global memory to which each processor has access;
-however, the access time to global memory is different.
-Each memory access in the graph is modeled as a memory access token on the task, while the edges have no weights.
-The solved problem is how to allocate the initial input data in processor memories so that the overall
-execution is minimized and the memories are not exceeded.
-To this end, the authors propose an ILP model.
-%that minimizes the length of the critical path, including a greedy initial solution.
-
-In~\cite{rodriguez2019exploration}, the authors assume memory requirements on tasks represented as tiles.
-Each processor has individual memories to process the task, but only the shared memories store the tiles containing
-memory tiles occupied by memory tiles.
-
-Finally, there are some cloud-oriented models that include costs associated with memory usage~\cite{liang2020memory}.
+%All processors, including the original one, can access these files. 
+%Each edge %in~\cite{yao2022memory} 
+%has two weights -- the size of the files transferred along it,
+%and the time of communication along this edge.
+%The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
+%
+In~\cite{ding2024ils}, the authors consider connected processors with individual limited memories
+forming a global memory, with different access times to memory, and no weights on edges. An ILP
+is proposed in this setting. 
+%The collective set of memories forms the global memory to which each processor has access;
+%however, the access time to global memory is different.
+%Each memory access in the graph is modeled as a memory access token on the task, while the edges have no weights.
+%The solved problem is how to allocate the initial input data in processor memories so that the overall
+%execution is minimized and the memories are not exceeded.
+%To this end, the authors propose an ILP model.
+%%that minimizes the length of the critical path, including a greedy initial solution.
+%
+%In~\cite{rodriguez2019exploration}, the authors assume memory requirements on tasks represented as tiles.
+%Each processor has individual memories to process the task, but only the shared memories store the tiles containing
+%memory tiles occupied by memory tiles.
+%
+There are also some cloud-oriented models that include costs associated with memory usage~\cite{liang2020memory}.
 
 Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
 platform that is fully heterogeneous, with individual memories, is the one from~\cite{DBLP:conf/icpp/KulaginaMB24}.
-Yet, they propose only a partitioning-based mapping of the workflow without processor reuse.
+Yet, they propose only a partitioning-based mapping of the workflow, without processor reuse.
 Hence, in~\cite{DBLP:conf/icpp/KulaginaMB24}, there is no need for communication buffers to store data 
 that should be communicated between two processors when tasks are ready to execute. 
 % TODO: Why is the last sentence necessary? More specifically, why is it a consequence of the previous
 % sentence (as implied by ``Hence''?)?
 
 
-    \subsection{Dynamic/adaptive algorithms}
-
-We now review related work in a dynamic setting. With no variation in task parameters, 
+%    \subsection
+\smallskip
+\noindent{\bf Dynamic/adaptive algorithms. }
+We finally review related work in a dynamic setting. With no variation in task parameters, 
     DVR HEFT~\cite{SANDOKJI2019482} rather considers that new tasks arrive in the system. 
     They use an almost unchanged HEFT algorithm in the static step, executing three slightly
     varying variants of task weighting and choosing the variant that gives the best overall makespan.
-    In the dynamic phase, they receive new tasks and schedule them on either idle processors or 
-    those processors that give them
-    the earliest finish time.
-    %Task failures are not covered.
-
-    Rahman~\etal~\cite{rahman2013}'s dynamic critical path (DCP) algorithm for grids maps tasks to machines
-    by calculating the critical path in the graph dynamically at every step.
+%    In the dynamic phase, they receive new tasks and schedule them on either idle processors or 
+%    those processors that give them
+%    the earliest finish time.
+%    %Task failures are not covered.
+%
+%    Rahman~\etal 
+    The dynamic critical path (DCP) algorithm for grids maps tasks to machines
+    by calculating the critical path in the graph dynamically at every step~\cite{rahman2013}.
     %For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
     %on the start time of a task (differing by the slack this task has).
     %All tasks on this critical path have the same earliest and latest start times, because they cannot be delayed.
@@ -397,19 +410,19 @@ We now review related work in a dynamic setting. With no variation in task param
     %If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum
     %execution time for the task is chosen.
     The heuristic also uses the same processor to schedule parent and children tasks, as to avoid data transfer between processors.
-    The approach is evaluated on random workflows of the size up to 300 tasks.
+%    The approach is evaluated on random workflows of the size up to 300 tasks.
 
 
     Garg~\etal~\cite{GARG2015256} propose a dynamic scheduling algorithm for heterogeneous grids based on rescheduling.
-    The procedure involves building a first (static) schedule, periodic resource monitoring and rescheduling the remaining
-    tasks.
-    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
-    For each resource group, there is an own scheduler, and an overall global scheduler responsible for distributing
-    tasks to groups.
-    The static heuristic is HEFT with earliest start time as priority.
+    The procedure involves building a first (static) schedule with HEFT, periodic resource monitoring, 
+    and rescheduling the remaining tasks. 
+%    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
+%    For each resource group, there is an own scheduler, and an overall global scheduler responsible for distributing
+%    tasks to groups.
+%    The static heuristic is HEFT with earliest start time as priority.
     Upon rescheduling, a new mapping is calculated from scratch, and this mapping is accepted if the resulting makespan
     is smaller than the previous one.
-    The experiments were conducted on a single workflow with 10 tasks.
+%    The experiments were conducted on a single workflow with 10 tasks.
 %
     % The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
     %The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.
@@ -423,22 +436,23 @@ We now review related work in a dynamic setting. With no variation in task param
     %
     %The rescheduling is triggered when either a load on a resource increases over a threshold, or if a new resource
     %is added.
-
-
-    Most dynamic or adaptive algorithms are formulated for clouds, where the execution environment is not fixed,
-    but constrained by cost.
-
-    Wang et al.~\cite{wang2019dynamic} propose a dynamic particle swarm optimization algorithm to schedule workflows in a cloud.
-    Particles are possible solution in the solution space.
-    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
-    Similarly, Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
+%
+%
+%    Most dynamic or adaptive algorithms are formulated for clouds, where the execution environment is not fixed,
+%    but constrained by cost.
+%
+% In a cloud framework,  Wang et al.~\cite{wang2019dynamic} propose a dynamic particle swarm optimization algorithm.
+% % to schedule workflows in a cloud.
+%%    Particles are possible solution in the solution space.
+%    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
+%    Similarly, Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
 
     De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
     for clouds.
     They solve a set of linear equations that represent the cost of an execution based on the criteria.
-    The authors test out 4 scenarios - one preferring each criteria, and a balanced one.
+    The authors test out four scenarios - one preferring each criteria, and a balanced one.
     The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
-    The authors used workflows with less than 10 tasks, but repeated them so that the execution had up to 200 tasks.
+    The authors used workflows with less than ten tasks, but repeated them so that the execution had up to 200 tasks.
     %They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
  %   The authors use provenance data to make scheduling decisions.
 
@@ -1263,12 +1277,12 @@ Hence, we only present results with the eviction of largest files first.
 
 
     
-\subsection{Dynamic experiments}
+\subsection{Dynamic experiments on the memory-constrained cluster}
 \label{sec.expe.dyn}
 
-\AB{Need to add results on the default cluster!}
-
-    \paragraph{Memory-constrained cluster}
+%\AB{Need to add results on the default cluster!}
+%
+%    \paragraph{Memory-constrained cluster}
     The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
     situation - that is, if the scheduler assumed its memory to be smaller than it actually was and assigned it to a processor
     with not enough memory capacity.
