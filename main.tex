@@ -26,8 +26,8 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\algo}[1]{\textsc{#1}}
 \newcommand{\bottomlevel}[1]{\underline{l}_{#1}} % underline short italic
 \newcommand{\criticalpath}{\mathcal{P}}
-\newcommand{\parents}[1]{\,\Pi_{#1}}
-\newcommand{\children}[1]{\,C_{#1}}
+\newcommand{\parents}[1]{\,parent_{#1}}
+\newcommand{\children}[1]{\,child_{#1}}
 \newcommand{\cluster}{\,\mathcal{S}}
 
 \newcommand{\heft}{\algo{HEFT}\xspace}
@@ -523,19 +523,32 @@ we are not aware of any previous work discussing dynamic algorithms combined wit
 \section{Model} %: \skug{Full: 4, polished: 3}}
 \label{sec:model}
 
-    We first describe the model for our target applications, large scientific workflows for which we do not have exact a priori knowledge,
-    in Section~\ref{sec.mod.work}.  Next, we define the execution
-    environment, a cluster that is heterogeneous in terms of processor speed and memory size,
-   in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
-    Section~\ref{sec.mod.pb}. The key notation is summarized in Table~\ref{tabnotation}.
+The target applications, large scientific workflows for which we do not have exact a priori knowledge,
+are described in Section~\ref{sec.mod.work}. Then, the heterogeneous system on which
+the applications are to be executed is presented in Section~\ref{sec.mod.plat}. The optimization problem
+is defined in 
+%
+%    We first describe the model for our target applications, large scientific workflows for which we do not have exact a priori knowledge,
+%    in Section~\ref{sec.mod.work}.  Next, we define the execution
+%    environment, a cluster that is heterogeneous in terms of processor speed and memory size,
+%   in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
+    Section~\ref{sec.mod.pb}, and the key notation is summarized in Table~\ref{tabnotation}.
 
-    \subsection{Workflow}
+    \subsection{Applications}
     \label{sec.mod.work}
-    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
-    $E$ is a set of directed edges of the form $e=(u,v)$, with $u,v\in V$, expressing precedence constraints between tasks.
-    Each task~$u \in V$  is performing $w_u$ operations, and it also
-    requires some amount of memory to be executed, denoted as~$m_u$.
-    Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
+    The target applications, corresponding to large scientific workflows, are represented with a DAG (Directed
+    Acyclic Graph) $G=(V,E)$. The set of vertices~$V$ corresponds to tasks, while edges express the
+    precedence constraints. Hence, a directed edge $e=(u,v)\in E$ means that task $u\in V$ must be executed 
+    before task~$v\in V$. A cost~$c_{u,v}$ is associated to each edge, representing the size of the 
+    output of task~$u$, to be used by task~$v$. 
+    Furthermore, $w_u$ is the number of operations performed by task~$u\in V$, 
+    and $m_u$ is the amount of memory required by task~$u$ to be executed. 
+%    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
+%    $E$ is a set of directed edges of the form $e=(u,v)$, with $u,v\in V$, expressing precedence constraints between tasks.
+%    Each task~$u \in V$  is performing $w_u$ operations, and it also
+%    requires some amount of memory to be executed, denoted as~$m_u$.
+%    For an edge $(u,v) \in E$, the weight~$c_{u,v}$  corresponds to the size of the output file 
+%    written by task~$u$ and used as input by task~$v$.
    Note that $m_u$ is the total memory usage
     of a task during its execution, including input and output files currently being read and written,
     and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
@@ -547,11 +560,13 @@ we are not aware of any previous work discussing dynamic algorithms combined wit
         r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
     \]
 
-    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
-    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without parents is called a {\it source task}.
-    The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
-    $ \children{u} = \{v \in V: (u,v) \in E\}$. A task without children is called a {\it target task}.
-    Each task may have multiple parents and children.
+    We denote by $\parents{u}$ the tasks preceding task~$u\in V$, that must be completed before $u$ can be started:   
+%    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
+    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A {\em source} task is a task without parents. % is called a {\it source task}.
+ Similarly, the children of task $u\in V$ are %   The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
+    $ \children{u} = \{v \in V: (u,v) \in E\}$, and a {\em target} task has no children. 
+    %A task without children is called a {\it target task}.
+    Note that each task may have multiple parents and children.
 
 
 Furthermore, we place ourselves in a context where we do not have perfect knowledge
@@ -562,17 +577,21 @@ Hence, scheduling decisions are made on these estimated parameters, and
 may be reconsidered at runtime when a task starts its execution and we know its exact parameters.
 
 
-    \subsection{Execution environment}
+    \subsection{Heterogeneous system}
     \label{sec.mod.plat}
 
-    The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
-    consists of $k$ processors $p_1, \dots, p_k$.
-    Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$, a communication
+The target platform is a heterogeneous system $\cluster$ with $k$ processors 
+%    The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
+%    consists of $k$ processors 
+    $p_1, \dots, p_k$.
+    For $1 \leq j \leq k$, each processor $p_j$  has an individual memory of size $M_j$, a communication
     buffer of size $MC_j$ and a speed~$s_j$.
     We can decide to evict some data from the main memory if we are sending the data
     to another processor; it then stays in the communication buffer until it has been sent.
-    The execution time of a single task~$u\in V$ on a processor~$p_j$ is expressed as $\frac{w_u}{s_j}$.
-    We assume that all processors are connected with the same bandwidth~$\beta$.
+    The execution time of a single task~$u\in V$ on a processor~$p_j$ is~$\frac{w_u}{s_j}$,
+    and all 
+    %We assume that all 
+    processors are connected with an identical bandwidth~$\beta$.
 %    \hmey{Maybe mention that variable bandwidths are part of future work...?}
 
     We keep track of the current ready time of each processor and each communication
@@ -585,8 +604,11 @@ may be reconsidered at runtime when a task starts its execution and we know its 
     more memory is needed on~$p_j$. They are ordered by non-decreasing size and
     correspond to some $c_{u,v}$.
 
-    We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
-    the memory requirement; it transforms the workflow into a series-parallel graph
+In oder to compute the memory requirement of a DAG, we use \algo{memDag}~\cite{KAYAASLAN20181},
+an algorithm that 
+%    We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
+%    the memory requirement; it 
+    transforms the workflow into a series-parallel graph
     and then finds the traversal that leads to the minimum memory consumption.
 
     \begin{table}
@@ -595,21 +617,21 @@ may be reconsidered at runtime when a task starts its execution and we know its 
                 \hline
                 \textbf{Symbol}                       & \textbf{Meaning}                                         \\
                 \hline
-                $G = (V, E)$                          & Workflow graph, set of vertices (tasks) and edges        \\
-                $\parents{u}$, $\children{u}$         & Parents of a task $u$, children of a task $u$            \\
-                $m_u$                                 & Memory weight of task $u$                                \\
-                $w_u$                                 & Workload of task $u$  (normalized execution time)          \\
-                $c_{u,v}$                             & Communication volume along the edge $(u,v)\in E$         \\
-                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates     \\
-                $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
-                $\cluster$, $k$                    & Computing system and its number of processors           \\
-                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
+                $G = (V, E)$                          & Application DAG (tasks and edges)       \\
+ %               $\parents{u}$, $\children{u}$         & Parents of task $u$, children of task $u$            \\
+                $m_u$                                 & Amount of memory required by task $u$                                \\
+                $w_u$                                 & Number of operations of task $u$         \\
+                $c_{u,v}$                             & Size of output file for edge $(u,v)\in E$         \\
+%                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates     \\
+%                $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
+                $\cluster$, $k$                    & Computing platform, total number of processors           \\
+%                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
                 $M_j$, $MC_j$, $s_j$                               & Memory size, comm. buffer size, and speed of proc.\ $p_j$                          \\
                 $\beta$                     & Bandwidth in the compute system                                \\
-                $\bottomlevel{u}$                      & Bottom weight of task $u$ \\
-                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
-                $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
-                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
+                $bl{u}$                      & Bottom level of task $u$ \\
+%                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
+%                $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
+%                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
                 \hline
             \end{tabular}
         \end{center}
