@@ -126,113 +126,105 @@ scheduler, and the adaptive setting allows us to significantly reduce the makesp
 
 \section{Introduction} %: \skug{Full: 0, Polished: 0}}
 
-%    \skug{Fullness score (how much text is available): 0-none to 5 - everything.
-%
-%    Polishedness score (how well-written is the chapter): 0 messy - 5 very clean.
-%    }
-%    TODO: Insert abstract
+%%% CONTEXT %%%
+The analysis of massive datasets, originating from fields such as genomics, 
+remote sensing, or biomedical imaging -- to name just a few -- has become ubiquitous in science;
+this often takes the form of workflows, \iec separate software components chained together
+in some kind of complex pipeline~\cite{DBLP:journals/dbsk/LeserHDEGHKKKKK21}.
+These workflows are usually represented as directed acyclic graphs (DAGs).
+The DAG vertices represent the software components (or, more generally, the workflow \emph{tasks}),
+while the edges model I/O dependencies between the tasks~\cite{adhikari2019survey,liu2018survey}.
+Large workflows with resource-intensive tasks can easily exceed the capabilities of a 
+single computer and are therefore executed on a parallel or distributed platform.
+An efficient execution of the workflows on such platforms requires the mapping of tasks
+to specific processors; to increase utilization by reusing finished processors,
+one also needs a task schedule (\iec a valid execution order that respects the dependencies)
+and possibly also starting times for the tasks.
 
-    %%% CONTEXT %%%
-    The analysis of massive datasets, originating from fields such as genomics, 
-    remote sensing, or biomedical imaging -- to name just a few -- has become ubiquitous in science;
-    this often takes the form of workflows, \iec separate software components chained together
-    in some kind of complex pipeline~\cite{DBLP:journals/dbsk/LeserHDEGHKKKKK21}.
-    These workflows are usually represented as directed acyclic graphs (DAGs).
-    The DAG vertices represent the software components (or, more generally, the workflow \emph{tasks}),
-    while the edges model I/O dependencies between the tasks~\cite{adhikari2019survey,liu2018survey}.
-    Large workflows with resource-intensive tasks can easily exceed the capabilities of a 
-    single computer and are therefore executed on a parallel or distributed platform.
-    An efficient execution of the workflows on such platforms requires mapping tasks
-    to specific processors; to increase utilization by reusing finished processors,
-    one also needs a task schedule (\iec a valid execution order that respects the dependencies)
-    and possibly also starting times for the tasks.
-    
 
-    %%% MOTIVATION %%%
-    Modern computing platforms are often heterogeneous, meaning they feature varying CPU speeds
-    and memory sizes. In general, having different memory sizes per CPUs makes it more challenging to compute
-    a schedule that respects all memory constraints -- meaning that no task is executed on a 
-    processor with less memory than needed for the task. This is, however, very important to
-    avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
-    Hence, building on previous related %\hmey{You may want to add other refs not from us} 
-    work~\cite{gou2020partitioning,He21,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
-    formulation that takes memory sizes as explicit constraints into account. Its objective is
-    the very common \emph{makespan}~\cite{liu2018survey}, 
-    which acts as proxy for the total execution time of a workflow.
-However, to the best of our knowledge,
-    the only memory-aware heuristics that would account for memory constraints are  partitioning
-    the DAG and not reusing processors once they have processed a part of the graph, leading
-    to high values of makespan compared to a finer grain solution that reuses processors. 
+%%% MOTIVATION %%%
+Modern parallel and in particular distributed computing platforms are often heterogeneous,
+meaning they feature varying CPU speeds and memory sizes. 
+In general, having different memory sizes per CPUs makes it more challenging for an algorithm 
+to compute a schedule that respects all memory constraints -- meaning that no task is executed on a 
+processor with less memory than needed for the task. Violating a memory constraint is, however, 
+very important to avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
+Hence, building on previous related %\hmey{You may want to add other refs not from us} 
+work~\cite{gou2020partitioning,He21,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
+formulation that takes memory sizes as explicit constraints into account. 
+Its objective is the very common \emph{makespan}~\cite{liu2018survey}, 
+which acts as proxy for the total execution time of a workflow.
+However, to the best of our knowledge, the only memory-aware heuristics that would account for 
+memory constraints partition the DAG and do not reuse processors once they have processed a part
+of the graph. This approach leads to high values of makespan compared to a more fine-grained solution
+with processor reuse. 
 
-    While previous work with memory constraints has been focusing on partitioning the graph, 
-    and not reusing processors during execution, 
-    a seminal list scheduling heuristic for workflows on heterogeneous platforms, without accounting
-    for the memory constraint, is HEFT 
-    (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
-    It has two phases: (i) each task is assigned a priority; and (ii) the tasks in a priority-ordered list are assigned
-    to processors, where the ``ready'' task with the highest priority is scheduled next on the processor
-    where it would complete its execution first. 
-    HEFT has been extended (e.g., by Shi and Dongarra~\cite{SHI2006665}) and adjusted 
-    for a variety of different scheduling problem formulations. 
-    Yet, none of them adhere to memory constraints as we propose -- see discussion of related work
-    in Section~\ref{sec:related-work}. 
+While previous work with memory constraints has focused on partitioning the DAG and not on 
+reusing processors during execution, a seminal list scheduling heuristic for workflows on 
+heterogeneous platforms, without accounting for the memory constraint, is HEFT 
+(heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
+It has two phases: (i) each task is assigned a priority and (ii) the tasks in a priority-ordered list are assigned
+to processors, where the ``ready'' task with the highest priority is scheduled next on the processor
+where it would complete its execution first. 
+HEFT has been extended (e.g., by Shi and Dongarra~\cite{SHI2006665}) and adjusted 
+for a variety of different scheduling problem formulations. 
+Yet, none of them adhere to memory constraints as addressed in this paper -- 
+see the discussion of related work in Section~\ref{sec:related-work}. 
 %    (\skug{check in related work if true!}).
 %        \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
-        
-    Another limitation in practice of HEFT (and many other scheduling strategies) is their 
-    assumption that the task running times provided to them are accurate. In practice, this is 
-    not the case and deviations from user estimates or historical measurements are 
-    very common~\cite{hirales2012multiple}. As a consequence, one should adapt the schedule when \emph{major}
-    deviations occur. However, the original list-based schedulers, such as HEFT, are only defined
-    in a static setting with accurate task parameters. 
+%    
+Another limitation of HEFT (and many other scheduling strategies) in practice is their 
+assumption that the task running times provided to them are accurate. In practice, this is 
+not the case and deviations from user estimates or historical measurements are 
+very common~\cite{hirales2012multiple}. As a consequence, it is advisable to adapt the schedule when \emph{major}
+deviations occur. However, the original list-based schedulers, such as HEFT, are designed
+for a static setting with accurate task parameters. 
 %    
 %    List-based schedulers such as HEFT are, however, not designed for 
 %    such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement? Please add ref (if any)}
 %    \AB{Actually, we adapt HEFT as well, I'll reformulate...}
 %%    and would compute a completely new schedule from scratch.
-    
 
-    %%% CONTRIBUTION %%%
-    %\paragraph*{Contribution} 
-    The main contributions of this paper are both algorithmic and experimental:
-    \begin{itemize}
+
+%%% CONTRIBUTION %%%
+%\paragraph*{Contribution} 
+The main contributions of this paper are both algorithmic and experimental:
+\begin{itemize}
 \item We formalize the problem with memory constraints, where communication buffers
 are used to evict data from memory if it will be later used by another processor. 
 \item We design three HEFT-based heuristics
-    that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm
-    (M behind HEFT for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
-    BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
-    and MM for \underline{m}inimum \underline{m}emory traversal).
-    The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
-    
-    \item We implement a runtime system able to provide some feedback to the scheduler
-    when task requirements (in terms of execution time and memory) differ from the initial predictions, 
-    and we recompute a schedule, based on the reported deviations. 
-    
-    \item We perform extensive simulations, first in the static case by comparing the schedules produced 
-    by these heuristics with the classical HEFT as baseline, which however does not take memory sizes into account; 
-    while HEFT returns invalid schedules that exceed the processor memories and cannot execute correctly,
-    the new heuristics are able to successfully schedule large workflows, with reasonable makespans.
-    
-    \item In the dynamic setting, we use a runtime system that allows us to simulate workflow executions,
-    introducing deviations in running times and memory requirements of tasks that are communicated
-    back to the scheduler; the scheduler can then recompute a schedule. Without these recomputations,
-    most schedules become invalid after deviations, since the memory constraint is exceeded 
-    for most workflows, hence demonstrating the necessity of a dynamic adjustment of the schedule. 
+that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm
+(M behind HEFT for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
+BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
+and MM for \underline{m}inimum \underline{m}emory traversal).
+The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
+
+\item We implement a runtime system able to provide some feedback to the scheduler
+when task requirements (in terms of execution time and memory) differ from the initial predictions, 
+and we recompute a schedule, based on the reported deviations. 
+
+\item We perform extensive simulations, first in the static case by comparing the schedules produced 
+by these heuristics with the classical HEFT as baseline, which however does not take memory sizes into account; 
+while HEFT returns invalid schedules that exceed the processor memories and cannot execute correctly,
+the new heuristics are able to successfully schedule large workflows, with reasonable makespans.
+
+\item In the dynamic setting, we use a runtime system that allows us to simulate workflow executions,
+introducing deviations in running times and memory requirements of tasks that are communicated
+back to the scheduler; the scheduler can then recompute a schedule. Without these recomputations,
+most schedules become invalid after deviations, since the memory constraint is exceeded 
+for most workflows, hence demonstrating the necessity of a dynamic adjustment of the schedule. 
 
 %    \hmey{Need to clarify: why is this SotA?}
-    
-  %  \begin{itemize}
+
+%  \begin{itemize}
 %      \item Static: we find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
 %      \item Adaptive: runtime system built, simulates workflow executions and deviations in running times and mem requirements of tasks
 %      \item Answering requests of the runtime system for adaptation, the scheduler computes an improved schedule based on the reported deviations.
-    \end{itemize}
+\end{itemize}
 
 We first review related work in Section~\ref{sec:related-work}. Then, we formalize the model in Section~\ref{sec:model}
 and the algorithms in Section~\ref{sec:heuristics}. The adaptation of the heuristics in a dynamic setting is discussed in Section~\ref{sec:dyn}, and experiment results are presented in Section~\ref{sec:expe}. Finally, we conclude
 and provide future working directions in Section~\ref{sec:conc}.  
-
-
 
 
 
