@@ -70,33 +70,35 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 %email address or ORCID} }
 
 
-    \maketitle
+\maketitle
 
-    \begin{abstract}
+\begin{abstract}
+The analysis of massive scientific data often happens in the form of workflows with
+interdependent tasks. When such a scientific workflow needs to be scheduled on a parallel or distributed
+system, one usually represents the workflow as a directed acyclic graph (DAG). 
+The vertices of the DAG represent the tasks, while 
+its edges model the dependencies between the tasks (usually data to be communicated to
+successor tasks). When executed, each task requires a certain amount of memory and if that
+exceeds the available memory, the execution fails.
+The typical goal is to execute the workflow without failures (i.e., satisfying the memory
+constraints) and with the shortest possible execution time (i.e., to minimize its makespan).
 
-        %Scheduling scientific workflows is important. (\skug{can't imagine a good first sentence})
-        Scientific workflows are often represented as directed acyclic graphs (DAGs),
-        where vertices correspond to tasks and edges represent the dependencies between them.
-        Typically, each task requires a
-        certain amount of memory to be executed and needs to communicate data to its successor tasks.
-        The goal is generally to execute the workflow  as fast as possible (i.e., to minimize its makespan),
-        while satisfying the memory constraints.
-        Hence, we investigate the memory-aware scheduling of DAG-shaped workflows on
-        heterogeneous platforms, where each processor can have a different speed and a different memory size.
-        We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that (in contrast to the original) accounts for memory and
-        includes eviction strategies for cases when it might be beneficial to remove some data from memory
-	in order to have enough memory to execute other tasks.
+To address this problem, we investigate in this paper the memory-aware scheduling of DAG-shaped workflows on
+heterogeneous platforms, where each processor can have a different speed and a different memory size.
+We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that (in contrast to the original) accounts for memory and
+includes eviction strategies for cases when it might be beneficial to remove some data from memory
+in order to have enough memory to execute other tasks.
 %
-	Furthermore, while HEFT assumes perfect knowledge of the execution time and memory usage
-	of each task, the actual values might differ upon execution. Thus, we propose an adaptive
-	scheduling strategy, where a schedule is recomputed when there has been a significant variation in terms
-	of execution time or memory.
+Furthermore, while HEFT assumes perfect knowledge of the execution time and memory usage
+of each task, the actual values might differ upon execution. Thus, we propose an adaptive
+scheduling strategy, where a schedule is recomputed when there has been a significant variation in terms
+of execution time or memory.
 %
-	The scheduler has been closely integrated with a runtime system, allowing us to perform a thorough
-	experimental evaluation on real-world workflows. The runtime system warns the scheduler when
-	the task parameters have changed, and a schedule can be recomputed on the fly. The memory-aware
-	strategy allows us to schedule task graphs that would run out of memory with a state-of-the-art
-	scheduler, and the adaptive setting allows us to significantly reduce the makespan.
+The scheduler has been closely integrated with a runtime system, allowing us to perform a thorough
+experimental evaluation on real-world workflows. The runtime system warns the scheduler when
+the task parameters have changed, and a schedule can be recomputed on the fly. The memory-aware
+strategy allows us to schedule task graphs that would run out of memory with a state-of-the-art
+scheduler, and the adaptive setting allows us to significantly reduce the makespan.
 
 %                when tentatively assigning tasks, in order to
 %        Its first step is to compute the weights of the tasks.
@@ -116,9 +118,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 %        Calculating task weights along the optimal memory traversal gives on average $z\%$ worse makespans, but improves
 %        average memory utlization by $t\%$.
 
-
-
-    \end{abstract}
+\end{abstract}
 
 %    \begin{IEEEkeywords}
 %        DAG, Heterogeneous platform, Adaptive scheduling, Memory constraint.
