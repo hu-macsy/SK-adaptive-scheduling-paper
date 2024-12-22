@@ -200,19 +200,19 @@ and MM for \underline{m}inimum \underline{m}emory traversal).
 The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
 
 \item We implement a runtime system able to provide some feedback to the scheduler
-when task requirements (in terms of execution time and memory) differ from the initial predictions, 
+when task requirements (in terms of execution time and/or memory) differ from the initial predictions, 
 and we recompute a schedule, based on the reported deviations. 
 
 \item We perform extensive simulations, first in the static case by comparing the schedules produced 
-by these heuristics with the classical HEFT as baseline, which however does not take memory sizes into account; 
+by these heuristics with the classical HEFT as baseline (the latter does not take memory sizes into account); 
 while HEFT returns invalid schedules that exceed the processor memories and cannot execute correctly,
-the new heuristics are able to successfully schedule large workflows, with reasonable makespans.
+the new heuristics are able to successfully schedule large workflows and do so with reasonable makespans.
 
-\item In the dynamic setting, we use a runtime system that allows us to simulate workflow executions,
-introducing deviations in running times and memory requirements of tasks that are communicated
-back to the scheduler; the scheduler can then recompute a schedule. Without these recomputations,
+\item In the dynamic setting, we use a runtime system that allows us to simulate workflow executions.
+The runtime system introduces deviations in running times and task memory requirements and communicates
+them to the scheduler; the scheduler can then recompute a schedule. Without these recomputations,
 most schedules become invalid after deviations, since the memory constraint is exceeded 
-for most workflows, hence demonstrating the necessity of a dynamic adjustment of the schedule. 
+for most workflows, which demonstrates the necessity of a dynamic adjustment of the schedule. 
 
 %    \hmey{Need to clarify: why is this SotA?}
 
@@ -223,7 +223,7 @@ for most workflows, hence demonstrating the necessity of a dynamic adjustment of
 \end{itemize}
 
 We first review related work in Section~\ref{sec:related-work}. Then, we formalize the model in Section~\ref{sec:model}
-and the algorithms in Section~\ref{sec:heuristics}. The adaptation of the heuristics in a dynamic setting is discussed in Section~\ref{sec:dyn}, and experiment results are presented in Section~\ref{sec:expe}. Finally, we conclude
+and present our algorithms in Section~\ref{sec:heuristics}. The adaptation of the heuristics in a dynamic setting is discussed in Section~\ref{sec:dyn}, and the results of our experiments are presented in Section~\ref{sec:expe}. Finally, we conclude
 and provide future working directions in Section~\ref{sec:conc}.  
 
 
