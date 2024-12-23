@@ -1158,7 +1158,7 @@ a memory-aware strategy in order to produce valid schedules.
   \includegraphics[width=1\columnwidth] {images/success-rates-large}
   \caption{Success rates on the default cluster. Higher is better.}
   \label{fig:success-rates-large}
-  \vspace{-0.3cm}
+  \vspace{-0.15cm}
 \end{figure}
 
 We also report in  Figure~\ref{fig:ms-relations-by-workflow} the relative makespan found
@@ -1193,7 +1193,7 @@ in particular for \heftbl and \heftblc, since the makespans of \heft correspond 
     \caption{Relative makespans of heuristics normalized by \heft makespan, by workflow
     size, on default cluster. Smaller is better.}
     \label{fig:ms-relations-by-workflow}
-    \vspace{-0.3cm}
+    \vspace{-0.15cm}
 \end{figure}
 
 %    \paragraph{Memory Usage}
@@ -1226,7 +1226,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
     \caption{Memory usage on default cluster, including invalid \heft schedules. }
 %by algorithm by workflow size
      \label{fig:mem-usages-normal}
-    \vspace{-0.3cm}
+    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1235,7 +1235,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
     \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal-onlyvalid}
     \caption{Memory usage on default cluster, considering only valid \heft schedules. }
     \label{fig:mem-usages-onlyvalid}
-    \vspace{-0.3cm}
+    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1274,7 +1274,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
     \caption{Success rates on the memory-constrained cluster. Higher is better. }
 %        by algorithm by workflow size.
     \label{fig:success-rates-tiny}
-    \vspace{-0.3cm}
+    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1285,7 +1285,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 %        produced by the heuristics to the makespan produced by the baseline, by workflow size.
     Smaller is better.}
     \label{fig:ms-relations-by-workflow-constrained}
-    \vspace{-0.3cm}
+    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1294,7 +1294,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
     \includegraphics[width=1.1\columnwidth] {images/mem-usage-constrained-onlyvalid}
     \caption{Memory usage on the memory-constrained  cluster. } % by different heuristics by workflow size.}
     \label{fig:memory-usage-constrained}
-    \vspace{-0.3cm}
+    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1364,7 +1364,7 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 \begin{figure}[tb]
     \centering
     \includegraphics[width=1.1\columnwidth] {images/runtimes-logarithmic}
-    \caption{Running times of the heuristics. The y axis is logarithmic.}
+    \caption{Average running times (in seconds) of the heuristics \wrt workflow size. The $y$-axis is logarithmic.}
     \label{fig:runtimes-log}
     \vspace{-0.3cm}
 \end{figure}
@@ -1384,24 +1384,25 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 \section{Conclusion}
 \label{sec:conc}
 
-We have formalized a scheduling problem in memory-constrained environments, where tasks
+We have formalized a scheduling problem in memory-constrained environments where tasks
 may exceed the memory available on a processor and resort to communication buffers
 to store and communicate data between processors. In this context, we have 
-designed three memory-aware HEFT-based heuristics, which account for memory
-constraints while scheduling tasks. 
+designed three memory-aware HEFT-based heuristics which account for memory
+constraints when scheduling workflow tasks. 
 
-Two heuristics rely on an ordering of tasks based on the bottom level of tasks, with the objective
+Two of these heuristics rely on a task ordering \wrt the bottom level of tasks, with the objective
 of minimizing the makespan and hence scheduling critical tasks first. The third one, \heftmm,
-goes one step further and handles tasks in an order dictated by an efficient traversal
-of the graph in terms of memory requirements, hence reducing the memory used
-by the schedule. Experimental results on a large set of workflows coming from real-life applications
+% goes one step further and 
+handles tasks in an order dictated by an efficient traversal
+of the workflow in terms of memory requirements, hence reducing the memory used
+by the schedule. Experimental results on a large set of workflows from real-world applications
 demonstrate that the memory-aware heuristics produce valid schedules successfully. 
 In the most memory-constrained setting, \heftmm succeeds to schedule even the largest workflows,
 while the other heuristics return invalid schedules that exceed the memory capacity. 
-This advantage of \heftmm comes at the price of worse makespans than with \heftbl
+This advantage of \heftmm comes at the price of worse makespans than those of \heftbl
 and \heftblc. % which focus on makespan by ordering tasks by bottom level. 
 As expected, the baseline \heft, which is not memory-aware, returns invalid schedules in almost
-all settings, except for very small workflows. 
+all cases, except for very small workflows. 
 
 %Hence, \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately half of them in a memory-constrained
 %    one.
@@ -1420,20 +1421,15 @@ it is necessary to adapt the schedule on the fly in order to avoid an execution 
 of a memory shortage. To the best of our knowledge, this is the first study of adaptive
 algorithms accounting for memory constraints. 
 
-This work could be extended in several directions. First, the model could be refined to include
-heterogeneous bandwidths, while we consider a homogeneous communication network. 
-More importantly, it would be interesting to consider other types of variability, for instance
-if new tasks appear in (or disappear from) the workflow graph, or if there is variability in the platform, 
+This work can be extended in several directions. First, the model could be refined to include
+heterogeneous bandwidths. %, while we consider a homogeneous communication network. 
+More importantly, it would be interesting to consider other types of variability, \egc
+if new tasks (dis)appear in the workflow graph, or if there is variability in the platform, 
 with processors arriving and departing. We believe that we could adapt the current approach
-by recomputing schedules on the fly, and we plan to perform a new set of experiments
-to further assess the impact of dynamic scheduling. 
+based on recomputing schedules on the fly, and we plan to perform a new set of experiments
+to further assess the impact of dynamic scheduling techniques. 
 
 %
-%\begin{itemize}
-%  \item Extend to heterogeneous bandwidths. 
-%  \item Further variability commented out from the paper: changing DAG structure; changing platform...
-%\end{itemize}
-
 \balance
     \bibliographystyle{abbrv}%IEEEtran}
     \bibliography{references}
