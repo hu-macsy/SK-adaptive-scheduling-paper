@@ -26,7 +26,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\algo}[1]{\textsc{#1}}
 \newcommand{\bottomlevel}[1]{\underline{l}_{#1}} % underline short italic
 \newcommand{\criticalpath}{\mathcal{P}}
-\newcommand{\parents}[1]{\,parent_{#1}}
+\newcommand{\parents}[1]{\,\Pi_{#1}}
 \newcommand{\children}[1]{\,child_{#1}}
 \newcommand{\cluster}{\,\mathcal{S}}
 
@@ -546,7 +546,8 @@ and $m_u$ is the amount of memory required by task~$u$ to be executed.
 %    requires some amount of memory to be executed, denoted as~$m_u$.
 %    For an edge $(u,v) \in E$, the weight~$c_{u,v}$  corresponds to the size of the output file 
 %    written by task~$u$ and used as input by task~$v$.
-We denote by $\parents{u}$ the tasks preceding task~$u\in V$, which must be completed before $u$ can be started:   
+We denote by $\parents{u}$ the tasks preceding task~$u\in V$, also called {\em parents}, 
+which must be completed before $u$ can be started:   
 %    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
 $ \parents{u} = \{v \in V: (v,u) \in E\}$. A {\em source} task is a task without parents. % is called a {\it source task}.
 Similarly, the children of task $u\in V$ are %   The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
@@ -556,7 +557,7 @@ Each task may have multiple parents and children.
 
 Note that $m_u$ is the total memory usage
 of a task during its execution, including input and output files currently being read and written,
-and hence the total memory requirement for executing task~$u$ is the maximum of the following:
+and hence the total memory requirement for executing task~$u$, denoted by~$r_u$,  is the maximum of the following:
 (i) the total size of the files to be received from the parents, (ii) the total size of the files
 to be sent to the children, and (iii) the total memory size~$m_u$ (which often reaches the maximum):
 \[
@@ -598,7 +599,7 @@ The target platform is a heterogeneous system $\cluster$ with $k$ processors
     more memory is needed on~$p_j$. They are ordered by non-decreasing size and
     correspond to some $c_{u,v}$.
 
-In oder to compute the memory requirement of a DAG, we use \algo{memDag}~\cite{KAYAASLAN20181},
+In order to compute the memory requirement of a DAG, we use \algo{memDag}~\cite{KAYAASLAN20181},
 an algorithm that 
 %    We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
 %    the memory requirement; it 
@@ -612,17 +613,20 @@ an algorithm that
                 \textbf{Symbol}                       & \textbf{Meaning}                                         \\
                 \hline
                 $G = (V, E)$                          & Application DAG (tasks and edges)       \\
- %               $\parents{u}$, $\children{u}$         & Parents of task $u$, children of task $u$            \\
-                $m_u$                                 & Amount of memory required by task $u$                                \\
+                $\parents{u}$, $\children{u}$         & Parents of task $u$, children of task $u$            \\
                 $w_u$                                 & Number of operations of task $u$         \\
                 $c_{u,v}$                             & Size of output file for edge $(u,v)\in E$         \\
+                $m_u$                                 & Amount of memory required by task $u$                                \\
+                $r_u$ 				& Total memory requirement for task~$u$ \\
 %                $F$, $\mathcal{F}$                    & A partitioning function and the partition it creates     \\
 %                $V_i$                                 & Block number $i$                                         \\ %\wrt~some $F$   \\
                 $\cluster$, $k$                    & Computing platform, total number of processors           \\
 %                $p_j$, proc($V_i$)                          & Processor number $j$, processor of block $V_i$                 \\
                 $M_j$, $MC_j$, $s_j$                               & Memory size, comm. buffer size, and speed of proc.\ $p_j$                          \\
                 $\beta$                     & Bandwidth in the compute system                                \\
-                $bl{u}$                      & Bottom level of task $u$ \\
+                $bl(u)$                      & Bottom level of task $u$ \\
+                $ST(u,p_j)$	 & Start time of task~$u$ on~$p_j$ \\
+               $FT(u,p_j)$	 & Finish time of task~$u$ on~$p_j$ \\
 %                $\mu_G$, $\mu_i$ & Makespan of the entire workflow $G$ and of a block $V_i$               \\
 %                $\Gamma = (\mathcal{V}, \mathcal{E})$                      & Quotient graph, its vertices and its edges        \\
 %                $r_u$, $r_{V_i}$                            & Memory requirement of task $u$ and of block $V_i$                 \\
@@ -734,13 +738,14 @@ The tasks are sorted by non-decreasing ranks.
 
 In the second stage, the algorithm iterates over the ranks and tries to assign the task to the processor where it
 has the earliest finish time.
-We tentatively assign each task~$v$ to each processor~$j$.
-The task's starting time $st_v$ is dictated by the maximum between the ready time of the processor~$rt_j$
+We tentatively assign each task~$v$ to each processor~$p_j$.
+The task's starting time $ST(v,p_j)$ on processor~$p_j$ is dictated by the maximum between the ready time of the processor~$rt_j$
 and all communications that
 must be orchestrated from predecessor tasks $u\notin T(p_j)$.
 The starting time is then:
 
-{\footnotesize{   \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]}}
+{\footnotesize{   \[ST(v, p_j) = \max{ \Large\{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ \frac{c_{u,v}}{\beta} , 
+rt_{proc(u), p_j} + \frac{c_{u,v}}{\beta}  \} \Large\} } . \]}}
 
 Finally, its finish time on $p_j$ is
 $FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
@@ -751,8 +756,9 @@ to processor~$p_j$.
 
 \textit{Assignment to processor. }
 When assigning the task, we set the ready time $rt_j$ of  processor~$j$ to be the finish time of the task.
-For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
-communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
+For every predecessor~$u$ of task~$v$ that has been assigned to another processor~$j'$, we adjust ready times on
+communication buffers $rt_{j', j}$: % for every predecessor $u$'s processor $j'$: 
+we increase them by the
 communication time $c( u,v) / \beta$.
 
 
@@ -840,11 +846,15 @@ If, after tentatively evicting all files from $\PD_j$, we still do not have enou
 
 \smallskip
 \noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
-Its starting time $st_v$ is dictated by the maximum between $rt_j$ and all communications that
+Its starting time $ST(v, p_j)$ on $p_j$ is dictated by the maximum between $rt_j$ and all communications that
 must be orchestrated from predecessor tasks $u\notin T(p_j)$.
 The starting time is therefore:\\[-.7cm]
 
-{\footnotesize{ \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} .} \]}}
+{\small{ \begin{align*}
+ST(v, p_j) & = \max  \large\{rt_j,  \\
+& \max_{ u \in \parent(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + \frac{c_{u,v}}{\beta} \Large\} . 
+\end{align*}
+}}
 
 \noindent  Finally, its finish time on $p_j$ is 
 $FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
@@ -986,6 +996,18 @@ Then, we report results on static experiments to assess the performance
 of the memory-aware heuristics in Section~\ref{sec.expe.static}, before
 discussing the heuristics' behavior in a dynamic setting in Section~\ref{sec.expe.dyn}. 
 Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}. 
+
+Note that we consider HEFT as the baseline; experiments to compare the novel heuristics
+with the closest competitor~\cite{DBLP:conf/icpp/KulaginaMB24} obtained much better results 
+(at least 10x smaller makespans). 
+Indeed, we have much more flexibility in the current setting where processors are reused, since tasks
+are not just partitioned. Hence, the comparison with~\cite{DBLP:conf/icpp/KulaginaMB24} seemed not fair
+and we believe the natural baseline is HEFT in this setting. 
+We are not aware of other dynamic scheduling algorithms that account for memory usage 
+and hence could not find other competitors from the literature apart from HEFT. 
+
+
+
 
 \subsection{Experimental setup}
 \label{sec:setup}
@@ -1155,7 +1177,8 @@ a memory-aware strategy in order to produce valid schedules.
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=1\columnwidth] {images/success-rates-large}
+  \includegraphics[width=1.08\columnwidth] {images/success-rates-large2}
+  \vspace{-0.8cm}
   \caption{Success rates on the default cluster. Higher is better.}
   \label{fig:success-rates-large}
   \vspace{-0.15cm}
@@ -1189,7 +1212,8 @@ in particular for \heftbl and \heftblc, since the makespans of \heft correspond 
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size}
+  \includegraphics[width=1\columnwidth] {images/makespan_relations_by_wf_size2}
+    \vspace{-0.8cm}
     \caption{Relative makespans of heuristics normalized by \heft makespan, by workflow
     size, on default cluster. Smaller is better.}
     \label{fig:ms-relations-by-workflow}
@@ -1222,7 +1246,8 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal}
+    \includegraphics[width=1\columnwidth] {images/mem-usage-normal2}
+    \vspace{-0.6cm}
     \caption{Memory usage on default cluster, including invalid \heft schedules. }
 %by algorithm by workflow size
      \label{fig:mem-usages-normal}
@@ -1232,7 +1257,8 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal-onlyvalid}
+    \includegraphics[width=1\columnwidth] {images/mem-usage-normal-onlyvalid2}
+    \vspace{-0.6cm}
     \caption{Memory usage on default cluster, considering only valid \heft schedules. }
     \label{fig:mem-usages-onlyvalid}
     \vspace{-0.15cm}
@@ -1280,7 +1306,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size-constrained}
+    \includegraphics[width=1\columnwidth] {images/makespan_relations_by_wf_size-constrained2}
     \caption{Relative makespans on the memory-constrained cluster.
 %        produced by the heuristics to the makespan produced by the baseline, by workflow size.
     Smaller is better.}
@@ -1291,7 +1317,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1.1\columnwidth] {images/mem-usage-constrained-onlyvalid}
+    \includegraphics[width=1\columnwidth] {images/mem-usage-constrained-onlyvalid2}
     \caption{Memory usage on the memory-constrained  cluster. } % by different heuristics by workflow size.}
     \label{fig:memory-usage-constrained}
     \vspace{-0.15cm}
@@ -1363,7 +1389,7 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1.1\columnwidth] {images/runtimes-logarithmic}
+    \includegraphics[width=1\columnwidth] {images/runtimes-logarithmic2}
     \caption{Average running times (in seconds) of the heuristics \wrt workflow size. The $y$-axis is logarithmic.}
     \label{fig:runtimes-log}
     \vspace{-0.3cm}
@@ -1380,14 +1406,14 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 
 %    \subsubsection{Summary}
 
-
+\bigskip
 \section{Conclusion}
 \label{sec:conc}
 
 We have formalized a scheduling problem in memory-constrained environments where tasks
 may exceed the memory available on a processor and resort to communication buffers
 to store and communicate data between processors. In this context, we have 
-designed three memory-aware HEFT-based heuristics which account for memory
+designed three memory-aware HEFT-based heuristics that account for memory
 constraints when scheduling workflow tasks. 
 
 Two of these heuristics rely on a task ordering \wrt the bottom level of tasks, with the objective
@@ -1432,7 +1458,9 @@ to further assess the impact of dynamic scheduling techniques.
 
 \subsubsection*{Acknowledgements}
 Funding acknowledgement suppressed to preserve anonymity.
-%This work is partially supported by Collaborative Research Center (CRC) 1404 FONDA%–- Foundations of Workflows for Large-Scale Scientific Data Analysis, which is funded%by German Research Foundation (DFG).
+%This work is partially supported by Collaborative Research Center (CRC) 1404 FONDA
+%–- Foundations of Workflows for Large-Scale Scientific Data Analysis, which is funded
+%by German Research Foundation (DFG).
 % TODO: include FONDA ack in final version
 
 

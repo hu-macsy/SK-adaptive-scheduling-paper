@@ -1247,6 +1247,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 \begin{figure}[tb]
     \centering
     \includegraphics[width=1\columnwidth] {images/mem-usage-normal2}
+    \vspace{-0.6cm}
     \caption{Memory usage on default cluster, including invalid \heft schedules. }
 %by algorithm by workflow size
      \label{fig:mem-usages-normal}
@@ -1257,6 +1258,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 \begin{figure}[tb]
     \centering
     \includegraphics[width=1\columnwidth] {images/mem-usage-normal-onlyvalid2}
+    \vspace{-0.6cm}
     \caption{Memory usage on default cluster, considering only valid \heft schedules. }
     \label{fig:mem-usages-onlyvalid}
     \vspace{-0.15cm}
@@ -1404,14 +1406,14 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 
 %    \subsubsection{Summary}
 
-
+\bigskip
 \section{Conclusion}
 \label{sec:conc}
 
 We have formalized a scheduling problem in memory-constrained environments where tasks
 may exceed the memory available on a processor and resort to communication buffers
 to store and communicate data between processors. In this context, we have 
-designed three memory-aware HEFT-based heuristics which account for memory
+designed three memory-aware HEFT-based heuristics that account for memory
 constraints when scheduling workflow tasks. 
 
 Two of these heuristics rely on a task ordering \wrt the bottom level of tasks, with the objective
