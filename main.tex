@@ -1020,72 +1020,72 @@ As number of tasks, we use: 200, \numprint{1000}, \numprint{2000}, \numprint{400
 We divide the workflows into four groups by size: tiny ones with up to \numprint{200} tasks, small ones with \numprint{1000} to \numprint{8000} tasks,
 middle ones with \numprint{10000} to \numprint{18000} tasks, and big ones with \numprint{20000} to \numprint{30000} tasks.
 
-    \paragraph{Task and edge weights}
-    For the real-world workflows, we use historical data files provided by Bader~\etal~\cite{lotaru}.
-    The columns in these files are measured Linux PS stats, acquired during an execution of a nextflow workflow.
-    Each row corresponds to an execution of one task on one cluster node.
-    Since the operating system cannot distinguish between (a) the RAM the task uses for itself and (b) the RAM it uses
-    to store files that were sent or received from other tasks, the values in the historical data are total memory requirements (input/output files plus memory consumption of the computation).
-    In a similar manner, the historical data provided by~\cite{lotaru} do not store the actual weights of edges between tasks, but only the overall
-    size of files that the task sends to all its children.
+\paragraph{Task and edge weights}
+For the real-world workflows, we use historical data files provided by Bader~\etal~\cite{lotaru}.
+The columns in these files are measured Linux PS stats, acquired during an execution of a nextflow workflow.
+Each row corresponds to an execution of one task on one cluster node.
+Since the operating system cannot distinguish between (a) the RAM the task uses for itself and (b) the RAM it uses
+to store files that were sent or received from other tasks, the values in the historical data are total memory requirements (input/output files plus memory consumption of the computation).
+In a similar manner, the historical data provided by Ref.~\cite{lotaru} do not store the actual weights of edges between tasks, but only the overall
+size of files that the task sends to all its children.
 
-    For each task, historical data can contain multiple values, obtained from the runs with different input sizes.
-    The same workflow can require different memory capacity and take different time to execute
-    depending on the size of its input.
-    We simulate these various runs by obtaining values corresponding to each input size.
-    For each of the four families, there are five input sizes, so we run each workflow in five variants corresponding to these inputs
+For each task, historical data can contain multiple values, obtained from the runs with different input sizes.
+The same workflow can require different memory capacities and take different times to execute
+depending on the size of its input.
+We simulate these various runs by obtaining values corresponding to each input size.
+For each of the four families, there are five input sizes; we thus run each workflow in five variants corresponding to these inputs.
 
-    Not all tasks have historical runtime data stored in the tables.
-    In fact, for two workflows, Bader~\etal do not provide data for more than 50\% of the tasks.
-    For two more, around 40\% of tasks have no historical runtime data stored.
-    Hence, in the absence of historical data about a task, we give it fixed weights.
-    We give it an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
-    These values align with the findings of~\cite{lotaru} about small tasks.
+Not all tasks have historical runtime data stored in the tables.
+In fact, for two workflows, Bader~\etal do not provide data for more than 50\% of the tasks.
+For two more, around 40\% of the tasks have no historical runtime data stored.
+Hence, in the absence of historical data about a task, we give it fixed weights:
+an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
+These values align with the findings of Ref.~\cite{lotaru} about small tasks.
 %
  %   \skug{insert more abt how the runtime system hanfles data reads}
 
-    \subsubsection{Target computing systems}
+\subsubsection{Target computing systems}
 %    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
 %    is represented as 192 000 (with 3 zeroes). For the memory-constrained cluster (192 00 with 2 zeroes) I will say that it has 10 times
 %    less memory - 19.2 GB. Other processors will be dealt with similarly.}
 
-    To fully benefit from the historical data, the  {\em default} experimental environment
-    that we consider is a cluster based on the same six
-    kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
-    We set the number of each kind of node to $12$, thus having 72 processors in total.  % the whole cluster.
+To fully benefit from the historical data, the  {\em default} experimental environment
+that we consider is a cluster based on the same six
+kinds of real-world machines that were used in the experimental evaluation in Ref.~\cite{lotaru}.
+We set the number of each kind of node to $12$, yielding 72 processors in total.  % the whole cluster.
 %
-    Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
-    ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines;
-    ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
-    large memory (see Table~\ref{tab:procs}).
+Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as tuples (name, speed, memory):
+($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines;
+($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
+large memory (see Table~\ref{tab:procs}).
 
-    \begin{table}[htb]
-        \begin{center}
-            \begin{tabular}{c|c|cc}
-                \toprule
-                Processor  %& Amount
-                &  CPU speed   & \multicolumn{2}{c}{Memory size (GB)} \\
-                name & (GHz) & {\em default} & {\em mem-constrained} \\
-                \midrule
-                local                    & 4                    & 16     & 1.6 \\
-                A1                      & 32                   & 32     & 3.2 \\
-                A2                      & 6                    & 64    & 6.4 \\
-                N1                      & 12                   & 16     & 1.6 \\
-                N2                      & 8                    & 8      & 0.8\\
-                C2                      & 32                   & 192   &  19.2\\
-                \bottomrule
-            \end{tabular}
-        \end{center}
-        \caption{Cluster configuration.}
-        \label{tab:procs}
-    \end{table}
+\begin{table}[htb]
+    \begin{center}
+        \begin{tabular}{c|c|cc}
+            \toprule
+            Processor  %& Amount
+            &  CPU speed   & \multicolumn{2}{c}{Memory size (GB)} \\
+            name & (GHz) & {\em default} & {\em mem-constrained} \\
+            \midrule
+            local                    & 4                    & 16     & 1.6 \\
+            A1                      & 32                   & 32     & 3.2 \\
+            A2                      & 6                    & 64    & 6.4 \\
+            N1                      & 12                   & 16     & 1.6 \\
+            N2                      & 8                    & 8      & 0.8\\
+            C2                      & 32                   & 192   &  19.2\\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \caption{Cluster configurations.}
+    \label{tab:procs}
+\end{table}
 
-    We also consider a more constrained setting, by varying the cluster configuration. The
-     {\em memory-constrained cluster} is consisting of 72 nodes (12 of each kind) as the default cluster,
-     but each node has 10 times less memory. Hence,  
-     the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, 
-     $A2$ has $6.4$~GB instead, of $64$~GB etc.
-    The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
+We also consider a more constrained setting by varying the cluster configuration. 
+The {\em memory-constrained cluster} consists of 72 nodes (12 of each kind) as the default cluster,
+but each node has 10 times less memory. Hence,  
+the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, 
+$A2$ has $6.4$~GB instead, of $64$~GB etc.
+The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
 
 Note that in both clusters, we set the size of the communication buffer to be equal
 to ten times the memory size.
