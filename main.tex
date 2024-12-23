@@ -1395,12 +1395,12 @@ of minimizing the makespan and hence scheduling critical tasks first. The third 
 goes one step further and handles tasks in an order dictated by an efficient traversal
 of the graph in terms of memory requirements, hence reducing the memory used
 by the schedule. Experimental results on a large set of workflows coming from real-life applications
-demonstrate that the memory-aware heuristics are  successfully producing valid schedules. 
+demonstrate that the memory-aware heuristics produce valid schedules successfully. 
 In the most memory-constrained setting, \heftmm succeeds to schedule even the largest workflows,
-while other heuristics return invalid schedules exceeding the memory capacity of processors. 
-It comes at a price of a makespan that is not quite as good as the one obtained by \heftbl
-and \heftblc, which focus on makespan by ordering tasks by bottom level. 
-As expected, the baseline \heft that is not memory aware returns invalid schedules in almost
+while the other heuristics return invalid schedules that exceed the memory capacity. 
+This advantage of \heftmm comes at the price of worse makespans than with \heftbl
+and \heftblc. % which focus on makespan by ordering tasks by bottom level. 
+As expected, the baseline \heft, which is not memory-aware, returns invalid schedules in almost
 all settings, except for very small workflows. 
 
 %Hence, \heftbl and \heftblc can schedule all workflows in a normal cluster and approximately half of them in a memory-constrained
@@ -1412,18 +1412,18 @@ all settings, except for very small workflows.
 %    However, the makespans it produces are larger than those of the the other two.
 
 Another key contribution is that we have adapted these heuristics for a dynamic setting, where exact
-task parameters (execution times and memory requirements) are not know in advance. 
-We have implemented a runtime system that interacts with the scheduler, returning exact
+task parameters (execution times and memory requirements) are not known in advance. 
+We have implemented a runtime system that interacts with the scheduler, providing exact
 parameter values once a task arrives in the system, while only estimates are known for future tasks. 
-Some preliminary experiments have been conducted in this setting, and demonstrated that
+Some preliminary experiments have been conducted in this setting and demonstrated that
 it is necessary to adapt the schedule on the fly in order to avoid an execution failure because
-of a shortage in memory. To the best of our knowledge, this is the first study of adaptive
+of a memory shortage. To the best of our knowledge, this is the first study of adaptive
 algorithms accounting for memory constraints. 
 
 This work could be extended in several directions. First, the model could be refined to include
 heterogeneous bandwidths, while we consider a homogeneous communication network. 
 More importantly, it would be interesting to consider other types of variability, for instance
-if new tasks appear in the graph (or disappear), or if there is variability in the platform, 
+if new tasks appear in (or disappear from) the workflow graph, or if there is variability in the platform, 
 with processors arriving and departing. We believe that we could adapt the current approach
 by recomputing schedules on the fly, and we plan to perform a new set of experiments
 to further assess the impact of dynamic scheduling. 
