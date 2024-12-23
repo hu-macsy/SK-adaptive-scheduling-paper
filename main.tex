@@ -1090,37 +1090,41 @@ The processor speeds and their relations stay unchanged (see Table~\ref{tab:proc
 Note that in both clusters, we set the size of the communication buffer to be equal
 to ten times the memory size.
 
-    \subsubsection{Runtime system}
 
-    To simulate the execution of a workflow, we implemented a runtime system.
-    It reads the historical data and builds weights for tasks, as explained above.
+\subsubsection{Runtime system}
+\label{ss:runtime-sys}
+%
+To simulate the execution of a workflow, we implemented a runtime system.
+It reads the historical data and builds weights for tasks as explained above.
 %    These weights are then treated as the ``truth'' about the execution during the simulation.
-    In the static case, these values are being sent to the scheduler, which builds a schedule
-    according to these weights.
-    However, in the dynamic setting, the runtime system applies a deviation function to the values.
-    The deviation function computes a normally distributed deviated value, where the initial value
-    is the mean and the deviation is~$10\%$.
-    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and
-    other works dedicated to predicting runtimes of tasks~\cite{da2015online,da2013toward}.
+In the static case, these values are being sent to the scheduler, which builds a schedule
+according to these weights.
+In the dynamic setting, in turn, the runtime system applies a deviation function to the values.
+This function computes a normally distributed random deviation value, where the initial value
+is the mean and the deviation is~$10\%$.
+This scenario corresponds to the real-life scenarios identified in Ref.~\cite{lotaru} and
+other works dedicated to predicting task running times~\cite{da2015online,da2013toward}.
 
-    Hence, the scheduler receives deviated values and makes decision based on them.
-    This leads to several types of possible issues:
-    \begin{itemize}
-        \item A processor is blocked by another task. If the scheduler underestimated the execution time of a task,
-        it will block another one from starting.
-        \item A predecessor has not yet finished.
-        The scheduler may request a task to start on its processor, while
-        some of the predecessors of the tasks have in fact not yet completed their execution, and the
-        task is therefore not yet ready.
+Thus, the scheduler receives deviation values and makes decision based on them.
+This leads to several types of possible issues:
+%
+\begin{itemize}
+\item 
+  A processor is blocked by another task. If the scheduler underestimated the execution time of a task,
+  it will block another one from starting.
+\item 
+  A predecessor has not finished yet.
+  The scheduler may request a task to start on its processor, while
+  some of the predecessors of the task have in fact not yet completed their execution -- 
+  the task is therefore not yet ready.
 %        A similar situation, but a task could start on its processor, but one or more of its parents a
 %        are not ready yet.
-        \item Not enough memory. If the scheduler underestimated the amount of memory a task requires, this task might not be able to execute on a chosen processor.
-        \item A task took less time than expected. We only consider this case if a task took more than 10\% less
-        time than expected. In this
-        case, we want to exploit the newly acquired free time by possibly starting other tasks earlier.
-    \end{itemize}
-
-
+\item 
+  Not enough memory. If the scheduler underestimated the amount of memory a task requires, this task might not be able to execute on a chosen processor.
+\item 
+  A task took less time than expected. We only consider this case if a task took more than 10\% less
+  time than expected. In this case, we want to exploit the newly acquired free time by possibly starting other tasks earlier.
+\end{itemize}
 
 
 \subsection{Results in a static setting} % \skug{Full: 3, Polished: 2}}
