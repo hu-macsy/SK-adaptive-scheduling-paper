@@ -810,19 +810,17 @@ i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid
 $$Res = availM_j - m_v - \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
 - \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\}.$$
 
-$T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
+$T(p_j)$ is the set of tasks already scheduled on $p_j$; by Step 1, their files are
 already in the memory of~$p_j$. However, the files from the
-other predecessor tasks must be loaded in memory before executing task~$v$,
-as well as $m_v$ and the data generated for all successor tasks.
-$Res$ is then checking whether there was enough memory; if it is negative,
-it means that we have exceeded the memory of~$p_j$ with this tentative
-assignment.
-
-In this case ($Res <0$), we try evicting
-some data from memory so that we have enough memory to execute task~$v$.
-We need to evict at least $Res$ data.
-We propose a greedy approach, evicting the largest files of $\PD_j$ until $Res$ data has been evicted. 
-A variant where the smallest files are evicted first has been tested, and it led to comparable results. 
+other predecessor tasks must be loaded into memory before executing task~$v$,
+as well as the task data of size $m_v$, and the data generated for all successor tasks.
+$Res$ then checks whether there is enough memory; if it is negative,
+we have exceeded the memory of~$p_j$ with this tentative assignment.
+%
+In this case ($Res <0$), we try to evict some data from memory so that there is enough memory to execute task~$v$.
+Clearly, we need to evict at least $Res$ data.
+To this end, we propose a greedy approach, which evicts the largest files of $\PD_j$ until data of size $Res$ have been evicted. 
+A variant where the smallest files are evicted first has been tested; it led to comparable results. 
 %    
 %    in order to avoid costly communications.
 %    \AB{FYI We initially discussed evicting the largest files, but this leads to
@@ -830,12 +828,11 @@ A variant where the smallest files are evicted first has been tested, and it led
 %    approach that would take into account both data size and bottom level...}
 While tentatively evicting files, we remove them from the list of pending memories and move them into a list
 of memories pending in the communication buffer.
-We keep track of the available buffer size, too -- each time a file gets moved into the pending in buffer, 
-the available buffer size is reduced by its weight.
+We keep track of the available buffer size, too -- every time a file is moved into the pending buffer, 
+the available buffer size is reduced by the file size.
 
-If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
-or if while doing so we exceeded the size of the available buffer,
-we set the finish time to~$+\infty$ (invalid choice).
+If, after tentatively evicting all files from $\PD_j$, we still do not have enough memory, or if we exceed the size of the available buffer during this process, we set the finish time to $+\infty$ (indicating an invalid choice).
+
 
 \smallskip
 \noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
