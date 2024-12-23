@@ -516,60 +516,50 @@ we are not aware of any previous work discussing dynamic algorithms combined wit
 
 
 
-
-
-
-
 \section{Model} %: \skug{Full: 4, polished: 3}}
 \label{sec:model}
-
-The target applications, large scientific workflows for which we do not have exact a priori knowledge,
-are described in Section~\ref{sec.mod.work}. Then, the heterogeneous system on which
-the applications are to be executed is presented in Section~\ref{sec.mod.plat}. The optimization problem
-is defined in 
 %
-%    We first describe the model for our target applications, large scientific workflows for which we do not have exact a priori knowledge,
-%    in Section~\ref{sec.mod.work}.  Next, we define the execution
-%    environment, a cluster that is heterogeneous in terms of processor speed and memory size,
-%   in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
-    Section~\ref{sec.mod.pb}, and the key notation is summarized in Table~\ref{tabnotation}.
+The applications we target, large scientific workflows for which we do not have exact a priori knowledge,
+are described in Section~\ref{sec.mod.work}. Then, the type of heterogeneous system on which
+the applications are to be executed is presented in Section~\ref{sec.mod.plat}. The optimization problem
+is defined in Section~\ref{sec.mod.pb}, and the key notation is summarized in Table~\ref{tabnotation}.
 
-    \subsection{Applications}
-    \label{sec.mod.work}
-    The target applications, corresponding to large scientific workflows, are represented with a DAG (Directed
-    Acyclic Graph) $G=(V,E)$. The set of vertices~$V$ corresponds to tasks, while edges express the
-    precedence constraints. Hence, a directed edge $e=(u,v)\in E$ means that task $u\in V$ must be executed 
-    before task~$v\in V$. A cost~$c_{u,v}$ is associated to each edge, representing the size of the 
-    output of task~$u$, to be used by task~$v$. 
-    Furthermore, $w_u$ is the number of operations performed by task~$u\in V$, 
-    and $m_u$ is the amount of memory required by task~$u$ to be executed. 
+
+\subsection{Applications: Large Scientific Workflows}
+\label{sec.mod.work}
+%
+Following common practice, we represent a workflow by a DAG (Directed Acyclic Graph) 
+% The target applications, corresponding to large scientific workflows, are represented with a DAG (Directed Acyclic Graph) 
+$G=(V,E)$. The set of vertices~$V$ corresponds to tasks, while edges express the
+precedence constraints. Hence, a directed edge $e=(u,v)\in E$ means that task $u\in V$ must be executed 
+before task~$v\in V$. A cost~$c_{u,v}$ is associated with each edge, representing the size of the 
+output of task~$u$, to be used by task~$v$. 
+Furthermore, $w_u$ is the number of operations performed by task~$u\in V$, 
+and $m_u$ is the amount of memory required by task~$u$ to be executed. 
 %    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
 %    $E$ is a set of directed edges of the form $e=(u,v)$, with $u,v\in V$, expressing precedence constraints between tasks.
 %    Each task~$u \in V$  is performing $w_u$ operations, and it also
 %    requires some amount of memory to be executed, denoted as~$m_u$.
 %    For an edge $(u,v) \in E$, the weight~$c_{u,v}$  corresponds to the size of the output file 
 %    written by task~$u$ and used as input by task~$v$.
-   Note that $m_u$ is the total memory usage
-    of a task during its execution, including input and output files currently being read and written,
-    and hence the total memory requirement  for the execution of task~$u$ consists of the maximum
-    between the input files
-    (total size of the files to be received from the parents),
-    the output files (total size of the files to be sent to the children),
-    and the total memory size~$m_u$ (usually achieving the maximum):
-    \[
-        r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
-    \]
-
-    We denote by $\parents{u}$ the tasks preceding task~$u\in V$, that must be completed before $u$ can be started:   
+We denote by $\parents{u}$ the tasks preceding task~$u\in V$, which must be completed before $u$ can be started:   
 %    The parents of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of parents is
-    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A {\em source} task is a task without parents. % is called a {\it source task}.
- Similarly, the children of task $u\in V$ are %   The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
-    $ \children{u} = \{v \in V: (u,v) \in E\}$, and a {\em target} task has no children. 
-    %A task without children is called a {\it target task}.
-    Note that each task may have multiple parents and children.
+$ \parents{u} = \{v \in V: (v,u) \in E\}$. A {\em source} task is a task without parents. % is called a {\it source task}.
+Similarly, the children of task $u\in V$ are %   The children tasks of~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
+$ \children{u} = \{v \in V: (u,v) \in E\}$, and a {\em target} task has no children. 
+%A task without children is called a {\it target task}.
+Each task may have multiple parents and children.
 
+Note that $m_u$ is the total memory usage
+of a task during its execution, including input and output files currently being read and written,
+and hence the total memory requirement for executing task~$u$ is the maximum of the following:
+(i) the total size of the files to be received from the parents, (ii) the total size of the files
+to be sent to the children, and (iii) the total memory size~$m_u$ (which often reaches the maximum):
+\[
+    r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
+\]
 
-Furthermore, we place ourselves in a context where we do not have perfect knowledge
+Furthermore, we operate in a context where we do not have perfect knowledge
 of the task parameters ($w_u$ and $m_u$) before the tasks start their execution,
 but only estimates~\cite{rahman2013,GARG2015256}.  
 %. \AB{Add motivation: related work with variable task durations for instance...}
@@ -577,9 +567,9 @@ Hence, scheduling decisions are made on these estimated parameters, and
 may be reconsidered at runtime when a task starts its execution and we know its exact parameters.
 
 
-    \subsection{Heterogeneous system}
-    \label{sec.mod.plat}
-
+\subsection{Heterogeneous system}
+\label{sec.mod.plat}
+%
 The target platform is a heterogeneous system $\cluster$ with $k$ processors 
 %    The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
 %    consists of $k$ processors 
@@ -635,7 +625,7 @@ an algorithm that
                 \hline
             \end{tabular}
         \end{center}
-        \caption{Notation} \label{tabnotation}
+        \caption{Key Notation} \label{tabnotation}
     \end{table}
 
 
