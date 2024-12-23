@@ -405,7 +405,7 @@ We finally review related work in a dynamic setting. With no variation in task p
     %For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
     %on the start time of a task (differing by the slack this task has).
     %All tasks on this critical path have the same earliest and latest start times, because they cannot be delayed.
-    They schedule the first task on the critical path to the best suitable processor and recompute the critical path.
+    The authors schedule the first task on the critical path to the best suitable processor and recompute the critical path.
     %The algorithm takes the first unscheduled task on the critical path each time and maps it on a processor identified for it.
     %If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum
     %execution time for the task is chosen.
@@ -450,24 +450,24 @@ We finally review related work in a dynamic setting. With no variation in task p
     De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
     for clouds.
     They solve a set of linear equations that represent the cost of an execution based on the criteria.
-    The authors test out four scenarios - one preferring each criteria, and a balanced one.
+    The authors test four scenarios -- one preferring each criterion and a balanced one.
     The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
     The authors used workflows with less than ten tasks, but repeated them so that the execution had up to 200 tasks.
     %They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
  %   The authors use provenance data to make scheduling decisions.
 
 
-    Daniels et al.~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
+    Daniels \etal~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
     on a single machine.
-    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related (that means
-    that these runtime changes are unrelated to each other).
-    The authors formulate a decision space of all permutations of $n$ jobs, and the optimal schedule in relation to a
-    performance measure $\phi$.
+    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related (and thus unrelated to each other).
+    The authors search for an optimal schedule
+%    formulate a decision space of all permutations of $n$ jobs, and the optimal schedule 
+    in relation to a performance measure. % $\phi$.
     Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
 
-While several related work consider building a new schedule once some variation has been observed,
-we are not aware of work implementing a real runtime system that interacts with the scheduler,
-and tested on workflows with thousands of tasks, as we propose in this paper. Furthermore, 
+While several related works consider building a new schedule once some variation has been observed,
+we are not aware of work implementing a real runtime system that interacts with the scheduler
+and has been tested on workflows with thousands of tasks, as we propose in this paper. Furthermore, 
 we are not aware of any previous work discussing dynamic algorithms combined with memory constraints. 
 %\AB{Say why our approach in dynamic setting is different and novel}
 
