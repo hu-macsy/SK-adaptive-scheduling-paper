@@ -978,48 +978,47 @@ Finally, after having updated the processor's values, we move on to the next tas
 
 
 
-\section{Experimental evaluation} %: \skug{Full: 3, Polished: 3}}
+\section{Experimental evaluation}
 \label{sec:expe}
-
+%
 We first describe the experimental setup in Section~\ref{sec:setup}. 
 Then, we report results on static experiments to assess the performance
 of the memory-aware heuristics in Section~\ref{sec.expe.static}, before
-discussing the heuristics behavior in a dynamic setting in Section~\ref{sec.expe.dyn}. 
+discussing the heuristics' behavior in a dynamic setting in Section~\ref{sec.expe.dyn}. 
 Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}. 
 
-\subsection{Experimental setup} %: \skug{Full: 5, Polished: 4}}
-    \label{sec:setup}
+\subsection{Experimental setup}
+\label{sec:setup}
+%
+All algorithms are implemented in C++ and compiled with g++ (v.8.5.0).
+The experiments are managed by simexpal~\cite{DBLP:journals/algorithms/AngrimanGLMNPT19} and executed on workstations with 192 GB RAM and 2x 12-Core Intel Xeon 6126 @3.2 GHz
+and CentOS 8 as OS.
+Code, input data, and experiment scripts are available to allow reproducibility of the results at~\url{https://zenodo.org/records/13919214}~and~\url{https://zenodo.org/records/13919302}.
 
-    All algorithms are implemented in C++ and compiled with g++ (v.8.5.0).
-    The experiments are managed by simexpal~\cite{DBLP:journals/algorithms/AngrimanGLMNPT19} and executed on workstations with 192 GB RAM and 2x 12-Core Intel Xeon 6126 @3.2 GHz
-    and CentOS 8 as OS.
-    Code, input data, and experiment scripts are available to allow reproducibility of results, at~\url{https://zenodo.org/records/13919214}~and~\url{https://zenodo.org/records/13919302}.
-
-    Before presenting the results, we first describe the set of workflows we used for the evaluation, and then the clusters on which the
-    workflows were scheduled.
+Before presenting the results, we first describe the set of workflows we used for the evaluation and
+then the clusters on which the workflows were scheduled.
 We also explain the way the runtime system works and interacts with our scheduler. 
 
-    \subsubsection{Workflow instances}
-  %  \skug{Todo: describe the workflows the same asin the abstract}
-    We run  experiments on a dataset that consists of real-world workflows: 
-    we use workflows coming from~\cite{lotaru} (atacseq, bacass, chipseq,
-    eager and methylseq), and also we increase their size using the WFGen generator~\cite{COLEMAN202216}.
+\subsubsection{Workflow instances}
+We run experiments on a set of several real-world workflows from Ref.~\cite{lotaru}
+(atacseq, bacass, chipseq, eager, and methylseq). We use the WFGen generator~\cite{COLEMAN202216} to
+create larger variants of the workflows above and add the instances created this way to the set.
 
 
-    \paragraph{Workflow graphs}
-    For the five real-world workflows, their nextflow definition (see~\cite{ewels2020nf}) was downloaded from the
-    respective repository and transformed into .dot format using the nextflow option ``-with-dag''.
-    The resulting DAG contains many pseudo-tasks that are only internal representations in nextflow
-    (and not actual tasks); that is why we removed them.
+\paragraph{Workflow graphs}
+For the five real-world workflows, their nextflow definition (see~\cite{ewels2020nf}) was downloaded from the
+respective repository and transformed into .dot format using the nextflow option ``-with-dag''.
+The resulting DAG contains many pseudo-tasks that are only internal representations in nextflow
+(and not actual tasks); that is why we removed them.
 
-    For the size-increased workflows, the graph is produced by the WFGen generator, based on a {\em model workflow} and
-    the desired number of tasks.
-    We used the real-world workflows as models, except for bacass that lead to errors in the generator.
+For the size-increased workflows, the graph is produced by the WFGen generator, based on a {\em model workflow} and
+the desired number of tasks.
+We used the real-world workflows as models, except for bacass since it leads to errors in the generator.
 %
-    As number of tasks, we use: 200, \numprint{1000}, \numprint{2000}, \numprint{4000}, \numprint{8000}, \numprint{10000},
-    \numprint{15000}, \numprint{18000}, \numprint{20000}, \numprint{25000}, \numprint{30000}.
-    We divide the workflows into four groups by size: tiny ones with up to \numprint{200} tasks, small ones with \numprint{1000} to \numprint{8000} tasks,
-    middle ones with \numprint{10000} to \numprint{18000} tasks, and big ones with \numprint{20000} to \numprint{30000} tasks.
+As number of tasks, we use: 200, \numprint{1000}, \numprint{2000}, \numprint{4000}, \numprint{8000}, \numprint{10000},
+\numprint{15000}, \numprint{18000}, \numprint{20000}, \numprint{25000}, and \numprint{30000}.
+We divide the workflows into four groups by size: tiny ones with up to \numprint{200} tasks, small ones with \numprint{1000} to \numprint{8000} tasks,
+middle ones with \numprint{10000} to \numprint{18000} tasks, and big ones with \numprint{20000} to \numprint{30000} tasks.
 
     \paragraph{Task and edge weights}
     For the real-world workflows, we use historical data files provided by Bader~\etal~\cite{lotaru}.
