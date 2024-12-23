@@ -525,7 +525,7 @@ the applications are to be executed is presented in Section~\ref{sec.mod.plat}. 
 is defined in Section~\ref{sec.mod.pb}, and the key notation is summarized in Table~\ref{tabnotation}.
 
 
-\subsection{Applications: Large Scientific Workflows}
+\subsection{Applications: Large scientific workflows}
 \label{sec.mod.work}
 %
 Following common practice, we represent a workflow by a DAG (Directed Acyclic Graph) 
@@ -576,7 +576,7 @@ The target platform is a heterogeneous system $\cluster$ with $k$ processors
     $p_1, \dots, p_k$.
     For $1 \leq j \leq k$, each processor $p_j$  has an individual memory of size $M_j$, a communication
     buffer of size $MC_j$ and a speed~$s_j$.
-    We can decide to evict some data from the main memory if we are sending the data
+    We can decide to evict some data from the main memory when we are sending the data
     to another processor; it then stays in the communication buffer until it has been sent.
     The execution time of a single task~$u\in V$ on a processor~$p_j$ is~$\frac{w_u}{s_j}$,
     and all 
@@ -639,8 +639,8 @@ respecting memory constraints. If a processor runs out of memory to execute
 a task mapped on it, the schedule is said to be {\em invalid}.
 
 Since tasks are subject to variability, we aim at minimizing the actual makespan
-achieved at the end of the execution, while decisions may be taken building
-on the estimated task parameters.
+achieved at the end of the execution, while decisions may be taken \wrt 
+the estimated task parameters.
 
 Note that the problem is already NP-hard even in the homogeneous case and 
 without memory constraints, because of the DAG structure of the application. 
@@ -701,93 +701,92 @@ Hence, we focus on the design of efficient scheduling heuristics.
 
 
 
-\section{Scheduling heuristics} %Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
+\section{Scheduling heuristics}
 \label{sec:heuristics}
-
-%    The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
-%    but favor processor reuse as is done in HEFT.
-%    Furthermore, this would allow us to handle variability on the fly, by updating
-%    the bottom levels if some parameters vary, and computing the schedule
-%    only for the near future...
-
-%In order to be able to easily adapt to variability of task parameters, 
-We design 
-variants of HEFT that account for memory usage and aim at minimizing the makespan.
-First, we present in Section~\ref{sec.heft} the baseline HEFT heuristic that does not account for the memory
-(and hence, may return invalid schedules that will not be able to run on the platform
-by running out of memory).  Then, Section~\ref{sec.heftm} focuses on the presentation of the novel
+%
+We design variants of HEFT that account for memory usage and aim at minimizing the makespan.
+First, we present in Section~\ref{sec.heft} the baseline HEFT heuristic; as it does not account for the memory,
+it may return invalid schedules that will not be able to run successfully on the platform (due to 
+running out of memory).  Then, Section~\ref{sec.heftm} focuses on the presentation of the novel
 heuristics, including eviction strategies to move some data in communication buffers
 in case there is not enough memory available on some processors.
 
-    \subsection{Baseline: original HEFT without memories}
+\subsection{Baseline: original HEFT without memories}
 \label{sec.heft}
+%
+Original HEFT does not account for memory sizes.
+Its schedules can be invalid if tasks are assigned to processors without enough memory.
+These solutions can be viewed, however, as a ``lower bound'' for a valid solution that 
+respects memory constraints.
 
-    Original HEFT does not consider memory sizes.
-    The solutions it provides can be invalid if it schedules tasks to processors without sufficient memories.
-    However, these solutions can be viewed as a ``lower bound'' for an actual solution that considers memory sizes.
+HEFT works in two stages.
+In the first stage, it computes the ranks of tasks by computing their non-increasing bottom levels.
+The bottom level of a task is defined as
+\[
+bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}
+\]
+(with the max yielding $0$ if there is no outgoing edge).
+The tasks are sorted by non-decreasing ranks.
 
-    HEFT works in two stages.
-    In the first stage, it computes the ranks of tasks by computing their non-increasing bottom levels.
-    The bottom level of a task is defined as
-    $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
-    (the max is 0 if there is no outgoing edge).
-    The tasks are sorted by non-decreasing ranks.
+In the second stage, the algorithm iterates over the ranks and tries to assign the task to the processor where it
+has the earliest finish time.
+We tentatively assign each task~$v$ to each processor~$j$.
+The task's starting time $st_v$ is dictated by the maximum between the ready time of the processor~$rt_j$
+and all communications that
+must be orchestrated from predecessor tasks $u\notin T(p_j)$.
+The starting time is then:
 
-    In the second stage, the algorithm iterates over the ranks and tries to assign the task to the processor where it
-    has the earliest finish time.
-    We tentatively assign each task~$v$ to each processor~$j$.
-    The task's starting time $st_v$ is dictated by the maximum between the ready time of the processor~$rt_j$,
-    and all communications that
-    must be orchestrated from predecessor tasks $u\notin T(p_j)$.
-    The starting time is then:
+{\footnotesize{   \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]}}
 
- {\footnotesize{   \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v)}\{ FT(u)+ c_{u,v} / \beta , rt_{proc(u), p_j} + c_{u,v} / \beta  \} \} } \]}}
+Finally, its finish time on $p_j$ is
+$FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
 
-    Finally, its finish time on $p_j$ is
-    $FT(v,p_j) = st_v + \frac{w_v}{s_j}$.
+Once we have computed all finish times for task~$v$,
+we keep the minimum $FT(v,p_j)$ and assign task~$v$
+to processor~$p_j$.
 
-    Once we have computed all finish times for task~$v$,
-    we keep the minimum $FT(v,p_j)$ and assign task~$v$
-    to processor~$p_j$.
+\textit{Assignment to processor. }
+When assigning the task, we set the ready time $rt_j$ of  processor~$j$ to be the finish time of the task.
+For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
+communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
+communication time $c( u,v) / \beta$.
 
-    \textit{Assignment to processor. }
-    When assigning the task, we set the ready time $rt_j$ of  processor~$j$ to be the finish time of the task.
-    For every predecessor of~$v$ that has been assigned to another processor, we adjust ready times on
-    communication buffers $rt_{j', j}$ for every predecessor $u$'s processor $j'$: we increase them by the
-    communication time $c( u,v) / \beta$.
 
-    \subsection{Memory-aware heuristics}
-    \label{sec.heftm}
-    Like the original HEFT, the memory-aware versions of HEFT consist of two stages:
-    first, they compute the task ranks,
-    and second, they assign tasks to processors in the order defined in the first stage.
-    We consider three variants of HEFT accounting for memory usage (HEFTM), which only
-    differ in the order they consider tasks to be scheduled in the first stage.
+\subsection{Memory-aware heuristics}
+\label{sec.heftm}
+%
+Like the original HEFT, the memory-aware versions of HEFT consist of two stages:
+first, they compute the task ranks,
+and second, they assign tasks to processors in the order defined in the first stage.
+We consider three variants of HEFT accounting for memory usage (HEFTM), which only
+differ in the order they consider tasks to be scheduled in the first stage.
 
 \smallskip
-    \noindent{\bf Compute task ranks. }
+\noindent{\bf Compute task ranks. }
 
 We design three variants of memory-aware HEFT:
 \begin{itemize}
-\item    HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
-    level is defined as
-    $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
-    (the max is 0 if there is no outgoing edge).
+\item    
+  HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
+  level is defined as
+  $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
+  (the max is 0 if there is no outgoing edge).
 
-\item    HEFTM-BLC %: from the study of the fork (see below), it seems important
-   %  to also account for the size of the data as input of a task,
-    is  giving more priority at tasks with potential large incoming communications,
-    hence aiming at clearing the memory used by files as soon as possible,
-    to have more free memory for remaining tasks to be executed on the processor.
-    Therefore, for each task, we compute a modified bottom level accounting for communications:
-    $$blc(u) = w_u + \max_{(u,w)\in E} \{c_{u,w} + blc(w)\} + \max_{(v,u)\in E} c_{v,u}   . $$
+\item    
+  HEFTM-BLC %: from the study of the fork (see below), it seems important
+  %  to also account for the size of the data as input of a task,
+  is  giving more priority at tasks with potential large incoming communications,
+  hence aiming at clearing the memory used by files as soon as possible,
+  to have more free memory for remaining tasks to be executed on the processor.
+  Therefore, for each task, we compute a modified bottom level accounting for communications:
+  $$blc(u) = w_u + \max_{(u,w)\in E} \{c_{u,w} + blc(w)\} + \max_{(v,u)\in E} c_{v,u}   . $$
 
 %    \skug{avoid having mixed ranks, when the memory size of the lower task is not taken into account}
 
-\item   Finally, HEFTM-MM orders tasks  in the order returned by %as dictated by MinMem.
-the  \algo{memDag} algorithm~\cite{KAYAASLAN20181}, which corresponds to a traversal
-of the graph that minimizes the peak memory usage.
-
+\item   
+  Finally, HEFTM-MM orders tasks  in the order returned by %as dictated by MinMem.
+  the  \algo{memDag} algorithm~\cite{KAYAASLAN20181}, which corresponds to a traversal
+  of the graph that minimizes the peak memory usage.
 \end{itemize}
 
 \smallskip
