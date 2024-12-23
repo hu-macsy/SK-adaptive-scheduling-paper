@@ -1059,7 +1059,7 @@ Each machine has a (normalized) CPU speed and a memory size (in GB), and we list
 ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
 large memory (see Table~\ref{tab:procs}).
 
-\begin{table}[htb]
+\begin{table}[b]
     \begin{center}
         \begin{tabular}{c|c|cc}
             \toprule
@@ -1233,7 +1233,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 \begin{figure}[tb]
     \centering
     \includegraphics[width=1.1\columnwidth] {images/mem-usage-normal-onlyvalid}
-    \caption{Memory usage on default cluster, including only valid \heft schedules. }
+    \caption{Memory usage on default cluster, considering only valid \heft schedules. }
     \label{fig:mem-usages-onlyvalid}
     \vspace{-0.3cm}
 \end{figure}
@@ -1280,7 +1280,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1\columnwidth] {images/makespan_relations_by_wf_size-constrained}
+    \includegraphics[width=1.1\columnwidth] {images/makespan_relations_by_wf_size-constrained}
     \caption{Relative makespans on the memory-constrained cluster.
 %        produced by the heuristics to the makespan produced by the baseline, by workflow size.
     Smaller is better.}
