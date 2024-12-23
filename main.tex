@@ -764,18 +764,18 @@ differ in the order they consider tasks to be scheduled in the first stage.
 \smallskip
 \noindent{\bf Compute task ranks. }
 
-We design three variants of memory-aware HEFT:
+Our three variants of memory-aware HEFT work as follows:
 \begin{itemize}
 \item    
   HEFTM-BL orders tasks by non-increasing bottom levels, where the bottom
   level is defined as
   $$bl(u) = w_u + \max_{(u,v)\in E} \{c_{u,v} + bl(v)\}$$
-  (the max is 0 if there is no outgoing edge).
+  (max yields $0$ if there is no outgoing edge).
 
 \item    
   HEFTM-BLC %: from the study of the fork (see below), it seems important
   %  to also account for the size of the data as input of a task,
-  is  giving more priority at tasks with potential large incoming communications,
+  gives more priority to tasks with potential large incoming communications,
   hence aiming at clearing the memory used by files as soon as possible,
   to have more free memory for remaining tasks to be executed on the processor.
   Therefore, for each task, we compute a modified bottom level accounting for communications:
@@ -786,66 +786,67 @@ We design three variants of memory-aware HEFT:
 \item   
   Finally, HEFTM-MM orders tasks  in the order returned by %as dictated by MinMem.
   the  \algo{memDag} algorithm~\cite{KAYAASLAN20181}, which corresponds to a traversal
-  of the graph that minimizes the peak memory usage.
+  of the graph that minimizes peak memory usage.
 \end{itemize}
 
+
 \smallskip
-  \noindent  {\bf Task assignment. }
+\noindent  {\bf Task assignment. }
 
-    Then, the idea is to pick the next free task in the given order,
-    and greedily assign it to a processor, by trying all possible options
-    and keeping the most promising one. We first detail how a task
-    is tentatively assigned on a processor, by carefully accounting for the memory usage.
-    Next, we explain the steps to be taken to effectively assign a task on a given processor.
+Then, the idea is to pick the next free task in the given order,
+and greedily assign it to a processor, by trying all possible options
+and keeping the most promising one. We first detail how a task
+is tentatively assigned to a processor, by carefully accounting for the memory usage.
+Next, we explain the steps to be taken to effectively assign a task to a given processor.
 
-    \medskip
-    \noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
-    {\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
-    on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$,
-    i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice).
+\medskip
+\noindent{\em Tentative assignment of task~$v$ on $p_j$.}\\
+{\bf Step 1.} First, we need to check that for all predecessors~$u$ of~$v$ that are mapped
+on~$p_j$, the data $c_{u,v}$ is still in the memory of~$p_j$,
+i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid choice).
 
-    \smallskip
-    \noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-    $$Res = availM_j - m_v - \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
-    - \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\}.$$
+\smallskip
+\noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
+$$Res = availM_j - m_v - \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
+- \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\}.$$
 
-    $T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
-    already in the memory of~$p_j$. However, the files from the
-    other predecessor tasks must be loaded in memory before executing task~$v$,
-    as well as $m_v$ and the data generated for all successor tasks.
-    $Res$ is then checking whether there was enough memory; if it is negative,
-    it means that we have exceeded the memory of~$p_j$ with this tentative
-    assignment.
+$T(p_j)$ is the set of tasks already scheduled on $p_j$; by step 1, their files are
+already in the memory of~$p_j$. However, the files from the
+other predecessor tasks must be loaded in memory before executing task~$v$,
+as well as $m_v$ and the data generated for all successor tasks.
+$Res$ is then checking whether there was enough memory; if it is negative,
+it means that we have exceeded the memory of~$p_j$ with this tentative
+assignment.
 
-    In this case ($Res <0$), we try evicting
-    some data from memory so that we have enough memory to execute task~$v$.
-    We need to evict at least $Res$ data.
-    We propose a greedy approach, evicting the largest files of $\PD_j$ until $Res$ data has been evicted. 
-    A variant where the smallest files are evicted first has been tested, and it led to comparable results. 
+In this case ($Res <0$), we try evicting
+some data from memory so that we have enough memory to execute task~$v$.
+We need to evict at least $Res$ data.
+We propose a greedy approach, evicting the largest files of $\PD_j$ until $Res$ data has been evicted. 
+A variant where the smallest files are evicted first has been tested, and it led to comparable results. 
 %    
 %    in order to avoid costly communications.
 %    \AB{FYI We initially discussed evicting the largest files, but this leads to
 %    large communications and does not seem efficient after all... Maybe we can think of another
 %    approach that would take into account both data size and bottom level...}
-    While tentatively evicting files, we remove them from the list of pending memories and move them into a list
-    of memories pending in the communication buffer.
-    We keep track of the available buffer size, too -- each time a file gets moved into the pending in buffer, 
-    the available buffer size is reduced by its weight.
+While tentatively evicting files, we remove them from the list of pending memories and move them into a list
+of memories pending in the communication buffer.
+We keep track of the available buffer size, too -- each time a file gets moved into the pending in buffer, 
+the available buffer size is reduced by its weight.
 
-    If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
-    or if while doing so we exceeded the size of the available buffer,
-    we set the finish time to~$+\infty$ (invalid choice).
+If we still do not have enough memory after having tentatively evicted all files from $\PD_j$,
+or if while doing so we exceeded the size of the available buffer,
+we set the finish time to~$+\infty$ (invalid choice).
 
-    \smallskip
-    \noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
-    Its starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
-    must be orchestrated from predecessor tasks $u\notin T(p_j)$.
-    The starting time is therefore:\\[-.7cm]
-    
-   {\footnotesize{ \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} .} \]}}
-   
-  \noindent  Finally, its finish time on $p_j$ is 
-    $FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
+\smallskip
+\noindent{\bf Step 3.} We tentatively assign task~$v$ on $p_j$.
+Its starting time $st_v$ is dictated by the maximum between $rt_j$, and all communications that
+must be orchestrated from predecessor tasks $u\notin T(p_j)$.
+The starting time is therefore:\\[-.7cm]
+
+{\footnotesize{ \[ST(v, p_j) = \max{ \{rt_j, \max_{ u \in \Pi(v), u\notin T(p_j)}\{ FT(u) , rt_{proc(u), p_j}\} + c_{u,v} / \beta \} .} \]}}
+
+\noindent  Finally, its finish time on $p_j$ is 
+$FT(v,p_j) = ST(v, p_j) + \frac{w_v}{s_j}$.
 
 
 
@@ -1145,7 +1146,7 @@ Hence, we only present results with the eviction of largest files first.
 
     \begin{figure}[tb]
         \centering
-        \includegraphics[width=0.9\columnwidth] {images/success-rates-large}
+        \includegraphics[width=0.99\columnwidth] {images/success-rates-large}
         \caption{Success rates on the default cluster. Higher is better.}
         \label{fig:success-rates-large}
         \vspace{-0.3cm}
@@ -1328,7 +1329,7 @@ Hence, we only present results with the eviction of largest files first.
 
     \begin{figure}[tb]
         \centering
-        \includegraphics[width=0.8\columnwidth] {images/UpdatesMss2}
+        \includegraphics[width=0.95\columnwidth] {images/UpdatesMss2}
         \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm. Smaller is better.}
         \label{fig:updates-ms}
         \vspace{-0.3cm}
