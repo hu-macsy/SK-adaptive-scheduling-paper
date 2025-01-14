@@ -1282,16 +1282,13 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
  %   \skug{insert more abt how the runtime system hanfles data reads}
 
     \subsubsection{Target computing systems}
-%    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
-%    is represented as 192 000 (with 3 zeroes). For the memory-constrained cluster (192 00 with 2 zeroes) I will say that it has 10 times
-%    less memory - 19.2 GB. Other processors will be dealt with similarly.}
 
     To fully benefit from the historical data, the  {\em default} experimental environment
     that we consider is a cluster based on the same six
     kinds of real-world machines that were used in the experimental evaluation in~\cite{lotaru}.
-    We set the number of each kind of node to $12$, thus having 72 processors in total.  % the whole cluster.
+    We set the number of each kind of node to $6$, thus having 36 processors in total.  % the whole cluster.
 %
-    Each machine has a (normalized) CPU speed and a memory size (in GB), and we list them as (name, speed, memory):
+    Each machine has a normalized CPU speed and a normalized memory size, and we list them as (name, speed, memory):
     ($local$, 4, 16) -- very slow machines; ($A1$, 32, 32), ($A2$, 6, 64), ($N1$, 12, 16) -- average machines;
     ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
     large memory (see Table~\ref{tab:procs}).
@@ -1301,8 +1298,8 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
             \begin{tabular}{c|c|cc}
                 \toprule
                 Processor  %& Amount
-                &  CPU speed   & \multicolumn{2}{c}{Memory size (GB)} \\
-                name & (GHz) & {\em default} & {\em mem-constrained} \\
+                &  CPU speed   & \multicolumn{2}{c}{Memory size (relative)} \\
+                name & (relative) & {\em default} & {\em mem-constrained} \\
                 \midrule
                 local                    & 4                    & 16     & 1.6 \\
                 A1                      & 32                   & 32     & 3.2 \\
@@ -1317,45 +1314,40 @@ Finally, we report running times of the heuristics in Section~\ref{sec.expe.t}.
         \label{tab:procs}
     \end{table}
 
-    We also consider a more constrained setting, by varying the cluster configuration. The
-     {\em memory-constrained cluster} is consisting of 72 nodes (12 of each kind) as the default cluster,
-     but each node has 10 times less memory. Hence,  
-     the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB, 
-     $A2$ has $6.4$~GB instead, of $64$~GB etc.
-    The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
+    When we consider a default execution environment, we multiply the relative memory size with $10^6$.
+    We multiply the relative speeds with $100$, and let read-write operations unpenalized (multiple the size of files with 1).
+    Effectively, we thus reward the computations with $100$ in comparison  with IO operations.
+    We further penalize offloading of memory by multiplying its execution time by $1000$.
 
-Note that in both clusters, we set the size of the communication buffer to be equal
-to ten times the the memory size.
+
+    For a memory-constrained scenario, we give the processors ten time less memory: we multiply the relative memory size
+    with $10^5$.
+    We keep all the settings related to speeds the same.
+    For a more memory-loo scenario, we give the processors ten times more memory.
+
+    For the IO-based scenarios, we keep the amount of memory the same as in the default scenario and change only the penalties for the read-write
+    operations and offloading.
+    For the ``IO slower'' case, we penalize both the read-write operations and the offloading ten times more: we multiply the length of
+    read-write operations by $10$, and the offloading by $10^4$.
+    In the ``IO faster'' case, we do the opposite and reward read-write operations by dividing their time by to, while penalize the offloading only
+    by $100$ instead of $1000$.
+    Finally, we examine the effect of the offloading penalty reducing and increasing only it ten times for the experimental setups ``offload faster''
+    and ``offload slower''.
+
+    TODO: describe with more and less nodes.
+   % We also consider a more constrained setting, by varying the cluster configuration. The
+   %  {\em memory-constrained cluster} is consisting of 72 nodes (12 of each kind) as the default cluster,
+   %  but each node has 10 times less memory. Hence,
+   %  the {\em luxury} machine $C2$ has $19.2$~GB memory in this setting instead of $192$~GB,
+   %%  $A2$ has $6.4$~GB instead, of $64$~GB etc.
+   % The processor speeds and their relations stay unchanged (see Table~\ref{tab:procs}).
+
 
     \subsubsection{Runtime system}
 
-    To simulate the execution of a workflow, we implemented a runtime system.
-    It reads the historical data and builds weights for tasks, as explained above.
-%    These weights are then treated as the ``truth'' about the execution during the simulation.
-    In the static case, these values are being sent to the scheduler, which builds a schedule
-    according to these weights.
-    However, in the dynamic setting, the runtime system applies a deviation function to the values.
-    The deviation function computes a normally distributed deviated value, where the initial value
-    is the mean and the deviation is~$10\%$.
-    This scenario corresponds to the real-life scenarios identified in~\cite{lotaru} and
-    other works dedicated to predicting runtimes of tasks~\cite{da2015online,da2013toward}.
+    No ``runtime system'' as such in the static case.
+    Todo: either remove entirely or explain how simulation of the runtime system works in the dynamic case.
 
-    Hence, the scheduler receives deviated values and makes decision based on them.
-    This leads to several types of possible issues:
-    \begin{itemize}
-        \item A processor is blocked by another task. If the scheduler underestimated the execution time of a task,
-        it will block another one from starting.
-        \item A predecessor has not yet finished.
-        The scheduler may request a task to start on its processor, while
-        some of the predecessors of the tasks have in fact not yet completed their execution, and the
-        task is therefore not yet ready.
-%        A similar situation, but a task could start on its processor, but one or more of its parents a
-%        are not ready yet.
-        \item Not enough memory. If the scheduler underestimated the amount of memory a task requires, this task might not be able to execute on a chosen processor.
-        \item A task took less time than expected. We only consider this case if a task took more than 10\% less
-        time than expected. In this
-        case, we want to exploit the newly acquired free time by possibly starting other tasks earlier.
-    \end{itemize}
 
 
 
@@ -1363,17 +1355,47 @@ to ten times the the memory size.
 \subsection{Results in a static setting} % \skug{Full: 3, Polished: 2}}
 \label{sec.expe.static}
 
-   % \subsubsection{Preliminary experiments}
-We first study the heuristics behavior when the weights do not change upon runtime,
-hence the scheduler has a perfect knowledge of task memory requirements and execution times.
-We have compared two eviction strategies, starting with large files first or small files first,
-and did not report any significant changes in terms of validity of schedule or makespan.
-Hence, we only present results with the eviction of largest files first.
-%    Our preliminary experiments have shown that evicting large or small files does not give a notable change in makespan.
+    We first study the heuristics behavior when the weights do not change upon runtime,
+    hence the scheduler has a perfect knowledge of task memory requirements and execution times.
+    We have compared two eviction strategies, starting with large files first or small files first,
+    and did not report any significant changes in terms of validity of schedule or makespan.
+    Hence, we only present results with the eviction of largest files first.
+
+    \subsubsection{Relative makespan}
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.9\columnwidth] {images/disk-model/rel-ms-normal-bar}
+        \caption{Relative makespans on the default cluster setup. Lower is better.}
+        \label{fig:rel-ms-normal-bare}
+        \vspace{-0.3cm}
+    \end{figure}
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.9\columnwidth] {images/disk-model/rel-ms-iofast-bar}
+        \caption{Relative makespans on the cluster setup with faster IO. Lower is better.}
+        \label{fig:rel-ms-iofast-bar}
+        \vspace{-0.3cm}
+    \end{figure}
+
+
+    \begin{figure}[tb]
+        \centering
+        \includegraphics[width=0.9\columnwidth] {images/disk-model/rel-ms-ioslow-bar}
+        \caption{Relative makespans on the cluster setup with slower IO. Lower is better.}
+        \label{fig:rel-ms-ioslow-bar}
+        \vspace{-0.3cm}
+    \end{figure}
+
+
+
+
+
 
 
     \subsubsection{Scheduling on the default cluster}
-
+    AFTER HERE IS OLD.
 %    \paragraph{Normal cluster}
 
     On the default cluster,  the three memory-aware heuristics are able to schedule all workflows

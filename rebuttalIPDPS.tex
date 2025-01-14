@@ -118,13 +118,10 @@
     \subsection{Execution of experiments}
 
     \review{Why is the memory footprint of HEFTM-MM decreasing in some cases in Fig. 4?}
-
-
     For some larger workflows, HEFT-MM was able to achieve better memory usage.
     For these size categories of workflows, HEFT-MM can achieve a better memory usage. On a sufficiently large cluster, a larger workflow is not necessarily always bad for the memory usage.
     A large workflow brings more chances at parallel execution, and more variants of rearranging the tasks in relation to each other.
     These freedoms can lead to a better memory usage in comparison to small workflows that offer less flexibility and require tasks to be executed in a more fixed order.
-
     This is especially true on less fanned-out workflows like bacass.
 
     Fig. 9: For workflow size < 100, why is the runtime of HEFT much higher than others'?
