@@ -855,7 +855,9 @@ Hence, we focus on the design of efficient scheduling heuristics.
     If the edge is on the disk, it first needs to be read into the memory of the target processor.
     We delay the reads to avoid holding unnecessary files in the memory.
     When we preliminarily schedule a read, we first assess its length and other actions that happen on this processor in the meantime.
-    So, the first estimated start of the read is the estimated start time of the task minus the estimated length of the read.
+    So, first estimated start of the read is \skug{the maximum between the desired start time (estimated start time of the task minus the estimated length of the read),
+    and the feasible one (when the lastest read event on this processor finishes)}.
+
     We then see if this start of the read is happening during the runtime of the previous task or already after it (during the writes).
     If the starting time of the read is during the execution of the previous task and there is enough memory to read this file, then we move the read
     forward to the beginning of this previous task.
@@ -880,6 +882,7 @@ Hence, we focus on the design of efficient scheduling heuristics.
     If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
     is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
     with this new time.
+    \skug{We  also update the actual times of all its successor events.}
 
     If the task can start, the scheduler determines the deviation of the runtime of the task.
     It applies the deviation function on its estimated runtime (estimated finish minus estimated start time).
