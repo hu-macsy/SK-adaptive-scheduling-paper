@@ -43,6 +43,8 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\curC}{curC}
 \newcommand{\PD}{PD}
 
+\newcommand{\new}[1]{{\color{blue}#1}}
+
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
 \newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
@@ -94,7 +96,7 @@ constraints) and with the shortest possible execution time (i.e., to minimize it
 
 To address this problem, we investigate the memory-aware scheduling of DAG-shaped workflows on
 heterogeneous platforms, where each processor can have a different speed and a different memory size.
-We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that (in contrast to the original) accounts for memory and
+We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that, in contrast to the original, accounts for memory and
 includes eviction strategies for cases when it might be beneficial to remove some data from memory
 in order to have enough memory to execute other tasks.
 %
@@ -146,9 +148,9 @@ while the edges model I/O dependencies between the tasks~\cite{adhikari2019surve
 Large workflows with resource-intensive tasks can easily exceed the capabilities of a 
 single computer and are therefore executed on a parallel or distributed platform.
 An efficient execution of the workflows on such platforms requires the mapping of tasks
-to specific processors; to increase utilization by reusing finished processors,
-one also needs a task schedule (\iec a valid execution order that respects the dependencies)
-and possibly also starting times for the tasks.
+to specific processors.
+\new{A task schedule - \iec a valid execution order that respects the dependencies,  and possibly also starting times for
+the tasks are needed to increase utilization by reusing finished processors.}
 
 
 %%% MOTIVATION %%%
@@ -157,7 +159,7 @@ meaning they feature varying CPU speeds and memory sizes.
 In general, having different memory sizes per CPUs makes it more challenging for an algorithm 
 to compute a schedule that respects all memory constraints -- meaning that no task is executed on a 
 processor with less memory than needed for the task. Violating a memory constraint is, however, 
-very important to avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
+very important to avoid possibly expensive runtime failures and to provide a satisfactory user experience.
 Hence, building on previous related %\hmey{You may want to add other refs not from us} 
 work~\cite{gou2020partitioning,He21,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
 formulation that takes memory sizes as explicit constraints into account. 
@@ -202,11 +204,11 @@ The main contributions of this paper are both algorithmic and experimental:
 \item We formalize the problem with memory constraints, where communication buffers
 are used to evict data from memory if it will be later used by another processor. 
 \item We design three HEFT-based heuristics
-that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm
-(M behind HEFT for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
+that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm.
+M behind HEFT \new{stands for} for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
 BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
-and MM for \underline{m}inimum \underline{m}emory traversal).
-The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
+and MM for \underline{m}inimum \underline{m}emory traversal.
+The difference between the new heuristics is the way they prioritize tasks for processor assignment.
 
 \item We implement a runtime system able to provide some feedback to the scheduler
 when task requirements (in terms of execution time and/or memory) differ from the initial predictions, 
@@ -468,7 +470,8 @@ We finally review related work in a dynamic setting. With no variation in task p
 
     Daniels \etal~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
     on a single machine.
-    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related (and thus unrelated to each other).
+    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related
+    and thus unrelated to each other.
     The authors search for an optimal schedule
 %    formulate a decision space of all permutations of $n$ jobs, and the optimal schedule 
     in relation to a performance measure. % $\phi$.
