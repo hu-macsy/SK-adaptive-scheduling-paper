@@ -1291,6 +1291,12 @@ than with \heft (see Fig.~\ref{fig:ms-relations-by-workflow-constrained}), but t
 almost all invalid. It is thus worthwhile to resort to \heftmm for large workflows
 in a constrained cluster, since tasks are processed in an order that minimizes
 the memory usage of schedule.
+\new{Due to a varying nature of the workflow generator, some larger workflows can have smaller makespans than their
+smaller counterparts due to more parallel execution due to higher fanout or other factors of the workflow's
+internal composition.
+}
+
+
 %
 %    The makespans it produces are larger, but it seems to order the vertices in a similar way on both the small and the large workflows,
 %    rather than resorting to more memory-consuming ordering that other heuristics and the baseline produces.
@@ -1298,7 +1304,8 @@ the memory usage of schedule.
 %
 %
 
-Memory usages on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained},
+Memory usages on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained}.
+\new{We plot the average memory usage in the cluster per algorithm and workflow size},
 and we observe that the memory footprint of \heftmm remains constant with workflow size.
 
 
