@@ -348,11 +348,7 @@ Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each proce
 Workflow tasks have no memory requirements, but they have input and output files that need to be stored in the memory.
 A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a workflow DAG is provided,
 as well as an integer linear programming (ILP) solution to the scheduling problem.
-The memory model requires the deletion of all input files when starting the task.
-% and adding all output files there.
-% TODO: This sounded strange. I changed ``input data'' to ``input files''.
-% How can I process input data when they are deleted? 
-% TODO: And what is ``there''?
+The memory model \new{requires deleting all input files when the task starts and adding all output files to memory.}
 
 Other models consider for instance a 
 %In an assumed 
@@ -392,10 +388,9 @@ There are also some cloud-oriented models that include costs associated with mem
 Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
 platform that is fully heterogeneous, with individual memories, is the one from~\cite{DBLP:conf/icpp/KulaginaMB24}.
 Yet, they propose only a partitioning-based mapping of the workflow, without processor reuse.
-Hence, in~\cite{DBLP:conf/icpp/KulaginaMB24}, there is no need for communication buffers to store data 
-that should be communicated between two processors when tasks are ready to execute. 
-% TODO: Why is the last sentence necessary? More specifically, why is it a consequence of the previous
-% sentence (as implied by ``Hence''?)?
+\new{Because a processor is idle after a partition of a workflow has finished executing}, in~\cite{DBLP:conf/icpp/KulaginaMB24},
+there is no need for communication buffers to store data
+that should be \new{exchanged} between two processors when tasks are ready to execute.
 
 
 %    \subsection
@@ -1164,7 +1159,10 @@ We first study the heuristics' behavior when the weights do not change during ru
 hence the scheduler has perfect knowledge of the task memory requirements and execution times.
 We have compared two eviction strategies, starting with large files first or small files first,
 and did not observe any significant changes in terms of schedule validity or makespan.
-Thus, we only present results with the eviction of largest files. % first. TODO: Why ``first''?
+Thus, we only present results with the eviction of largest files. % first.
+%TODO: Why ``first''? SK: don't see a problem here. We first kick the largest file, then the second largest etc
+%as opposed to first the smallest, then second smallest ...
+
 %    Our preliminary experiments have shown that evicting large or small files does not give a notable change in makespan.
 
 
@@ -1372,7 +1370,8 @@ on $56$ original workflows with $<100$ tasks, $47$ $200$-task ones, $25$ $1000$-
 
 Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
 With growing size of the workflow, the excess makespan of not recomputing grows -- from $13.9\%$ to $20\%$ for \heftbl,
-from $12.7\%$ to $18.7\%$ on \heftblc (but there is no data for the $2000$-task workflows in this case), % TODO: why not?
+from $12.7\%$ to $18.7\%$ on \heftblc (but there is no data for the $2000$-task workflows in this case),
+% TODO: why not? SK: no (or not enough) valid solutions
 $12.1\%$ to $23.5\%$ for \heftmm.
 The larger variations for \heft can be explained by the small amount of data -- for instance, there are
 only $2$ $200$-task workflows for this case.
