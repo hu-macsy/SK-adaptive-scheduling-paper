@@ -1196,11 +1196,14 @@ makespan achieved by \heft, often with an invalid over-optimistic schedule that 
 the bound on memory.
 %    Figure~\ref{fig:ms-relations-by-workflow} shows the relations of the makespans found by the heuristics to the
 %    makespans found by the baseline (including invalid ones), by workflow size.
-On average, the makespans found by \heftbl are $7.8\%$ worse than those found by the baseline,
-the makespans of \heftblc are $8.0\%$
-worse, and those found by \heftmm are $82.6\%$ worse. These are still very encouraging results,
+\new{The makespans found by \heftbl are $<13\%$ worse than those found by the baseline for workflows with less than \numprint{2000}
+tasks, and up to $27\%$ worse for the largest workflows.
+The makespans of \heftblc are very similar,being $<17\%$ worse on smallest workflows, $19$-$28\%$ worse on middle-sized,
+and up to $30\%$ worse on the largest workflows.
+The makespans found by \heftmm are $25$-$30\%$ worse on the smallest workflows, $40$-$70\%$ on middle-sized and up to
+$210\%$ on the largest ones. These are still very encouraging results,
 in particular for \heftbl and \heftblc, since the makespans of \heft correspond to invalid schedules.
-
+}
  %   \skug{TODO: how much worse are makespans for SUCCESSFUL hefts? presulmably almost identical}
 
 
