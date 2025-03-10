@@ -254,18 +254,11 @@ as well as the amount of data offloaded for the execution of the task;
 \item for each read and write operation to disk, the starting time of the operation; 
 \item for each data and processor, the time intervals during which the file is available
 on the local memory of the processor (once it has been generated or read, and before 
-it is used or evicted). 
+it is used or evicted). \skug{not sure if we need this interval?}
 \end{itemize}
 
 
 \AB{I'm confused again about the offloading model, we need to talk}
-
-%\AB{no more memory constraint, now the lack of memory just slows down the execution, correct?
-%I'll probably add a few sentences here...}
-% while respecting memory constraints. \skug{do we still formulate it like that?}
-    %If a processor runs out of memory to execute
-%a task mapped on it, the schedule is said to be {\em invalid}.
-
 
 \medskip
 We also consider the {\bf online setting} where tasks are subject to variability, 
@@ -284,219 +277,44 @@ without memory constraints (i.e., no need to offload data onto disk), and even f
 a graph without precedence constraints (independent tasks). 
 %because of the DAG structure of the application. 
 Hence, we focus on the design of efficient scheduling heuristics. 
-%\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
-
-%    \paragraph{Workflow-related changes}
-%
-%    \begin{itemize}
-%        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
-%        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
-%
-%    \end{itemize}
-%
-%    The following changes are not a part of this article's scope:
-%
-%    \begin{itemize}
-%        \item The workflow structure changes: edges or tasks come in or leave.
-%    \end{itemize}
-%
-%    \paragraph{Execution environment-related changes }
-%
-%
-%    \begin{itemize}
-%        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
-%        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
-%
-%    \end{itemize}
-%
-%    The following changes are not a part of this article's scope:
-%
-%    \begin{itemize}
-%        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
-%    \end{itemize}
-%
-%    \subsection{Time of changes }
-%
-%    We consider discrete time in seconds.
-%    The time point(s) at which the changes happen is unambiguously defined.
-%
-%    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
-%    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
-%    The start time of the source task in the workflow is zero.
-%    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
-%
-%    \subsection{Changes and knowledge horizon - important questions TBA}
-%
-%    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
-%
-%    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
-%    However, how do we model the following:
-%    \begin{itemize}
-%        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
-%        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
-%        \item How many times of change do we model - one per workflow run, or multiple?
-%        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
-%    \end{itemize}
 
 
 
-\section{Scheduling heuristics} %Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
+\section{Scheduling heuristics}
 \label{sec:heuristics}
-\subsection{\skug{New scheduling approach - general description}}
 
-    In the first step, we order the tasks by non-increasing ranks (e.g. their bottom levels).
-    In the next step, we repeatedly schedule ready tasks.
-    For each task, we first choose the best processor to put it on - the one that minimizes the expected finishing time.
-    For each processor, we compute this earliest finishing time by first calculating the earliest starting time on this processor.
-    It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
-    For the currently reviewed processor, we preliminarily schedule necessary file writes on other processors holding input files,
-    and file reads on the current processor.
-    Doing so, we respect the ready times on writes on other processors and reads on the current processor.
-    We possibly plan ``into the past'' with ready and writes.
+\subsection{Offline setting}
 
-    The earliest finish time is calculated by adding the execution time (possibly with delay due to memory overflow) to the start time.
-    Further scheduling decisions happen when another task finishes.
-    \skug{check this: when a task finishes earlier or later than planned, we review our earlier scheduling decisions and may
-    move the task execution to another processor if this proves more beneficial.}
+In the first step, we order the tasks by non-increasing ranks (e.g. their bottom levels).
+In the next step, we repeatedly schedule ready tasks.
+For each task, we first choose the best processor to put it on - the one that minimizes the expected finishing time.
+For each processor, we compute this earliest finishing time by first calculating the earliest starting time on this processor.
+It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
+For the currently reviewed processor, we preliminarily schedule necessary file writes on other processors holding input files,
+and file reads on the current processor.
+Doing so, we respect the ready times on writes on other processors and reads on the current processor.
+We possibly plan ``into the past'' with ready and writes.
 
-    When a task finishes, we look at all of its sucessors, rather than only the ready ones.
-    For tasks that lie further in the future, we try to plan rather early.
-    Therefore, we employ lazy writes.
-    We try to write the files for these tasks to the disk early.
-    So, we preliminarily schedule these file writes. However, they are not high priority and can be cancelled.
-    We keep two ready times on writes, one soft, with lazy writes, and another hard onw, with scheduled writes.
-    If a task requires a write during the lazy write, we cancel it and move it to later point in time.
+The earliest finish time is calculated by adding the execution time (possibly with delay due to memory overflow) to the start time.
+Further scheduling decisions happen when another task finishes.
+\skug{check this: when a task finishes earlier or later than planned, we review our earlier scheduling decisions and may
+move the task execution to another processor if this proves more beneficial.}
 
-    \skug{For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
-        on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
+When a task finishes, we look at all of its sucessors, rather than only the ready ones.
+For tasks that lie further in the future, we try to plan rather early.
+Therefore, we employ lazy writes.
+We try to write the files for these tasks to the disk early.
+So, we preliminarily schedule these file writes. However, they are not high priority and can be cancelled.
+We keep two ready times on writes, one soft, with lazy writes, and another hard onw, with scheduled writes.
+If a task requires a write during the lazy write, we cancel it and move it to later point in time.
 
-\subsection{Data structures }
-    To optimally represent the timeline of the execution of a workflow, we represent the execution as a series of events
-    with attached unique timestamps.
-    The events are kept in the priority queue ordered by timestamp.
-    Events are created when other events are triggered and are being inserted into the queue.
-    When their timestamp is the smallest, they are then triggered, possibly creating new events.
-    The execution starts with placing the event of starting the starting node into the queue with the timestamp 0.
-    The execution ends when there are no events in the queue.
-
-    An event can happen on finish or start of a task execution or an io action (file read or write).
-    Each event has several parameters:
-    \begin{itemize}
-        \item Event type: OnTaskStart, OnTaskFinish, OnIoStart, OnIoFinish
-        \item The workflow entity associated with the event: the task to be executed or an edge whose file needs to be read or written
-        \item The processor id on which the action should take place
-        \item Expected and actual time of firing.
-        \item A set of predecessor events. The event is called ready if all its predecessors have been finished.
-        \item A set of successor events to keep track of.
-        \item For a write event, a boolean if this file should be removed from memory after being written.
-    \end{itemize}
-
-    Per processor,  in addition to keeping the fixed values (memory, speed), we keep track also of the current state in its memory.
-    Because during and after execution of each even the state of the processor memory changes, we need to keep snapshots of what files
-    were in memory and how much of it was available.
-    Because keeping such snapshots for each timestap is too complicated, we only keep two timestamps.
-    First, we keep the information of available memory and tasks pending in memory during the execution of the last
-    task scheduled to this processor.
-    Then, we keep the same information on what it will be immediately after this task finishes.
+\skug{For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
+    on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
 
 
-    \subsubsection{On Task Finish}
-    When a task finishes, it first cleans after itself:
-    \begin{itemize}
-        \item It frees its memory: it increases the available memory on the processor by the amount it occupied
-        \item If there had been a memory overflow onto disk, then this memory is being freed implicitly
-        \item it sets its status to finished in the workflow.
-    \end{itemize}
-    It the goes over its successor events (Tasks and IO actions) and removes itself from their predecessor lists.
-    It also updates their actual trigger times with its actual finish time.
-    Successor tasks can be tasks scheduled on the same processor after this one.
-    Successor io events can be reads that could not start until the task finishes and frees its memory.
-    \skug{can writes be successor events of a task?}
-
-    Then task goes over its successor tasks in the workflow and schedules ready ones.
-    Ready tasks are those whose all predecessors have the finished status.
-
-    For each ready task, the scheduler tries to tentatively put it on each processor in the cluster and chooses the processor
-    that promises the earliest finish time.
-    The finish time on each processor is calculated as follows:
-
-    \paragraph{Earliest start and finish time}
-    We find out when the last task on this processor finishes.
-    If there is enough memory to start our task after that, then the end of previous task is the earliest start time for our task.
-    If files need to be evicted first, we need to find a balance between evicting tasks (and waiting for their writes to finish),
-    then running our task, and starting the task immediately and letting it run longer due to memory overflow.
-    We compare the following cases:
-    \begin{itemize}
-        \item Evict everything, then start task
-        \item Greedily evict the largest file, starting the task
-        \item Not evicting anything, starting the task
-    \end{itemize}
-    Whatever combination gives the best estimated finishing time for the task, we note the estimated starting time of the task in this case.
-     The finish time is the earliest start time  plus computation time of the task.
 
 
-    \paragraph{Incoming edges} For each incoming edge, its location is determined.
-    If the edge is in the memory of the target processor, nothing needs to be done.
-    The estimated start and finish times for the task are unaffected.
 
-    If the edge is on the disk, it first needs to be read into the memory of the target processor.
-    We delay the reads to avoid holding unnecessary files in the memory.
-    When we preliminarily schedule a read, we first assess its length and other actions that happen on this processor in the meantime.
-    So, first estimated start of the read is \skug{the maximum between the desired start time (estimated start time of the task minus the estimated length of the read),
-    and the feasible one (when the lastest read event on this processor finishes)}.
-
-    We then see if this start of the read is happening during the runtime of the previous task or already after it (during the writes).
-    If the starting time of the read is during the execution of the previous task and there is enough memory to read this file, then we move the read
-    forward to the beginning of this previous task.
-    If there is not enough memory, then the entire read is rescheduled for after the task finishes.
-    The read will then be bottleneck and affect the eraliest start time of the desired task.
-
-     If the edge is in another processor's memory, it needs to be first written to disk, then read by the target processor.
-    So we look at the latest write on that processor, preliminarily schedule the write to disk and then proceed like in the
-    previous case, reading the file from disk.
-
-   \paragraph{When processor is chosen} When a processor is chosen, the scheduler inserts new events into the queue:
-    \begin{itemize}
-        \item For the task, OnTaskStart and OnTaskFinish events with the estimated trigger times, the OnTaskFinish event being dependent on the OnTaskStart event.
-        \item For each io operation necessary for the execution: OnIoStart event of the corresponding type and on corresponding processor
-        \item It connects all the event with predecessor-successor relations.
-        \item If files needed to be evicted
-    \end{itemize}
-    The scheduler also updates the ready times of the processors and updates the new currently last events there.
-
-    \subsubsection{On Task Start}
-    When a task start event is triggered, it first determines if it can start.
-    If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
-    is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
-    with this new time.
-    \skug{We  also update the actual times of all its successor events.}
-
-    If the task can start, the scheduler determines the deviation of the runtime of the task.
-    It applies the deviation function on its estimated runtime (estimated finish minus estimated start time).
-    It then adds this deviated runtime to its actual start time and receives an updated actual finish time.
-    With this time, it updates the OnTaskFinish event of this task.
-
-    \subsubsection{OnIoFinish}
-    When the io operation finishes, it removes itself from the predecessor sets of all its successor events.
-    It also sets their actual time to its own actual finish time.
-
-    \subsubsection{OnIOStart}
-    When the IO operation starts, it updates the corresponding IoFinish event
-
-
-    After being triggered and completed, each event is deleted from the queue.
-
-
---------------------------------------
-
-
-%    The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
-%    but favor processor reuse as is done in HEFT.
-%    Furthermore, this would allow us to handle variability on the fly, by updating
-%    the bottom levels if some parameters vary, and computing the schedule
-%    only for the near future...
-
-%In order to be able to easily adapt to variability of task parameters, 
 We design 
 variants of HEFT that account for memory usage and aim at minimizing the makespan.
 First, we present in Section~\ref{sec.heft} the baseline HEFT heuristic that does not account for the memory
@@ -745,6 +563,126 @@ would first consider~$T_1$ and lead to the optimal solution.
 
 \section{Dynamic scenario}
 \label{sec:dyn}
+
+
+    \subsection{Online setting }
+    To optimally represent the timeline of the execution of a workflow, we represent the execution as a series of events
+    with attached unique timestamps.
+    The events are kept in the priority queue ordered by timestamp.
+    Events are created when other events are triggered and are being inserted into the queue.
+    When their timestamp is the smallest, they are then triggered, possibly creating new events.
+    The execution starts with placing the event of starting the starting node into the queue with the timestamp 0.
+    The execution ends when there are no events in the queue.
+
+    An event can happen on finish or start of a task execution or an io action (file read or write).
+    Each event has several parameters:
+    \begin{itemize}
+        \item Event type: OnTaskStart, OnTaskFinish, OnIoStart, OnIoFinish
+        \item The workflow entity associated with the event: the task to be executed or an edge whose file needs to be read or written
+        \item The processor id on which the action should take place
+        \item Expected and actual time of firing.
+        \item A set of predecessor events. The event is called ready if all its predecessors have been finished.
+        \item A set of successor events to keep track of.
+        \item For a write event, a boolean if this file should be removed from memory after being written.
+    \end{itemize}
+
+    Per processor,  in addition to keeping the fixed values (memory, speed), we keep track also of the current state in its memory.
+    Because during and after execution of each even the state of the processor memory changes, we need to keep snapshots of what files
+    were in memory and how much of it was available.
+    Because keeping such snapshots for each timestap is too complicated, we only keep two timestamps.
+    First, we keep the information of available memory and tasks pending in memory during the execution of the last
+    task scheduled to this processor.
+    Then, we keep the same information on what it will be immediately after this task finishes.
+
+
+    \subsubsection{On Task Finish}
+    When a task finishes, it first cleans after itself:
+    \begin{itemize}
+        \item It frees its memory: it increases the available memory on the processor by the amount it occupied
+        \item If there had been a memory overflow onto disk, then this memory is being freed implicitly
+        \item it sets its status to finished in the workflow.
+    \end{itemize}
+    It the goes over its successor events (Tasks and IO actions) and removes itself from their predecessor lists.
+    It also updates their actual trigger times with its actual finish time.
+    Successor tasks can be tasks scheduled on the same processor after this one.
+    Successor io events can be reads that could not start until the task finishes and frees its memory.
+    \skug{can writes be successor events of a task?}
+
+    Then task goes over its successor tasks in the workflow and schedules ready ones.
+    Ready tasks are those whose all predecessors have the finished status.
+
+    For each ready task, the scheduler tries to tentatively put it on each processor in the cluster and chooses the processor
+    that promises the earliest finish time.
+    The finish time on each processor is calculated as follows:
+
+    \paragraph{Earliest start and finish time}
+    We find out when the last task on this processor finishes.
+    If there is enough memory to start our task after that, then the end of previous task is the earliest start time for our task.
+    If files need to be evicted first, we need to find a balance between evicting tasks (and waiting for their writes to finish),
+    then running our task, and starting the task immediately and letting it run longer due to memory overflow.
+    We compare the following cases:
+    \begin{itemize}
+        \item Evict everything, then start task
+        \item Greedily evict the largest file, starting the task
+        \item Not evicting anything, starting the task
+    \end{itemize}
+    Whatever combination gives the best estimated finishing time for the task, we note the estimated starting time of the task in this case.
+    The finish time is the earliest start time  plus computation time of the task.
+
+
+    \paragraph{Incoming edges} For each incoming edge, its location is determined.
+    If the edge is in the memory of the target processor, nothing needs to be done.
+    The estimated start and finish times for the task are unaffected.
+
+    If the edge is on the disk, it first needs to be read into the memory of the target processor.
+    We delay the reads to avoid holding unnecessary files in the memory.
+    When we preliminarily schedule a read, we first assess its length and other actions that happen on this processor in the meantime.
+    So, first estimated start of the read is \skug{the maximum between the desired start time (estimated start time of the task minus the estimated length of the read),
+        and the feasible one (when the lastest read event on this processor finishes)}.
+
+    We then see if this start of the read is happening during the runtime of the previous task or already after it (during the writes).
+    If the starting time of the read is during the execution of the previous task and there is enough memory to read this file, then we move the read
+    forward to the beginning of this previous task.
+    If there is not enough memory, then the entire read is rescheduled for after the task finishes.
+    The read will then be bottleneck and affect the eraliest start time of the desired task.
+
+    If the edge is in another processor's memory, it needs to be first written to disk, then read by the target processor.
+    So we look at the latest write on that processor, preliminarily schedule the write to disk and then proceed like in the
+    previous case, reading the file from disk.
+
+    \paragraph{When processor is chosen} When a processor is chosen, the scheduler inserts new events into the queue:
+    \begin{itemize}
+        \item For the task, OnTaskStart and OnTaskFinish events with the estimated trigger times, the OnTaskFinish event being dependent on the OnTaskStart event.
+        \item For each io operation necessary for the execution: OnIoStart event of the corresponding type and on corresponding processor
+        \item It connects all the event with predecessor-successor relations.
+        \item If files needed to be evicted
+    \end{itemize}
+    The scheduler also updates the ready times of the processors and updates the new currently last events there.
+
+    \subsubsection{On Task Start}
+    When a task start event is triggered, it first determines if it can start.
+    If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
+    is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
+    with this new time.
+    \skug{We  also update the actual times of all its successor events.}
+
+    If the task can start, the scheduler determines the deviation of the runtime of the task.
+    It applies the deviation function on its estimated runtime (estimated finish minus estimated start time).
+    It then adds this deviated runtime to its actual start time and receives an updated actual finish time.
+    With this time, it updates the OnTaskFinish event of this task.
+
+    \subsubsection{OnIoFinish}
+    When the io operation finishes, it removes itself from the predecessor sets of all its successor events.
+    It also sets their actual time to its own actual finish time.
+
+    \subsubsection{OnIOStart}
+    When the IO operation starts, it updates the corresponding IoFinish event
+
+
+    After being triggered and completed, each event is deleted from the queue.
+
+
+    --------------------------------------
 
 
     In a workflow execution environment, the scheduling method interacts with the runtime environment, which provides information such as resource estimates.
