@@ -1358,25 +1358,39 @@ The makespan in case of no recomputation becomes invalid as soon as at least one
 situation -- that is, if the scheduler assumed the task's memory to be smaller than actually needed and
 assigned the task to a processor with not enough memory capacity.
 Due to an extremely constrained memory in this cluster, only 134 experiments out of 1160 
-for all algorithm variants end with a valid makespan without recomputation.
-In case of \heft, $14$ valid initial makespans were computed.
-Out of them, $13$ remain valid until the end, after all the update requests.
+for all algorithm variants \new{obtain a valid makespan when no recomputation is done}.
+
+In the case of \heft, $14$ valid initial makespans were computed.
+Out of them, $13$ remain valid until the end, after all the update requests,
+\new{i.e., when accounting for the final execution time of each task and their memory requirement.}
 The same $13$ experiments end with a valid makespan in case of no recomputation.
-So, these workflows require so few resources that there is no point in re-scheduling them.
+So, these workflows require so few resources that there is \new{nothing to be gained by re-scheduling them.}
 %$13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
 %rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
 %only, the success rate of not recomputing is $92\%$.
-In case of \heftmm, all $290$ workflows can be scheduled initially and all the schedules remain valid until the end.
+
+In case of \heftmm, all $290$ workflows can be scheduled initially and all the schedules remain valid until the end,
+\new{when new schedules are computed in a dynamic way. Only}  
 $16$ experiments end with a successful schedule without recomputation, a rate of~$5.5\%$.
+
 \heftblc produces $142$ valid initial schedules and keeps $141$ of them valid until the end.
 $50$ experiments are successful without recomputation, a rate of $35\%$ out of all successful final schedules.
+
 \heftbl keeps $105$ schedules valid until the end out of $110$ initial valid schedules.
 $55$ remain valid until the end even without recomputation, roughly $50\%$ of all successes.
 
-\heftbl and \heftblc are successful on smaller workflows and fail on larger ones, 
-the success of the strategy without recomputation is limited to even the smallest of these smaller workflows.
+\heftbl and \heftblc are successful on smaller workflows and fail on larger ones. 
+\new{Note that the success of the strategy without recomputation is limited to  the smallest  workflows,
+while a dynamic approach is mandatory when dealing with larger workflows.}
 Thus, the strategy without recomputation delivers valid makespans (independently of the algorithm) 
-on $56$ original workflows with $<100$ tasks, $47$ $200$-task ones, $25$ $1000$-task ones, and $6$ $2000$-task ones.
+on $56$ original workflows with $<100$ tasks, \new{$47$ workflows with  $200$ tasks, 
+$25$ workflows with $1000$ tasks, and only $6$ workflows with $2000$ tasks.
+The most representative case for the dynamic experiments is hence \heftmm, since it succeeds
+to achieve valid schedules in all cases thanks to recomputation, while most schedules
+cannot be successful when no recomputation is done. 
+}
+
+
 
 Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
 With growing size of the workflow, the excess makespan of not recomputing grows -- from $13.9\%$ to $20\%$ for \heftbl,
@@ -1384,12 +1398,13 @@ from $12.7\%$ to $18.7\%$ on \heftblc (but there is no data for the $2000$-task 
 % TODO: why not? SK: no (or not enough) valid solutions
 $12.1\%$ to $23.5\%$ for \heftmm.
 The larger variations for \heft can be explained by the small amount of data -- for instance, there are
-only $2$ $200$-task workflows for this case.
+only \new{two workflows with  $200$ tasks in this case.}
 
 \begin{figure}[tb]
     \centering
     \includegraphics[width=0.95\columnwidth] {images/UpdatesMss2}
-    \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm \new{in case of no recomputation}. Smaller is better.}
+    \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm  %\new{ 
+    when there is no recomputation. Smaller is better.}
     \label{fig:updates-ms}
 %    \vspace{-0.3cm}
 \end{figure}
