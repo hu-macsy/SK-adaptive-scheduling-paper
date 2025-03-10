@@ -47,8 +47,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
-\newcommand{\AB}[1]{{\color{purple}[AB: #1]}}
-\newcommand{\willchange}[1]{{\color{orange}[AB: #1]}}
+\newcommand{\AB}[1]{\todo[inline]{{\color{purple}[AB: #1]}}}
 
 \renewcommand{\iec}{i.e., }
 
@@ -68,7 +67,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 ORCID: 0000-0002-2108-9425}
 \and
 \IEEEauthorblockN{Anne Benoit}
-\IEEEauthorblockA{\textit{ENS Lyon, France} \\
+\IEEEauthorblockA{\textit{ENS Lyon \& IUF, France} \\
 ORCID: 0000-0003-2910-3540
 }
 %\textit{name of organization (of Aff.)}\\
@@ -351,6 +350,7 @@ but they have input and output files that need to be stored in the memory.}
 A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a workflow DAG is provided,
 as well as an integer linear programming (ILP) solution to the scheduling problem.
 The memory model \new{requires deleting all input files when the task starts and adding all output files to memory.}
+\AB{Is it not when task completes? We need input files while processing the task, correct?}
 
 Other models consider for instance a 
 %In an assumed 
@@ -390,8 +390,9 @@ There are also some cloud-oriented models that include costs associated with mem
 Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
 platform that is fully heterogeneous, with individual memories, \new{is our own previous work~\cite{DBLP:conf/icpp/KulaginaMB24}.}
 \new{Yet, in that paper we only propose} a partitioning-based mapping of the workflow, without processor reuse.
-\new{Since a processor is idle after a workflow partition has finished its execution,
-there is no need in Ref.~\cite{DBLP:conf/icpp/KulaginaMB24} for communication buffers to store data
+\new{Since a processor is idle after a workflow partition has finished its execution 
+in~\cite{DBLP:conf/icpp/KulaginaMB24},
+there is no need for communication buffers to store data
 that should be \new{exchanged} between processors when tasks are ready to execute.}
 
 
@@ -428,10 +429,14 @@ We finally review related work in a dynamic setting. With no variation in task p
 %    For each resource group, there is an own scheduler, and an overall global scheduler responsible for distributing
 %    tasks to groups.
 %    The static heuristic is HEFT with earliest start time as priority.
-    Upon rescheduling, a new mapping is calculated from scratch, and this mapping is accepted if the resulting makespan
+    Upon rescheduling, a new mapping is computed from scratch, 
+    and this mapping is accepted if the resulting makespan
     is smaller than the previous one.
-    \todo[inline]{Maybe mention: from scratch computation because of tiny workflows??}
-%    The experiments were conducted on a single workflow with 10 tasks.
+    \new{Only small workflows with less than 100 tasks are considered, hence it is possible to do
+    these repeated computations from scratch in a reasonable time. }
+%    The repeated recomputation from scratch is feasible, because the largest workflow size tested is 100 task big.}
+%    \todo[inline]{Maybe mention: from scratch computation because of tiny workflows??}
+%%    The experiments were conducted on a single workflow with 10 tasks.
 %
     % The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
     %The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.

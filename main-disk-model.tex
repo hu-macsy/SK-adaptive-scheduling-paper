@@ -78,49 +78,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
     \begin{abstract}
 
-        %Scheduling scientific workflows is important. (\skug{can't imagine a good first sentence})
-        Scientific workflows are often represented as directed acyclic graphs (DAGs),
-        where vertices correspond to tasks and edges represent the dependencies between them.
-        Typically, each task requires a
-        certain amount of memory to be executed and needs to communicate data to its successor tasks.
-        The goal is generally to execute the workflow  as fast as possible (i.e., to minimize its makespan),
-        while satisfying the memory constraints.
-        Hence, we investigate the memory-aware scheduling of DAG-shaped workflows on
-        heterogeneous platforms, where each processor can have a different speed and a different memory size.
-        We propose a variant of HEFT (Heterogeneous Earliest Finish Time) that (in contrast to the original) accounts for memory and
-        includes eviction strategies for cases when it might be beneficial to remove some data from memory
-	in order to have enough memory to execute other tasks.
-%
-	Furthermore, while HEFT assumes perfect knowledge of the execution time and memory usage
-	of each task, the actual values might differ upon execution. Thus, we propose an adaptive
-	scheduling strategy, where a schedule is recomputed when there has been a significant variation in terms
-	of execution time or memory.
-%
-	The scheduler has been closely integrated with a runtime system, allowing us to perform a thorough
-	experimental evaluation on real-world workflows. The runtime system warns the scheduler when
-	the task parameters have changed, and a schedule can be recomputed on the fly. The memory-aware
-	strategy allows us to schedule task graphs that would run out of memory with a state-of-the-art
-	scheduler, and the adaptive setting allows us to significantly reduce the makespan.
-
-%                when tentatively assigning tasks, in order to
-%        Its first step is to compute the weights of the tasks.
-%        We suggest three variants: bottom levels as weights, bottom levels with impact of incoming edge weight,
-%        and weights along the optimal memory traversal.
-%        In the second step, we try assigning each task to each processors and execute the assignment that
-%        is feasible with regard to memory size and gives the earliest finishing time to the task.
-%        Sometimes, data corresponding to edge weights that is stored in the memory needs to be evicted in order to
-%        assign a task to a processor.
-%        We suggest two eviction strategies - largest files first and smallest files first.
-
-%        Our experimental evaluation on real-world workflows and simulated (\skug{generated? They are generated from real-world wfs})
-%        ones with real task and edge weights with up to 30,000 tasks shows that
-%        respecting memory constraints only costs $11\%$ of runtime in comparison to a non memory-aware baseline.
-%        Calculating task weights with the impact of memory gives a $x\%$ better makespans on a normal and $y\%$ better makespans
-%        on small one.
-%        Calculating task weights along the optimal memory traversal gives on average $z\%$ worse makespans, but improves
-%        average memory utlization by $t\%$.
-
-
+      TODO
 
     \end{abstract}
 
@@ -128,441 +86,77 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 %        DAG, Heterogeneous platform, Adaptive scheduling, Memory constraint.
 %    \end{IEEEkeywords}
 
-\section{Introduction} %: \skug{Full: 0, Polished: 0}}
-
-%    \skug{Fullness score (how much text is available): 0-none to 5 - everything.
-%
-%    Polishedness score (how well-written is the chapter): 0 messy - 5 very clean.
-%    }
-%    TODO: Insert abstract
+\section{Introduction}
 
     %%% CONTEXT %%%
-    The analysis of massive datasets, originating from fields such as genomics, 
-    remote sensing, or biomedical imaging -- to name just a few -- has become ubiquitous in science;
-    this often takes the form of workflows, \iec separate software components chained together
-    in some kind of complex pipeline~\cite{DBLP:journals/dbsk/LeserHDEGHKKKKK21}.
-    These workflows are usually represented as directed acyclic graphs (DAGs).
-    The DAG vertices represent the software components (or, more generally, the workflow \emph{tasks}),
-    while the edges model I/O dependencies between the tasks~\cite{adhikari2019survey,liu2018survey}.
-    Large workflows with resource-intensive tasks can easily exceed the capabilities of a 
-    single computer and are therefore executed on a parallel or distributed platform.
-    An efficient execution of the workflows on such platforms requires mapping tasks
-    to specific processors; to increase utilization by reusing finished processors,
-    one also needs a task schedule (\iec a valid execution order that respects the dependencies)
-    and possibly also starting times for the tasks.
-    
+
 
     %%% MOTIVATION %%%
-    Modern computing platforms are often heterogeneous, meaning they feature varying CPU speeds
-    and memory sizes. In general, having different memory sizes per CPUs makes it more challenging to compute
-    a schedule that respects all memory constraints -- meaning that no task is executed on a 
-    processor with less memory than needed for the task. This is, however, very important to
-    avoid (possibly expensive) runtime failures and to provide a satisfactory user experience.
-    Hence, building on previous related %\hmey{You may want to add other refs not from us} 
-    work~\cite{gou2020partitioning,He21,DBLP:conf/icpp/KulaginaMB24}, we consider a scheduling problem 
-    formulation that takes memory sizes as explicit constraints into account. Its objective is
-    the very common \emph{makespan}~\cite{liu2018survey}, 
-    which acts as proxy for the total execution time of a workflow.
-However, to the best of our knowledge,
-    the only memory-aware heuristics that would account for memory constraints are  partitioning
-    the DAG and not reusing processors once they have processed a part of the graph, leading
-    to high values of makespan compared to a finer grain solution that reuses processors. 
-
-    While previous work with memory constraints has been focusing on partitioning the graph, 
-    and not reusing processors during execution, 
-    a seminal list scheduling heuristic for workflows on heterogeneous platforms, without accounting
-    for the memory constraint, is HEFT 
-    (heterogeneous earliest finish time)~\cite{topcuoglu2002performance}.
-    It has two phases: (i) each task is assigned a priority; and (ii) the tasks in a priority-ordered list are assigned
-    to processors, where the ``ready'' task with the highest priority is scheduled next on the processor
-    where it would complete its execution first. 
-    HEFT has been extended (e.g., by Shi and Dongarra~\cite{SHI2006665}) and adjusted 
-    for a variety of different scheduling problem formulations. 
-    Yet, none of them adhere to memory constraints as we propose -- see discussion of related work
-    in Section~\ref{sec:related-work}. 
-%    (\skug{check in related work if true!}).
-%        \skug{Note: 2 papers that deal with memory sizes, but model is very different!}
-        
-    Another limitation in practice of HEFT (and many other scheduling strategies) is their 
-    assumption that the task running times provided to them are accurate. In practice, this is 
-    not the case and deviations from user estimates or historical measurements are 
-    very common~\cite{hirales2012multiple}. As a consequence, one should adapt the schedule when \emph{major}
-    deviations occur. However, the original list-based schedulers, such as HEFT, are only defined
-    in a static setting with accurate task parameters. 
-%    
-%    List-based schedulers such as HEFT are, however, not designed for 
-%    such an adaptation~\cite{TODO}.\hmey{Svetlana, Anne: is this a fair statement? Please add ref (if any)}
-%    \AB{Actually, we adapt HEFT as well, I'll reformulate...}
-%%    and would compute a completely new schedule from scratch.
-    
 
     %%% CONTRIBUTION %%%
     %\paragraph*{Contribution} 
     The main contributions of this paper are both algorithmic and experimental:
     \begin{itemize}
-\item We formalize the problem with memory constraints, where communication buffers
-are used to evict data from memory if it will be later used by another processor. 
-\item We design three HEFT-based heuristics
-    that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm
-    (M behind HEFT for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
-    BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
-    and MM for \underline{m}inimum \underline{m}emory traversal).
-    The difference between the new heuristics is the way they prioritize tasks (for processor assignment).
-    
-    \item We implement a runtime system able to provide some feedback to the scheduler
-    when task requirements (in terms of execution time and memory) differ from the initial predictions, 
-    and we recompute a schedule, based on the reported deviations. 
-    
-    \item We perform extensive simulations, first in the static case by comparing the schedules produced 
-    by these heuristics with the classical HEFT as baseline, which however does not take memory sizes into account; 
-    while HEFT returns invalid schedules that exceed the processor memories and cannot execute correctly,
-    the new heuristics are able to successfully schedule large workflows, with reasonable makespans.
-    
-    \item In the dynamic setting, we use a runtime system that allows us to simulate workflow executions,
-    introducing deviations in running times and memory requirements of tasks that are communicated
-    back to the scheduler; the scheduler can then recompute a schedule. Without these recomputations,
-    most schedules become invalid after deviations, since the memory constraint is exceeded 
-    for most workflows, hence demonstrating the necessity of a dynamic adjustment of the schedule. 
-
-%    \hmey{Need to clarify: why is this SotA?}
-    
-  %  \begin{itemize}
-%      \item Static: we find that our heuristics are able to schedule all workflows correctly, and produce makespans similar to the baseline.
-%      \item Adaptive: runtime system built, simulates workflow executions and deviations in running times and mem requirements of tasks
-%      \item Answering requests of the runtime system for adaptation, the scheduler computes an improved schedule based on the reported deviations.
+    \item We formalize the problem with memory constraints on heterogeneous processors, where a disk space
+   stores files evicted from memory that will be later used by another processor.
+    \item We design static and dynamic (adaptive?) heuristics
+    \item We implement ...
+    \item We perform extensive simulations,
+    \item In the dynamic setting, we
     \end{itemize}
 
-We first review related work in Section~\ref{sec:related-work}. Then, we formalize the model in Section~\ref{sec:model}
-and the algorithms in Section~\ref{sec:heuristics}. The adaptation of the heuristics in a dynamic setting is discussed in Section~\ref{sec:dyn}, and experiment results are presented in Section~\ref{sec:expe}. Finally, we conclude
-and provide future working directions in Section~\ref{sec:conc}.  
+Todo: list what we do in each chapter
 
 
-
-
-
-
-\section{Related work} %: \skug{Full: 5, Polished: 4}}
+\section{Related work}
     \label{sec:related-work}
-   
-   First, we focus on HEFT-like scheduling heuristics from the literature  that do not necessarily  
-   consider memory constraints. Then, we discuss memory-aware scheduling algorithms. 
-   Finally, we move to related work on dynamic or adaptive algorithms. 
- %   \hmey{Question: Does it make sense to place related work before the model (which is more common)?}
 
-%    We discuss relevant scheduling approaches that reuse processors or respect the memory requirements of the processors.
-%
-%    \subsection{Early list schedulers with unlimited processors}
-%    An entire cluster of works on list schedulers has been carried out as early as the 90s.
-%    They all assume a DAG-shaped workflow with makespan weights on tasks, and an unlimited amount of homogeneous processors
-%    with the speed of 1~\cite{benoit2013survey}.\hmey{needs refs or at least a survey pointer}
-%    \skug{actually, Anne cited them, so citing her :-)}
-%
-%    The \textit{task duplication}-based approaches exploit that sometimes running a task twice on different machines can
-%    help reduce the makespan by saving communication costs.
-%    The two categories are scheduling with partial duplication~(SPD), and with full duplication~(SFD).
-%    For a join task (a task whose incoming degree is larger than its outgoing degree), SPD finds a critical immediate
-%    parent (the one that gives the largest start time to the join task) and duplicates only it.
-%    SFD duplicates all parents of a join node.
-%    The algorithm by~\cite{dfrn1997} duplicates first (creates copies of all parent tasks) and then reduces (removes) the ones that can be removed without harming the makespan.
-%    The critical path fast duplication algorithm CPFD~\cite{5727760} classifies tasks into three categories: critical
-%    path task, in-branch task, or out-branch task.
-%    It schedules critical path tasks first, then in-branch tasks.
-%    \hmey{I'm missing the connection to our paper. Or vice versa, how is our contribution
-%    connected to these works? (Einordnung in den Forschungskontext) For example, do we do similar things? Are there interesting limitations we overcome?}
-%
-%    Linear clustering~\cite{KWOK1999381} acts on critical paths in the workflow.
-%    It assigns the current critical path to one processor, removes all these tasks from the workflow, recomputes the critical
-%    path and repeats the procedure.
-%    Heaviest node first~\cite{SHIRAZI1990222} assigns the tasks level by level;
-%    in each level, it schedules the one with largest computation time first.
+   Todo
 
-
-    \subsection{Static list schedulers, especially HEFT-based algorithms}
-
-    Introduced in 2002, HEFT~\cite{topcuoglu2002performance} is a list-based heuristic.
-    It and all its successors consist of two phases: task prioritization/ordering and task assignment.
-    In the first phase, the algorithms compute bottom levels of the tasks based on some priorities (create the list),
-    and then schedule tasks in the order of these priorities.
-    The modifications of HEFT revolve around the way the priorities of the tasks are computed and the logic of the processor assignment.
-    All such algorithms assume a heterogeneous execution environment.
-
-    Hence, during the task prioritization phase in~\cite{sulaiman2021hybrid},  the standard deviation of the computation cost
-    (between processors) is computed, and added to the mean value to account for the differences between processor speeds.
-    In the processor choice phase, the entry task and the longest predecessor tasks are duplicated 
-    during idle times on the processor.
-
-%    Ref.~\cite{alebrahim2017task} computes the bottom level based on the difference of execution times on
-%    the fastest and the slowest processors, divided by the speed ratio of these two processors.
-%    When doing processor selection, the authors differentiate between the lowest execution time and earliest finishing time.
-%    They choose the processor with the lowest execution time and cross over to other processors sometimes.
-%    They build upon~\cite{shetti2013optimization}.\hmey{Last sentence ``hangs in the air''. Either drop or connect it properly.}
-
-    PEFT (Predict earliest finish time)~\cite{arabnejad2014list} is a HEFT variant that computes an Optimistic
-    Cost Table (OCT).
-    The OCT is computed per task-processor pair and stores the longest shortest path from this task to the target task if this
-    processor is chosen for this task.
-    Ranking is based on OCT values.
-    The processor choice stage minimizes the optimistic EFT, which is EFT plus the longest path to the exit node for each task.
-
-    The HSIP (Heterogeneous Scheduling with Improved task Priorities)~\cite{wang2016hsip} has an improved first step in
-    comparison to HEFT.
-    It combines the standard deviation with the communication cost weight on the tasks.
-    In the second stage, the algorithm duplicates the entry task if there is a need for it.
-
-    The TSHCS (Task Scheduling for Heterogeneous Computing Systems) algorithm~\cite{alebrahim2017task} improves on HEFT
-    by adding randomized decisions to the second phase.
-    The decision is whether the task be assigned to the processor with the lowest execution time or to the processor that
-    produces the lowest finish time.
-
-    The SDC algorithm~\cite{SHI2006665} considers the percentage of feasible processors in addition to task’s
-    average execution cost in its weight.
-    The selected task is then assigned to a processor which minimizes its Adjusted Earliest Finish Time (AEFT) that
-    additionally notes how large the communication between current node and its children will be on the
-    average provided that it is scheduled on the current processor.
-
-
-    HEFT  can also be adapted in cloud-oriented environments~\cite{samadi2018eheft} and even combined with reinforcement learning techniques~\cite{yano2022cqga}.
-
-    \subsection{Memory-aware scheduling algorithms}
-    Respecting processor memories adds a constraint to a scheduling problem.
-    Therefore, only specifically memory-targeted algorithms address this issue.
-    Moreover, the way processor memories are represented in the model has a decisive impact on the way the constraint
-    is formulated and addressed in the algorithm.
-%
-    Different models of memory available on processors and memory requirements of tasks have been presented.
-
-    Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each processor has an individual memory available.
-    Workflow tasks have no memory requirements, but they have input and output files that need to be stored in the memory.
-    A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a DAG is provided,
-    as well as an ILP solution to the scheduling problem.
-    The memory model requires deleting all input data upon starting of the task and adding all output files there.
-
-    In an assumed dual-memory systems~\cite{herrmann2014memory},  a processor can have access 
-    to a memory of two different
-    kinds (red or blue), and each task can be executed on only one sort of memory.
-    The communications happen only between these two kinds of processors (communications within 
-    each group are ignored).
-    The authors then formulate an ILP solution for this problem formulation.
-
-    %The algorithm presented by Yao et al.
-    Yao et al.~\cite{yao2022memory} consider that each processor has an own internal memory and all
-    processors share a common external one. The internal (local) memory is used to store the task files.
-    The external memory is used to store evicted files to make room for the execution of a task on a processor.
-    All processors, including the original one, can access these files. 
-    Each edge %in~\cite{yao2022memory} 
-    has two weights -- the size of the files transferred along it,
-    and the time of communication along this edge.
-    The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
-
-    In~\cite{ding2024ils}, there are connected processors with individual limited memories.
-    The collective set of memories forms the global memory, to which each processor has access, however the access time
-    to global memory is different.
-    Each memory access in the graph is modeled as a memory access token on the task, while the edges have no weights.
-    The solved problem is how to allocate initial input data in processor memories so that the overall
-    execution is minimized and the memories are not exceeded.
-    The authors propose an integer linear programming model.
-    %that minimizes the length of the critical path, including a greedy initial solution.
-
-    In~\cite{rodriguez2019exploration}, the authors assume memory requirement on tasks represented as tiles.
-    Each processor has individual memories to process the task, but only the shared memories store the tiles containing
-    memory tiles occupied by memory tiles.
-
-   Finally, there are some cloud-oriented models that include costs associated with memory usage~\cite{liang2020memory}.
-   
-   Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
-   platform that is fully heterogeneous, with individual memories, is the one from~\cite{DBLP:conf/icpp/KulaginaMB24},
-   but where a partition of the workflow is proposed, hence preventing processor reuse. 
-   Hence, in ~\cite{DBLP:conf/icpp/KulaginaMB24}, there is no need of communication buffers to store data 
-   that should be communicated
-   between two processors when tasks are ready to execute. 
-
-
-    \subsection{Dynamic/adaptive algorithms}
-
-We now review related work in a dynamic setting. With no variation in task parameters, 
-    DVR HEFT~\cite{SANDOKJI2019482} rather considers that new tasks arrive in the system. 
-    They use an almost unchanged HEFT algorithm in the static step, executing three slightly
-    varying variants of task weighting and choosing the variant that gives the best overall makespan.
-    In the dynamic phase, they receive new tasks and schedule them on either idle processors or 
-    those processors that give them
-    the earliest finish time.
-    %Task failures are not covered.
-
-    Rahman~\etal~\cite{rahman2013}'s dynamic critical path (DCP) algorithm for grids maps tasks to machines
-    by calculating the critical path in the graph dynamically at every step.
-    %For all tasks they compute the earliest start time and absolute latest start time that are upper and lower bounds
-    %on the start time of a task (differing by the slack this task has).
-    %All tasks on this critical path have the same earliest and latest start times, because they cannot be delayed.
-    They schedule the first task on the critical path to the best suitable processor and recompute the critical path.
-    %The algorithm takes the first unscheduled task on the critical path each time and maps it on a processor identified for it.
-    %If processors are heterogeneous, then the start times are computed with respect for the processor, and the minimum
-    %execution time for the task is chosen.
-    The heuristic also uses the same processor to schedule predecessor and successor tasks, as to avoid data transfer between processors.
-    The approach is evaluated on random workflows of the size up to 300 tasks.
-
-
-    Garg~\etal~\cite{GARG2015256} propose a dynamic scheduling algorithm for heterogeneous grids based on rescheduling.
-    The procedure involves building a first (static) schedule, periodic resource monitoring and rescheduling the remaining
-    tasks.
-    The resource model contains resource groups (small tightly-connected sub-clusters), connected between each other.
-    For each resource group, there is an own scheduler, and an overall global scheduler responsible for distributing
-    tasks to groups.
-    The static heuristic is HEFT with earliest start time as priority.
-    Upon rescheduling, a new mapping is calculated from scratch, and this mapping is accepted if the resulting makespan
-    is smaller than the previous one.
-    The experiments were conducted on a single workflow with 10 tasks.
-%
-    % The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
-    %The runtimes of tasks depend on processor speeds, are calculated in advance and stored in tables.
-
-    %The algorithm first computes bottom levels for all tasks (execution time is average of all possible execution times).
-    %THe bottom level represents the priority of the task, and tasks are sorted according to these priorities.
-    %They then go through tasks and map than to such processors that minimize the earliest start times of this task's
-    %successors.
-    %To do this, the authors calculate the earliest finishing time of the task across all ressources, along with the
-    %average communication and computation costs fir the dependent tasks.
-    %
-    %The rescheduling is triggered when either a load on a resource increases over a threshold, or if a new resource
-    %is added.
-
-
-    Most dynamic or adaptive algorithms are formulated for clouds, where the execution environment is not fixed,
-    but constrained by cost.
-
-    Wang et al.~\cite{wang2019dynamic} propose a dynamic particle swarm optimization algorithm to schedule workflows in a cloud.
-    Particles are possible solution in the solution space.
-    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
-    Similarly, Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
-
-    De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
-    for clouds.
-    They solve a set of linear equations that represent the cost of an execution based on the criteria.
-    The authors test out 4 scenarios - one preferring each criteria, and a balanced one.
-    The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
-    The authors used workflows with less than 10 tasks, but repeated them so that the execution had up to 200 tasks.
-    %They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
- %   The authors use provenance data to make scheduling decisions.
-
-
-    Daniels et al.~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
-    on a single machine.
-    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related (that means
-    that these runtime changes are unrelated to each other).
-    The authors formulate a decision space of all permutations of $n$ jobs, and the optimal schedule in relation to a
-    performance measure $\phi$.
-    Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
-
-While several related work consider building a new schedule once some variation has been observed,
-we are not aware of work implementing a real runtime system that interacts with the scheduler,
-and tested on workflows with thousands of tasks, as we propose in this paper. Furthermore, 
-we are not aware of any previous work discussing dynamic algorithms combined with memory constraints. 
-%\AB{Say why our approach in dynamic setting is different and novel}
-
-%    \subsection{Other notable works}
-%
-%    \cite{palis1996task} present a clustering-based scheduling algorithm for a parallel execution and prove its quality.
-%    They utilize task duplication when creating the clusters (grains).
-%    Their scheduler then maps clusters to processors.
-%    They assume unlimited processors with the speed of 1.
-%    For each task, they compute the earliest starting time and find a cluster, where this tasks's start time is as close
-%    to it as possible.
-%    %The cluster growing algorithm adds one task to the cluster at a time, by adding tasks in nondecreasing order of
-%    %release times.
-%
-%    GRASP (generally randomized adaptive search procedure)~\cite{feo1989probabilistic} conducts a number of iterations
-%    to search for an optimal solution for mapping tasks on machines.
-%    A solution is generated at each step, and the best solution is kept at the end.
-%    The search terminates when a certain termination criterion is reached.
-%    It generates better results than other algorithms, because it explores the whole solution space.
-%
-%    Avanes~\etal\cite{avanes2008adaptive} present a heuristic for networks in disaster scenarios.
-%    These networks are a set of DAG-shaped scenarios, out of which one needs to be executed.
-%    The scenario contains AND- and OR-branches, where AND-branches indicate activities that need to be executed in parallel.
-%    The heuristic first determines similar activities and groups them together.
-%    Then they allocate these groups to disaster responders and tasks within this group according to a constraint system.
-%    The dynamic part deals with changes and distinguishes between retriable and compensation activities.
-%    The heuristic calculates a new execution path with these tasks.
-%
-%
-%    \cite{lutke2024hetsim} is a scheduling simulator that models heterogeneous software with memory and accelerator
-%    (processor) speed heterogeneity.
-%    Each accelerator has its own memory that can be zero.
-%    Each accelerator's characteristics depend on the task it runs and are not fixed.
-%
-%
-%
-%
-%    \cite{meng2018traffic} investigate scheduling on multi-core chips.
-%    Their model is far from ours.
-%
-%
-%    An online scheduling algorithm~\cite{Witt2018POS} assumes a DAG-structured workflow and learns task characteristics.
-%    They prioritize tasks that have failed before or are well-predictable.
-%
-%
-
-
-
-
-
-
-\section{Model} %: \skug{Full: 4, polished: 3}}
+\section{Model}
 \label{sec:model}
 
-%\skug{
-%CHANGES IN THIS CHAPTER
-%}
-    We first describe the model for our target applications, which are (large scientific) workflows for which we do not have perfect a priori knowledge,
-    in Section~\ref{sec.mod.work}.  Next, we define the execution
-    environment, a heterogeneous system (in terms of processor speed and memory size),
-    in Section~\ref{sec.mod.plat}. Finally, we present the optimization problem in
-    Section~\ref{sec.mod.pb}. The key notation is summarized in Table~\ref{tabnotation}.
 
-    \subsection{Workflow}
-    \label{sec.mod.work}
-    A workflow is modeled as a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
-    $E$ is a set of directed edges of the form $e=(u,v)$, with \mbox{$u,v\in V$}, expressing precedence constraints between tasks.
-    Each task~$u \in V$  is performing $w_u$ operations, and it also
-    requires some amount of memory to be executed, denoted as~$m_u$.
-    Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
+\subsection{Workflow}
+\label{sec.mod.work}
 
-    Note that $m_u$ is the total memory usage
-    of a task during its execution, including input and output files currently being read and written,
-    and hence it is greater than the total size of input files
-    (received from the predecessor tasks) and than 
-    the total size of  output files (sent to successor tasks): 
-    $$   m_u \geq \max \left\{ \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v} \right\} . $$
+    Todo: this section holds. Needs rewriting to avoid plagiarism accusatons. Also insert other references from related work
+
+Our workflow is a directed acyclic graph $G=(V, E)$, where $V$ is the set of vertices (tasks), and
+$E$ is a set of directed edges of the form $e=(u,v)$, with \mbox{$u,v\in V$}, expressing precedence constraints between tasks.
+Each task~$u \in V$  is performing $w_u$ operations, and it also
+requires some amount of memory to be executed, denoted as~$m_u$.
+Each edge $e=(u,v) \in E$ has a cost~$c_{u,v}$ that corresponds to the size of the output file written by task~$u$ and used as input by task~$v$.
+
+Note that $m_u$ is the total memory usage
+of a task during its execution, including input and output files currently being read and written,
+and hence it is greater than the total size of input files
+(received from the predecessor tasks) and than
+the total size of  output files (sent to successor tasks):
+$$   m_u \geq \max \left\{ \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v} \right\} . $$
     
-%     the total memory requirement  for the execution of task~$u$ consists of the maximum
-%    between the input files
-%    (total size of the files to be received from the parents),
-%    the output files (total size of the files to be sent to the children),
-%    and the total memory size~$m_u$ (usually achieving the maximum):
-%    \[
-%        r_u = \max\left\{m_u , \sum_{v:(v,u)\in E}c_{v,u}, \sum_{v:(u,v)\in E} c_{u,v}\right\}.
-%    \]
 
-    The predecessors of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of predecessors is
-    $ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without predecessors is called a {\it source task}.
-    The successors of a task~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
-    $ \children{u} = \{v \in V: (u,v) \in E\}$. A task without successors is called a {\it target task}.
-    Each task may have multiple predecessors and successors.
+The predecessors of a task~$u\in V$ are the directly preceding tasks that must be completed before $u$ can be started, i.e., the set of predecessors is
+$ \parents{u} = \{v \in V: (v,u) \in E\}$. A task without predecessors is called a {\it source task}.
+The successors of a task~$u$ are the tasks following~$u$ directly according to the precedence constraints, i.e.,
+$ \children{u} = \{v \in V: (u,v) \in E\}$. A task without successors is called a {\it target task}.
+Each task may have multiple predecessors and successors.
 
 
 Furthermore, we place ourselves in a context where we do not have perfect knowledge
-of the length of the tasks, i.e., $w_u$, % ($w_u$ and $m_u$) 
+of the length of the tasks, i.e., $w_u$,
 before the tasks complete their execution,
 but only estimates~\cite{rahman2013,GARG2015256}.  
-%. \AB{Add motivation: related work with variable task durations for instance...}
+
 Hence, scheduling decisions are made on these estimated parameters, and
 may be reconsidered at runtime when a task completes its execution. 
-%when a task starts its execution and we know its exact parameters.
-%\AB{Variability only on $w_u$ for now}
+
 
     \subsection{Execution environment}
     \label{sec.mod.plat}
 
-%\skug{changes here}
+    Todo: this section holds and is new (in parts).
+
 The goal is to execute the workflow on a heterogeneous system, denoted as $\cluster$, which
 consists of $k$ processors $p_1, \dots, p_k$.
 Each processor $p_j$ ($1 \leq j \leq k$) has an individual memory of size $M_j$ and a speed~$s_j$.
@@ -572,34 +166,27 @@ and hence it takes a time $\frac{c_{u,v}}{bw_j}$ to write the data produced by t
 on~$p_j$ for task~$v$, 
 if this data is evicted from memory. 
 
-%, but of much slower speed.
+
 All communications happen over the disk -- after one processor has finished writing data there, another one can read
 it to load the data on its individual memory. 
 Hence, we can decide to evict some data from the individual processor memories if it has been 
 written onto the disk, 
 in order to free some space in the individual memories.
 This data can later be read back into memory of the same or any other processor at any time.
-%\skug {check this statement: If data has been written on disk, it is removed from the local memory (no two copies can be kept at the same time).} \AB{We can keep two copies: evict if we need to }
 
 If the entire memory required by  task ~$u\in V$ fits in the available memory of processor~$p_j$,
     then the execution time of this task on this processor is expressed as $\frac{w_u}{s_j}$.
 However, if the memory requirement of the task exceeds the available memory on the processor, 
 then task can still be executed there, but it will be slowed down. Indeed, 
-%    albeit slower.
+
 the part of memory requirement that exceeds the available memory on processor~$j$ for task~$u$, 
-denoted by $\Moff{u}$, %M\text{off}_u$, 
+denoted by $\Moff{u}$,
 will be offloaded to the disk, slowing down the execution:
 
     \[
-        w_{real} = \frac{w_u}{s_j} +  q_j \times  \Moff{u}, %  (m_u - Mav_u) , %   \frac{q_s \times w_u}{s_j} \frac{m_i - M_j}{m_i}
+        w_{real} = \frac{w_u}{s_j} +  q_j \times  \Moff{u},
     \]
-where $q_j$ is the slowdown coefficient for $p_j$. %, and $(m_u - Mav_u)$ is the part 
-%of the task memory that needs to be offloaded.
-\AB{Svetlana please check, I think we said in the end that we use absolute value 
-of the amount of memory not fitting locally...}
-%    \skug{check this equation}
-%We assume that all processors are connected with the same bandwidth~$\beta$.
-%    \hmey{Maybe mention that variable bandwidths are part of future work...?}
+where $q_j$ is the slowdown coefficient for $p_j$.
 
 Multiple processors can communicate with the disk in parallel, but the communication of each processor  with the disk is sequential.
 The processor can read and write at the same time, but only one file can be read and only one written at any point in time.
@@ -620,12 +207,12 @@ on a processor with less memory (and hence a slowdown), but potentially with a h
 or with less times spent reading files.
 
 
-We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
+\textcolor{orange}{ TODO: Move the next paragraph to Algorithms.} We use the \algo{memDag} algorithm developed by Kayaaslan \etal~\cite{KAYAASLAN20181} to compute
 the memory requirement; it transforms the workflow into a series-parallel graph
 and then finds the traversal that leads to the minimum memory consumption.
 \AB{When do we need this? Probably more in Algorithms, right? }
 
-%\skug{Todo: describe deviations}
+
 
     \begin{table}
         \begin{center}
@@ -667,18 +254,11 @@ as well as the amount of data offloaded for the execution of the task;
 \item for each read and write operation to disk, the starting time of the operation; 
 \item for each data and processor, the time intervals during which the file is available
 on the local memory of the processor (once it has been generated or read, and before 
-it is used or evicted). 
+it is used or evicted). \skug{not sure if we need this interval?}
 \end{itemize}
 
 
 \AB{I'm confused again about the offloading model, we need to talk}
-
-%\AB{no more memory constraint, now the lack of memory just slows down the execution, correct?
-%I'll probably add a few sentences here...}
-% while respecting memory constraints. \skug{do we still formulate it like that?}
-    %If a processor runs out of memory to execute
-%a task mapped on it, the schedule is said to be {\em invalid}.
-
 
 \medskip
 We also consider the {\bf online setting} where tasks are subject to variability, 
@@ -697,219 +277,44 @@ without memory constraints (i.e., no need to offload data onto disk), and even f
 a graph without precedence constraints (independent tasks). 
 %because of the DAG structure of the application. 
 Hence, we focus on the design of efficient scheduling heuristics. 
-%\hmey{Mention NP-hardness due to being more general than NP-hard problem?}
-
-%    \paragraph{Workflow-related changes}
-%
-%    \begin{itemize}
-%        \item A task $v$ takes longer or shorter to execute than planned: its time weight $w_u$ changes to $w'_u$.
-%        \item A task $v$ takes more or less memory to execute than planned: its memory requirement $m_v$ changes to $m'_v$.
-%
-%    \end{itemize}
-%
-%    The following changes are not a part of this article's scope:
-%
-%    \begin{itemize}
-%        \item The workflow structure changes: edges or tasks come in or leave.
-%    \end{itemize}
-%
-%    \paragraph{Execution environment-related changes }
-%
-%
-%    \begin{itemize}
-%        \item A processor exists the execution environment: $k$ decreases and $\cluster$ changes.
-%        \item A processor enters the execution environment: $k$ increases, $\cluster$ gets a new processor with possibly new memory requirement and processor speed.
-%
-%    \end{itemize}
-%
-%    The following changes are not a part of this article's scope:
-%
-%    \begin{itemize}
-%        \item Processor characteristics change: the memory requirement or speed become bigger or smaller
-%    \end{itemize}
-%
-%    \subsection{Time of changes }
-%
-%    We consider discrete time in seconds.
-%    The time point(s) at which the changes happen is unambiguously defined.
-%
-%    For any task $v$, its runtime equals its time weight divided by the speed of the processor $p_j$ it has been assigned to: $w_v/s_j$.
-%    The start time of any task $v$ is its top level($\bar{l}_v$), or the difference between the maximum bottom level in the workflow (the makespan of the workflow) and the task's own bottom level: $\bar{l}_v = \mu_\Gamma - \bottomlevel{v}$.
-%    The start time of the source task in the workflow is zero.
-%    The end time of a task $v$ is its start time and its runtime: $\bar{l}_v + w_v/s_j$
-%
-%    \subsection{Changes and knowledge horizon - important questions TBA}
-%
-%    Given a valid mapping of tasks to processors, we can say what we predicted would happen at any given time point $T$: what tasks have been executed, what have not finished or have not even started.
-%
-%    At the point of change, we know that some tasks that finished took longer than expected ($w_v$ are bigger) or shorter.
-%    However, how do we model the following:
-%    \begin{itemize}
-%        \item Do we know the new weights of currently running tasks and tasks that have not yet started? This means, do we foresee into the future or do we assume that all weights on unfinished tasks remain the same?
-%        \item A change in memory requirements can mean that the assignment had been invalid. Do we assume that these tasks failed and we need to rerun them?
-%        \item How many times of change do we model - one per workflow run, or multiple?
-%        \item At what time does the change and reevaluation happen - is it a fixed (random?) point of time or is it workflow-dependent (say, after 10\% of the workflow is ready)?
-%    \end{itemize}
 
 
 
-\section{Scheduling heuristics} %Proposal of a new heuristic with slightly refined model: \skug{Full:5, Polished: 4}}
+\section{Scheduling heuristics}
 \label{sec:heuristics}
-\subsection{\skug{New scheduling approach - general description}}
 
-    In the first step, we order the tasks by non-increasing ranks (e.g. their bottom levels).
-    In the next step, we repeatedly schedule ready tasks.
-    For each task, we first choose the best processor to put it on - the one that minimizes the expected finishing time.
-    For each processor, we compute this earliest finishing time by first calculating the earliest starting time on this processor.
-    It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
-    For the currently reviewed processor, we preliminarily schedule necessary file writes on other processors holding input files,
-    and file reads on the current processor.
-    Doing so, we respect the ready times on writes on other processors and reads on the current processor.
-    We possibly plan ``into the past'' with ready and writes.
+\subsection{Offline setting}
 
-    The earliest finish time is calculated by adding the execution time (possibly with delay due to memory overflow) to the start time.
-    Further scheduling decisions happen when another task finishes.
-    \skug{check this: when a task finishes earlier or later than planned, we review our earlier scheduling decisions and may
-    move the task execution to another processor if this proves more beneficial.}
+In the first step, we order the tasks by non-increasing ranks (e.g. their bottom levels).
+In the next step, we repeatedly schedule ready tasks.
+For each task, we first choose the best processor to put it on - the one that minimizes the expected finishing time.
+For each processor, we compute this earliest finishing time by first calculating the earliest starting time on this processor.
+It is computed as the maximum of the ready time of computation on this processor, and the time to read input files.
+For the currently reviewed processor, we preliminarily schedule necessary file writes on other processors holding input files,
+and file reads on the current processor.
+Doing so, we respect the ready times on writes on other processors and reads on the current processor.
+We possibly plan ``into the past'' with ready and writes.
 
-    When a task finishes, we look at all of its sucessors, rather than only the ready ones.
-    For tasks that lie further in the future, we try to plan rather early.
-    Therefore, we employ lazy writes.
-    We try to write the files for these tasks to the disk early.
-    So, we preliminarily schedule these file writes. However, they are not high priority and can be cancelled.
-    We keep two ready times on writes, one soft, with lazy writes, and another hard onw, with scheduled writes.
-    If a task requires a write during the lazy write, we cancel it and move it to later point in time.
+The earliest finish time is calculated by adding the execution time (possibly with delay due to memory overflow) to the start time.
+Further scheduling decisions happen when another task finishes.
+\skug{check this: when a task finishes earlier or later than planned, we review our earlier scheduling decisions and may
+move the task execution to another processor if this proves more beneficial.}
 
-    \skug{For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
-        on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
+When a task finishes, we look at all of its sucessors, rather than only the ready ones.
+For tasks that lie further in the future, we try to plan rather early.
+Therefore, we employ lazy writes.
+We try to write the files for these tasks to the disk early.
+So, we preliminarily schedule these file writes. However, they are not high priority and can be cancelled.
+We keep two ready times on writes, one soft, with lazy writes, and another hard onw, with scheduled writes.
+If a task requires a write during the lazy write, we cancel it and move it to later point in time.
 
-\subsection{Data structures }
-    To optimally represent the timeline of the execution of a workflow, we represent the execution as a series of events
-    with attached unique timestamps.
-    The events are kept in the priority queue ordered by timestamp.
-    Events are created when other events are triggered and are being inserted into the queue.
-    When their timestamp is the smallest, they are then triggered, possibly creating new events.
-    The execution starts with placing the event of starting the starting node into the queue with the timestamp 0.
-    The execution ends when there are no events in the queue.
-
-    An event can happen on finish or start of a task execution or an io action (file read or write).
-    Each event has several parameters:
-    \begin{itemize}
-        \item Event type: OnTaskStart, OnTaskFinish, OnIoStart, OnIoFinish
-        \item The workflow entity associated with the event: the task to be executed or an edge whose file needs to be read or written
-        \item The processor id on which the action should take place
-        \item Expected and actual time of firing.
-        \item A set of predecessor events. The event is called ready if all its predecessors have been finished.
-        \item A set of successor events to keep track of.
-        \item For a write event, a boolean if this file should be removed from memory after being written.
-    \end{itemize}
-
-    Per processor,  in addition to keeping the fixed values (memory, speed), we keep track also of the current state in its memory.
-    Because during and after execution of each even the state of the processor memory changes, we need to keep snapshots of what files
-    were in memory and how much of it was available.
-    Because keeping such snapshots for each timestap is too complicated, we only keep two timestamps.
-    First, we keep the information of available memory and tasks pending in memory during the execution of the last
-    task scheduled to this processor.
-    Then, we keep the same information on what it will be immediately after this task finishes.
+\skug{For each edge, we also keep information on where it is currently stored - in memory of a processor (with processor id),
+    on the disk or nowhere - if this file has not yet been generated or has already been consumed by the successor task.}
 
 
-    \subsubsection{On Task Finish}
-    When a task finishes, it first cleans after itself:
-    \begin{itemize}
-        \item It frees its memory: it increases the available memory on the processor by the amount it occupied
-        \item If there had been a memory overflow onto disk, then this memory is being freed implicitly
-        \item it sets its status to finished in the workflow.
-    \end{itemize}
-    It the goes over its successor events (Tasks and IO actions) and removes itself from their predecessor lists.
-    It also updates their actual trigger times with its actual finish time.
-    Successor tasks can be tasks scheduled on the same processor after this one.
-    Successor io events can be reads that could not start until the task finishes and frees its memory.
-    \skug{can writes be successor events of a task?}
-
-    Then task goes over its successor tasks in the workflow and schedules ready ones.
-    Ready tasks are those whose all predecessors have the finished status.
-
-    For each ready task, the scheduler tries to tentatively put it on each processor in the cluster and chooses the processor
-    that promises the earliest finish time.
-    The finish time on each processor is calculated as follows:
-
-    \paragraph{Earliest start and finish time}
-    We find out when the last task on this processor finishes.
-    If there is enough memory to start our task after that, then the end of previous task is the earliest start time for our task.
-    If files need to be evicted first, we need to find a balance between evicting tasks (and waiting for their writes to finish),
-    then running our task, and starting the task immediately and letting it run longer due to memory overflow.
-    We compare the following cases:
-    \begin{itemize}
-        \item Evict everything, then start task
-        \item Greedily evict the largest file, starting the task
-        \item Not evicting anything, starting the task
-    \end{itemize}
-    Whatever combination gives the best estimated finishing time for the task, we note the estimated starting time of the task in this case.
-     The finish time is the earliest start time  plus computation time of the task.
 
 
-    \paragraph{Incoming edges} For each incoming edge, its location is determined.
-    If the edge is in the memory of the target processor, nothing needs to be done.
-    The estimated start and finish times for the task are unaffected.
 
-    If the edge is on the disk, it first needs to be read into the memory of the target processor.
-    We delay the reads to avoid holding unnecessary files in the memory.
-    When we preliminarily schedule a read, we first assess its length and other actions that happen on this processor in the meantime.
-    So, first estimated start of the read is \skug{the maximum between the desired start time (estimated start time of the task minus the estimated length of the read),
-    and the feasible one (when the lastest read event on this processor finishes)}.
-
-    We then see if this start of the read is happening during the runtime of the previous task or already after it (during the writes).
-    If the starting time of the read is during the execution of the previous task and there is enough memory to read this file, then we move the read
-    forward to the beginning of this previous task.
-    If there is not enough memory, then the entire read is rescheduled for after the task finishes.
-    The read will then be bottleneck and affect the eraliest start time of the desired task.
-
-     If the edge is in another processor's memory, it needs to be first written to disk, then read by the target processor.
-    So we look at the latest write on that processor, preliminarily schedule the write to disk and then proceed like in the
-    previous case, reading the file from disk.
-
-   \paragraph{When processor is chosen} When a processor is chosen, the scheduler inserts new events into the queue:
-    \begin{itemize}
-        \item For the task, OnTaskStart and OnTaskFinish events with the estimated trigger times, the OnTaskFinish event being dependent on the OnTaskStart event.
-        \item For each io operation necessary for the execution: OnIoStart event of the corresponding type and on corresponding processor
-        \item It connects all the event with predecessor-successor relations.
-        \item If files needed to be evicted
-    \end{itemize}
-    The scheduler also updates the ready times of the processors and updates the new currently last events there.
-
-    \subsubsection{On Task Start}
-    When a task start event is triggered, it first determines if it can start.
-    If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
-    is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
-    with this new time.
-    \skug{We  also update the actual times of all its successor events.}
-
-    If the task can start, the scheduler determines the deviation of the runtime of the task.
-    It applies the deviation function on its estimated runtime (estimated finish minus estimated start time).
-    It then adds this deviated runtime to its actual start time and receives an updated actual finish time.
-    With this time, it updates the OnTaskFinish event of this task.
-
-    \subsubsection{OnIoFinish}
-    When the io operation finishes, it removes itself from the predecessor sets of all its successor events.
-    It also sets their actual time to its own actual finish time.
-
-    \subsubsection{OnIOStart}
-    When the IO operation starts, it updates the corresponding IoFinish event
-
-
-    After being triggered and completed, each event is deleted from the queue.
-
-
---------------------------------------
-
-
-%    The idea is to get rid of the constraint that a processor handles a {\em block} of tasks,
-%    but favor processor reuse as is done in HEFT.
-%    Furthermore, this would allow us to handle variability on the fly, by updating
-%    the bottom levels if some parameters vary, and computing the schedule
-%    only for the near future...
-
-%In order to be able to easily adapt to variability of task parameters, 
 We design 
 variants of HEFT that account for memory usage and aim at minimizing the makespan.
 First, we present in Section~\ref{sec.heft} the baseline HEFT heuristic that does not account for the memory
@@ -1158,6 +563,126 @@ would first consider~$T_1$ and lead to the optimal solution.
 
 \section{Dynamic scenario}
 \label{sec:dyn}
+
+
+    \subsection{Online setting }
+    To optimally represent the timeline of the execution of a workflow, we represent the execution as a series of events
+    with attached unique timestamps.
+    The events are kept in the priority queue ordered by timestamp.
+    Events are created when other events are triggered and are being inserted into the queue.
+    When their timestamp is the smallest, they are then triggered, possibly creating new events.
+    The execution starts with placing the event of starting the starting node into the queue with the timestamp 0.
+    The execution ends when there are no events in the queue.
+
+    An event can happen on finish or start of a task execution or an io action (file read or write).
+    Each event has several parameters:
+    \begin{itemize}
+        \item Event type: OnTaskStart, OnTaskFinish, OnIoStart, OnIoFinish
+        \item The workflow entity associated with the event: the task to be executed or an edge whose file needs to be read or written
+        \item The processor id on which the action should take place
+        \item Expected and actual time of firing.
+        \item A set of predecessor events. The event is called ready if all its predecessors have been finished.
+        \item A set of successor events to keep track of.
+        \item For a write event, a boolean if this file should be removed from memory after being written.
+    \end{itemize}
+
+    Per processor,  in addition to keeping the fixed values (memory, speed), we keep track also of the current state in its memory.
+    Because during and after execution of each even the state of the processor memory changes, we need to keep snapshots of what files
+    were in memory and how much of it was available.
+    Because keeping such snapshots for each timestap is too complicated, we only keep two timestamps.
+    First, we keep the information of available memory and tasks pending in memory during the execution of the last
+    task scheduled to this processor.
+    Then, we keep the same information on what it will be immediately after this task finishes.
+
+
+    \subsubsection{On Task Finish}
+    When a task finishes, it first cleans after itself:
+    \begin{itemize}
+        \item It frees its memory: it increases the available memory on the processor by the amount it occupied
+        \item If there had been a memory overflow onto disk, then this memory is being freed implicitly
+        \item it sets its status to finished in the workflow.
+    \end{itemize}
+    It the goes over its successor events (Tasks and IO actions) and removes itself from their predecessor lists.
+    It also updates their actual trigger times with its actual finish time.
+    Successor tasks can be tasks scheduled on the same processor after this one.
+    Successor io events can be reads that could not start until the task finishes and frees its memory.
+    \skug{can writes be successor events of a task?}
+
+    Then task goes over its successor tasks in the workflow and schedules ready ones.
+    Ready tasks are those whose all predecessors have the finished status.
+
+    For each ready task, the scheduler tries to tentatively put it on each processor in the cluster and chooses the processor
+    that promises the earliest finish time.
+    The finish time on each processor is calculated as follows:
+
+    \paragraph{Earliest start and finish time}
+    We find out when the last task on this processor finishes.
+    If there is enough memory to start our task after that, then the end of previous task is the earliest start time for our task.
+    If files need to be evicted first, we need to find a balance between evicting tasks (and waiting for their writes to finish),
+    then running our task, and starting the task immediately and letting it run longer due to memory overflow.
+    We compare the following cases:
+    \begin{itemize}
+        \item Evict everything, then start task
+        \item Greedily evict the largest file, starting the task
+        \item Not evicting anything, starting the task
+    \end{itemize}
+    Whatever combination gives the best estimated finishing time for the task, we note the estimated starting time of the task in this case.
+    The finish time is the earliest start time  plus computation time of the task.
+
+
+    \paragraph{Incoming edges} For each incoming edge, its location is determined.
+    If the edge is in the memory of the target processor, nothing needs to be done.
+    The estimated start and finish times for the task are unaffected.
+
+    If the edge is on the disk, it first needs to be read into the memory of the target processor.
+    We delay the reads to avoid holding unnecessary files in the memory.
+    When we preliminarily schedule a read, we first assess its length and other actions that happen on this processor in the meantime.
+    So, first estimated start of the read is \skug{the maximum between the desired start time (estimated start time of the task minus the estimated length of the read),
+        and the feasible one (when the lastest read event on this processor finishes)}.
+
+    We then see if this start of the read is happening during the runtime of the previous task or already after it (during the writes).
+    If the starting time of the read is during the execution of the previous task and there is enough memory to read this file, then we move the read
+    forward to the beginning of this previous task.
+    If there is not enough memory, then the entire read is rescheduled for after the task finishes.
+    The read will then be bottleneck and affect the eraliest start time of the desired task.
+
+    If the edge is in another processor's memory, it needs to be first written to disk, then read by the target processor.
+    So we look at the latest write on that processor, preliminarily schedule the write to disk and then proceed like in the
+    previous case, reading the file from disk.
+
+    \paragraph{When processor is chosen} When a processor is chosen, the scheduler inserts new events into the queue:
+    \begin{itemize}
+        \item For the task, OnTaskStart and OnTaskFinish events with the estimated trigger times, the OnTaskFinish event being dependent on the OnTaskStart event.
+        \item For each io operation necessary for the execution: OnIoStart event of the corresponding type and on corresponding processor
+        \item It connects all the event with predecessor-successor relations.
+        \item If files needed to be evicted
+    \end{itemize}
+    The scheduler also updates the ready times of the processors and updates the new currently last events there.
+
+    \subsubsection{On Task Start}
+    When a task start event is triggered, it first determines if it can start.
+    If some predecessor tasks have not yet finished (the predecessor set is not empty), then the actual time of this event
+    is set to the maximum of the estimated end times of predecessor events and this event is reinserted in the queue
+    with this new time.
+    \skug{We  also update the actual times of all its successor events.}
+
+    If the task can start, the scheduler determines the deviation of the runtime of the task.
+    It applies the deviation function on its estimated runtime (estimated finish minus estimated start time).
+    It then adds this deviated runtime to its actual start time and receives an updated actual finish time.
+    With this time, it updates the OnTaskFinish event of this task.
+
+    \subsubsection{OnIoFinish}
+    When the io operation finishes, it removes itself from the predecessor sets of all its successor events.
+    It also sets their actual time to its own actual finish time.
+
+    \subsubsection{OnIOStart}
+    When the IO operation starts, it updates the corresponding IoFinish event
+
+
+    After being triggered and completed, each event is deleted from the queue.
+
+
+    --------------------------------------
 
 
     In a workflow execution environment, the scheduling method interacts with the runtime environment, which provides information such as resource estimates.
