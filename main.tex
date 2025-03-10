@@ -149,8 +149,9 @@ Large workflows with resource-intensive tasks can easily exceed the capabilities
 single computer and are therefore executed on a parallel or distributed platform.
 An efficient execution of the workflows on such platforms requires the mapping of tasks
 to specific processors.
-\new{A task schedule - \iec a valid execution order that respects the dependencies,  and possibly also starting times for
-the tasks are needed to increase utilization by reusing finished processors.}
+\new{Moreover, a task schedule -- \iec a valid execution order that respects the dependencies --
+and possibly also starting times for the tasks are needed to increase utilization by reusing 
+processors that have become idle after finishing a task.}
 
 
 %%% MOTIVATION %%%
@@ -205,7 +206,7 @@ The main contributions of this paper are both algorithmic and experimental:
 are used to evict data from memory if it will be later used by another processor. 
 \item We design three HEFT-based heuristics
 that adhere to memory size constraints: \heftbl, \heftblc, and \heftmm.
-M behind HEFT \new{stands for} for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
+M behind HEFT stands for \underline{m}emory, BL for \underline{b}ottom \underline{l}evel,
 BLC for \underline{b}ottom \underline{l}evel with \underline{c}ommunication, 
 and MM for \underline{m}inimum \underline{m}emory traversal.
 The difference between the new heuristics is the way they prioritize tasks for processor assignment.
@@ -345,7 +346,8 @@ is formulated and addressed in the algorithm.
 Different models of memory available on processors and memory requirements of tasks have been presented.
 
 Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each processor has an individual memory available.
-Workflow tasks have no memory requirements, but they have input and output files that need to be stored in the memory.
+\new{Workflow tasks themselves have no memory requirements for their computations,
+but they have input and output files that need to be stored in the memory.}
 A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a workflow DAG is provided,
 as well as an integer linear programming (ILP) solution to the scheduling problem.
 The memory model \new{requires deleting all input files when the task starts and adding all output files to memory.}
@@ -368,8 +370,8 @@ The external memory is used to store evicted files to make room for the executio
 %and the time of communication along this edge.
 %The tasks themselves have no memory requirements, but need to hold all their incoming and outgoing files.
 %
-In~\cite{ding2024ils}, the authors consider connected processors with individual limited memories
-forming a global memory, with different access times to memory, and no weights on edges. An ILP
+Ding \etal~\cite{ding2024ils}, in turn, consider connected processors with individual limited memories
+forming a global memory, with different access times to memory and no weights on edges. An ILP
 is proposed in this setting. 
 %The collective set of memories forms the global memory to which each processor has access;
 %however, the access time to global memory is different.
@@ -386,11 +388,11 @@ is proposed in this setting.
 There are also some cloud-oriented models that include costs associated with memory usage~\cite{liang2020memory}.
 
 Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
-platform that is fully heterogeneous, with individual memories, is the one from~\cite{DBLP:conf/icpp/KulaginaMB24}.
-Yet, they propose only a partitioning-based mapping of the workflow, without processor reuse.
-\new{Because a processor is idle after a partition of a workflow has finished executing}, in~\cite{DBLP:conf/icpp/KulaginaMB24},
-there is no need for communication buffers to store data
-that should be \new{exchanged} between two processors when tasks are ready to execute.
+platform that is fully heterogeneous, with individual memories, \new{is our own previous work~\cite{DBLP:conf/icpp/KulaginaMB24}.}
+\new{Yet, in that paper we only propose} a partitioning-based mapping of the workflow, without processor reuse.
+\new{Since a processor is idle after a workflow partition has finished its execution,
+there is no need in Ref.~\cite{DBLP:conf/icpp/KulaginaMB24} for communication buffers to store data
+that should be \new{exchanged} between processors when tasks are ready to execute.}
 
 
 %    \subsection
@@ -428,6 +430,7 @@ We finally review related work in a dynamic setting. With no variation in task p
 %    The static heuristic is HEFT with earliest start time as priority.
     Upon rescheduling, a new mapping is calculated from scratch, and this mapping is accepted if the resulting makespan
     is smaller than the previous one.
+    \todo[inline]{Maybe mention: from scratch computation because of tiny workflows??}
 %    The experiments were conducted on a single workflow with 10 tasks.
 %
     % The authors define the execution time, estimated start time, data ready time,a dn estimated finish time per task.
@@ -453,30 +456,30 @@ We finally review related work in a dynamic setting. With no variation in task p
 %    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
 %    Similarly, Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
 
-    De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
-    for clouds.
-    They solve a set of linear equations that represent the cost of an execution based on the criteria.
-    The authors test four scenarios -- one preferring each criterion and a balanced one.
-    The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
-    The authors used workflows with less than ten tasks, but repeated them so that the execution had up to 200 tasks.
-    %They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
- %   The authors use provenance data to make scheduling decisions.
+De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
+for clouds.
+They solve a set of linear equations\todo{Mis\-lea\-ding, TBD!} that represent the cost of an execution based on the criteria.
+The authors test four scenarios -- one preferring each criterion and a balanced one.
+The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
+The authors use workflows with less than ten tasks, but repeat them so that the execution has up to 200 tasks.
+%They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
+%   The authors use provenance data to make scheduling decisions.
 
 
-    Daniels \etal~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
-    on a single machine.
-    The changes in runtimes of tasks are not due to changing machine properties, but are rather task-related
-    and thus unrelated to each other.
-    The authors search for an optimal schedule
+Daniels \etal~\cite{daniels1995robust} formalize the concept of robust scheduling with variable processing times
+on a single machine.
+The changes in task running times are not due to changing machine properties, but are rather task-related
+and thus unrelated to each other.
+The authors search for an optimal schedule
 %    formulate a decision space of all permutations of $n$ jobs, and the optimal schedule 
-    in relation to a performance measure. % $\phi$.
-    Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem as a set of linear constraints.
+in relation to a performance measure. % $\phi$.
+Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem \new{with} a set of linear constraints.
+    
 
 While several related works consider building a new schedule once some variation has been observed,
 we are not aware of work implementing a real runtime system that interacts with the scheduler
 and has been tested on workflows with thousands of tasks, as we propose in this paper. Furthermore, 
 we are not aware of any previous work discussing dynamic algorithms combined with memory constraints. 
-%\AB{Say why our approach in dynamic setting is different and novel}
 
 %    \subsection{Other notable works}
 %
@@ -1084,7 +1087,7 @@ Each machine has a (normalized) CPU speed and a memory size (in GB), and we list
 ($N2$, 8, 8) -- machine with very small memory; and ($C2$, 32, 192) -- {\em luxury} machine with high speed and
 large memory (see Table~\ref{tab:procs}).
 
-\begin{table}[b]
+\begin{table}[tb]
     \begin{center}
         \begin{tabular}{c|c|cc}
             \toprule
@@ -1127,7 +1130,7 @@ according to these weights.
 In the dynamic setting, in turn, the runtime system applies a deviation function to the values.
 This function computes a normally distributed random deviation value, where the initial value
 is the mean and the deviation is~$10\%$.
-This scenario corresponds to the real-life scenarios identified in Ref.~\cite{lotaru} and
+This scenario corresponds to the real-world scenarios identified in Ref.~\cite{lotaru} and
 other works dedicated to predicting task running times~\cite{da2015online,da2013toward}.
 
 Thus, the scheduler receives deviation values and makes decision based on them.
@@ -1183,27 +1186,27 @@ a memory-aware strategy in order to produce valid schedules.
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=1.08\columnwidth] {images/success-rates-large2}
-  \vspace{-0.8cm}
-  \caption{Success rates \new{by workflow size and algorithm} on the default cluster. Higher is better.}
+  \includegraphics[width=1.0\columnwidth] {images/success-rates-large2}
+%  \vspace{-0.8cm}
+  \caption{Success rates by workflow size and algorithm on the default cluster. Higher is better.}
   \label{fig:success-rates-large}
-  \vspace{-0.15cm}
+%  \vspace{-0.15cm}
 \end{figure}
 
 We also report in  Figure~\ref{fig:ms-relations-by-workflow} the relative makespan found
 by the memory-aware heuristics, normalized to the
-makespan achieved by \heft, often with an invalid over-optimistic schedule that exceeds
-the bound on memory.
+makespan achieved by \heft, \new{the latter} often with an invalid over-optimistic schedule that exceeds
+the memory bound.
 %    Figure~\ref{fig:ms-relations-by-workflow} shows the relations of the makespans found by the heuristics to the
 %    makespans found by the baseline (including invalid ones), by workflow size.
 \new{The makespans found by \heftbl are $<13\%$ worse than those found by the baseline for workflows with less than \numprint{2000}
 tasks, and up to $27\%$ worse for the largest workflows.
-The makespans of \heftblc are very similar,being $<17\%$ worse on smallest workflows, $19$-$28\%$ worse on middle-sized,
+The makespans of \heftblc are very similar, being $<17\%$ worse on smallest workflows, $19$-$28\%$ worse on middle-sized,
 and up to $30\%$ worse on the largest workflows.
 The makespans found by \heftmm are $25$-$30\%$ worse on the smallest workflows, $40$-$70\%$ on middle-sized and up to
-$210\%$ on the largest ones. These are still very encouraging results,
-in particular for \heftbl and \heftblc, since the makespans of \heft correspond to invalid schedules.
-}
+$210\%$ on the largest ones.} These are still very encouraging results,
+in particular for \heftbl and \heftblc, since the makespans of \heft\ \new{often} correspond to invalid schedules.
+
  %   \skug{TODO: how much worse are makespans for SUCCESSFUL hefts? presulmably almost identical}
 
 
@@ -1222,11 +1225,11 @@ in particular for \heftbl and \heftblc, since the makespans of \heft correspond 
 \begin{figure}[tb]
     \centering
   \includegraphics[width=1\columnwidth] {images/ms_relations_by_wf_size_barplot}
-    \vspace{-0.8cm}
+%    \vspace{-0.8cm}
     \caption{Relative makespans of heuristics normalized by \heft makespan, by workflow
     size, on default cluster. Smaller is better.}
     \label{fig:ms-relations-by-workflow}
-    \vspace{-0.15cm}
+%    \vspace{-0.15cm}
 \end{figure}
 
 %    \paragraph{Memory Usage}
@@ -1256,21 +1259,21 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 \begin{figure}[tb]
     \centering
     \includegraphics[width=1\columnwidth] {images/mem-usage-normal2}
-    \vspace{-0.6cm}
+%    \vspace{-0.6cm}
     \caption{Memory usage on default cluster, including invalid \heft schedules. }
 %by algorithm by workflow size
      \label{fig:mem-usages-normal}
-    \vspace{-0.15cm}
+%    \vspace{-0.15cm}
 \end{figure}
 
 
 \begin{figure}[tb]
     \centering
     \includegraphics[width=1\columnwidth] {images/mem-usage-normal-onlyvalid2}
-    \vspace{-0.6cm}
+%    \vspace{-0.6cm}
     \caption{Memory usage on default cluster, considering only valid \heft schedules. }
     \label{fig:mem-usages-onlyvalid}
-    \vspace{-0.15cm}
+%    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1278,8 +1281,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 \subsubsection{Scheduling on the memory-constrained cluster}
 \label{ss:mem-constrained-cluster}
 %
-On the memory-constrained cluster, \heft produces valid assignments in only $14$ out of $290$ experiments
-$290$~($4.8\%$ success rate).
+On the memory-constrained cluster, \heft produces valid assignments in only $14$ out of $290$ experiments ($4.8\%$ success rate).
 The successful schedules are achieved exclusively on the tiny workflows (with only two 200-task size-increased
 workflow among them).
 \heftbl successfully schedules $38\%$ of the workflows, \heftblc is able to schedule $49\%$ of them, while \heftmm
@@ -1316,7 +1318,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
     \caption{Success rates on the memory-constrained cluster. Higher is better. }
 %        by algorithm by workflow size.
     \label{fig:success-rates-tiny}
-    \vspace{-0.15cm}
+%    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1327,7 +1329,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 %        produced by the heuristics to the makespan produced by the baseline, by workflow size.
     Smaller is better.}
     \label{fig:ms-relations-by-workflow-constrained}
-    \vspace{-0.15cm}
+%    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1336,7 +1338,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
     \includegraphics[width=1\columnwidth] {images/mem-usage-constrained-onlyvalid2}
     \caption{Memory usage on the memory-constrained  cluster. } % by different heuristics by workflow size.}
     \label{fig:memory-usage-constrained}
-    \vspace{-0.15cm}
+%    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1384,7 +1386,7 @@ only $2$ $200$-task workflows for this case.
     \includegraphics[width=0.95\columnwidth] {images/UpdatesMss2}
     \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm \new{in case of no recomputation}. Smaller is better.}
     \label{fig:updates-ms}
-    \vspace{-0.3cm}
+%    \vspace{-0.3cm}
 \end{figure}
 
 
@@ -1409,7 +1411,7 @@ obtained in our experiments when scheduling large workflows in difficult (memory
     \includegraphics[width=1\columnwidth] {images/runtimes-logarithmic2}
     \caption{Average running times (in seconds) of the heuristics \wrt workflow size. The $y$-axis is logarithmic.}
     \label{fig:runtimes-log}
-    \vspace{-0.3cm}
+%    \vspace{-0.3cm}
 \end{figure}
 
 
@@ -1472,6 +1474,7 @@ with processors arriving and departing. We believe that we could adapt the curre
 based on recomputing schedules on the fly, and we plan to perform a new set of experiments
 to further assess the impact of dynamic scheduling techniques. 
 
+\medskip
 
 \subsubsection*{Acknowledgements}
 This work is partially supported by Collaborative Research Center (CRC) 1404 FONDA
