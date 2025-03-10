@@ -430,6 +430,7 @@ We finally review related work in a dynamic setting. With no variation in task p
 %    The static heuristic is HEFT with earliest start time as priority.
     Upon rescheduling, a new mapping is calculated from scratch, and this mapping is accepted if the resulting makespan
     is smaller than the previous one.
+    \new{The repeated recomputation from scratch is feasible, because the largest workflow size tested is 100 task big.}
     \todo[inline]{Maybe mention: from scratch computation because of tiny workflows??}
 %    The experiments were conducted on a single workflow with 10 tasks.
 %
