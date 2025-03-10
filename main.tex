@@ -131,7 +131,7 @@ scheduler, and the adaptive setting allows us to significantly reduce the makesp
 \end{abstract}
 
     \begin{IEEEkeywords}
-        DAG, Heterogeneous platform, Adaptive scheduling, Memory constraint.
+        DAG, Heterogeneous platform, Adaptive \new{workflow} scheduling, Memory constraint.
     \end{IEEEkeywords}
 
 \section{Introduction} %: \skug{Full: 0, Polished: 0}}
@@ -1191,8 +1191,8 @@ a memory-aware strategy in order to produce valid schedules.
 
 \begin{figure}[tb]
   \centering
+  \vspace{-0.4cm}
   \includegraphics[width=1.0\columnwidth] {images/success-rates-large2}
-%  \vspace{-0.8cm}
   \caption{Success rates by workflow size and algorithm on the default cluster. Higher is better.}
   \label{fig:success-rates-large}
 %  \vspace{-0.15cm}
@@ -1229,8 +1229,8 @@ in particular for \heftbl and \heftblc, since the makespans of \heft\ \new{often
 
 \begin{figure}[tb]
     \centering
+  \vspace{-0.34cm}
   \includegraphics[width=1\columnwidth] {images/ms_relations_by_wf_size_barplot}
-%    \vspace{-0.8cm}
     \caption{Relative makespans of heuristics normalized by \heft makespan, by workflow
     size, on default cluster. Smaller is better.}
     \label{fig:ms-relations-by-workflow}
@@ -1300,9 +1300,8 @@ almost all invalid. It is thus worthwhile to resort to \heftmm for large workflo
 in a constrained cluster, since tasks are processed in an order that minimizes
 the memory usage of schedule.
 \new{Due to a varying nature of the workflow generator, some larger workflows can have smaller makespans than their
-smaller counterparts due to more parallel execution due to higher fanout or other factors of the workflow's
-internal composition.
-}
+smaller counterparts due to more parallelism at nodes with higher out-degree or other factors of the workflow's
+internal composition.\todo{TBD: Why here?}}
 
 
 %
@@ -1312,7 +1311,7 @@ internal composition.
 %
 %
 
-Memory usages on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained}.
+Memory usage on the constrained cluster are depicted in~Fig.~\ref{fig:memory-usage-constrained}.
 \new{We plot the average memory usage in the cluster per algorithm and workflow size},
 and we observe that the memory footprint of \heftmm remains constant with workflow size.
 
@@ -1329,12 +1328,12 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 
 \begin{figure}[tb]
     \centering
+    \vspace{-0.3cm}
     \includegraphics[width=1\columnwidth] {images/ms_relations_by_wf_size-constrained-barplot}
     \caption{Relative makespans on the memory-constrained cluster.
 %        produced by the heuristics to the makespan produced by the baseline, by workflow size.
     Smaller is better.}
     \label{fig:ms-relations-by-workflow-constrained}
-%    \vspace{-0.15cm}
 \end{figure}
 
 
@@ -1354,7 +1353,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 %\AB{Need to add results on the default cluster!}
 %
 %    \paragraph{Memory-constrained cluster}
-The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
+The makespan in case of no recomputation\todo{TBD: clear?} becomes invalid as soon as at least one task finds itself in an invalid memory size
 situation -- that is, if the scheduler assumed the task's memory to be smaller than actually needed and
 assigned the task to a processor with not enough memory capacity.
 Due to an extremely constrained memory in this cluster, only 134 experiments out of 1160 
