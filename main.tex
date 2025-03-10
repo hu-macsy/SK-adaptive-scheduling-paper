@@ -15,7 +15,6 @@
 \usepackage{hyperref}
 \usepackage{numprint}
 \usepackage{todonotes}
-\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{balance}
 
@@ -349,8 +348,9 @@ Marchal~et~al.~\cite{marchal2018parallel} assume a memory model where each proce
 but they have input and output files that need to be stored in the memory.}
 A polynomial-time algorithm for computing the peak memory needed for a parallel execution of such a workflow DAG is provided,
 as well as an integer linear programming (ILP) solution to the scheduling problem.
-The memory model \new{requires deleting all input files when the task starts and adding all output files to memory.}
-\AB{Is it not when task completes? We need input files while processing the task, correct?}
+The memory model \new{ includes no memory requirement of the task itself, only the weights of incoming and outgoing edges.
+When the task starts, all input files are deleted  and all output files are added to memory.}
+
 
 Other models consider for instance a 
 %In an assumed 
@@ -461,11 +461,12 @@ We finally review related work in a dynamic setting. With no variation in task p
 %    However, the dynamic is only in the choice of generation sizes, not in the changes in the execution environment.
 %    Similarly, Singh et al.~\cite{singh2018novel} addresses dynamic provisioning of resources with a constraint deadline.
 
-De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) adaptive scheduling algorithm
-for clouds.
-They solve a set of linear equations\todo{Mis\-lea\-ding, TBD!} that represent the cost of an execution based on the criteria.
-The authors test four scenarios -- one preferring each criterion and a balanced one.
-The algorithm chooses the best virtual machine for each next task based on the cost given by the model.
+De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) \new{cost model and an adaptive
+ scheduling algorithm for clouds (scheduling virtual machines).
+The greedy algorithm based on this cost model  works in 4 steps, choosing the best resources type to execute the virtual
+machine on, producing new cloud activities, setting up the granularity factor, and finally adapting the amount of resources
+to fit the budget.}
+The authors test four scenarios -- one preferring each criterion in the cost model and a balanced one.
 The authors use workflows with less than ten tasks, but repeat them so that the execution has up to 200 tasks.
 %They do not report the runtime of the scheduling algorithm, only the speedup and cost saving it produces.
 %   The authors use provenance data to make scheduling decisions.
@@ -1074,8 +1075,10 @@ For two more, around 40\% of the tasks have no historical runtime data stored.
 Hence, in the absence of historical data about a task, we give it fixed weights:
 an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
 These values align with the findings of Ref.~\cite{lotaru} about small tasks.
-%
- %   \skug{insert more abt how the runtime system hanfles data reads}
+
+\new{Due to a varying nature of the workflow generator, some workflows can have smaller makespans than their
+smaller counterparts due to more parallelism at nodes with higher out-degree or other factors of the workflow's
+internal composition.}
 
 \subsubsection{Target computing systems}
 %    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
@@ -1299,9 +1302,13 @@ than with \heft (see Fig.~\ref{fig:ms-relations-by-workflow-constrained}), but t
 almost all invalid. It is thus worthwhile to resort to \heftmm for large workflows
 in a constrained cluster, since tasks are processed in an order that minimizes
 the memory usage of schedule.
-\new{Due to a varying nature of the workflow generator, some larger workflows can have smaller makespans than their
-smaller counterparts due to more parallelism at nodes with higher out-degree or other factors of the workflow's
-internal composition.\todo{TBD: Why here?}}
+\new{Note how the relative makespan does not grow steadily with the size of the workflows.
+Rather, it grows at the beginning, but then falls for the sizes of workflows where scheduling becomes problematic.
+This indicates that \heft schedules become relatively worse for larger workflows, in addition to being unfeasible memory-wise.
+Finally, the relative makespan for the largest workflows, the ones for which only \heftmm can produce valid schedules,
+is growing larger again.
+This is due to the highest degree of memory adaptation necessary to produce a valid schedule.
+}
 
 
 %
@@ -1402,8 +1409,9 @@ only \new{two workflows with  $200$ tasks in this case.}
 \begin{figure}[tb]
     \centering
     \includegraphics[width=0.95\columnwidth] {images/UpdatesMss2}
-    \caption{Relative (excess) makespan of \heftbl, \heftblc and \heftmm  %\new{ 
-    when there is no recomputation. Smaller is better.}
+    \caption{
+    \new{Relative makespan improvement of \heftbl, \heftblc, \heftmm and baseline \heft against
+    the execution with the same heuristic, but without recomputation. Higher is better. } }
     \label{fig:updates-ms}
 %    \vspace{-0.3cm}
 \end{figure}
