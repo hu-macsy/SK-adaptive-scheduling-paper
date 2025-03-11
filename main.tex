@@ -1168,10 +1168,8 @@ This mode leads to several types of possible issues:
 \new{Alternatively, the runtime system can execute \textit{without recomputation}.
 It then follows the original schedule without sending the deviation values to the scheduler.
 
-In this case, the runtime system waits for a blocked processor to become available if another task scheduled to it takes longer than expected.
-If the predecessor task takes longer to execute, the runtime system leaves the processor of the current task
-temporarily idle.
-If any task takes less time than expected, the runtime system ignores the opportunity to start other tasks earlier.
+In this scenario, the runtime system waits with task execution for a busy processor to become available if another task scheduled on it takes longer than expected.
+If, however, the predecessor task is faster than expected, the runtime system leaves the processor of the current task temporarily idle.
 Finally, if there is not enough memory, the schedule is declared invalid and the execution stops.
 
 The comparison to the makespan of the execution without recomputation shows how much improvement the exploration of dynamic
