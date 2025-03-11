@@ -1162,6 +1162,20 @@ This leads to several types of possible issues:
   time than expected. In this case, we want to exploit the newly acquired free time by possibly starting other tasks earlier.
 \end{itemize}
 
+\new{We call this execution mode execution \textit{with recomputation}.
+Alternatively, the runtime system can execute \textit{without recomputation}.
+It then follows the original schedule without sending the deviation values to the scheduler.
+
+In this case, the runtime system waits for a blocked processor to become available if another task scheduled to it takes longer than expected.
+If the predecessor task takes longer to execute, the runtime system leaves the processor of the current task
+temporarily idle.
+If any tasks take less time then expected, the runtime system ignores the opportunity to start other tasks earlier.
+Finally, if there is not enough memory, the schedule is declared invalid and the execution stops.
+
+The comparison to the makespan of the execution without recomputation shows how much improvement the exploration of dynamic
+changes brings.
+Moreover, the number of schedules that manage to stay valid despite the changes is an indicator of their robustness and the quality of the scheduler.
+}
 
 \subsection{Results in a static setting}
 \label{sec.expe.static}
@@ -1356,11 +1370,8 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
     
 \subsection{Dynamic experiments on the memory-constrained cluster}
 \label{sec.expe.dyn}
-
-%\AB{Need to add results on the default cluster!}
-%
-%    \paragraph{Memory-constrained cluster}
-The makespan in case of no recomputation\todo{TBD: clear?} becomes invalid as soon as at least one task finds itself in an invalid memory size
+\new{In this section, we compare the makespans of executions with and without recomputation.}
+The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
 situation -- that is, if the scheduler assumed the task's memory to be smaller than actually needed and
 assigned the task to a processor with not enough memory capacity.
 Due to an extremely constrained memory in this cluster, only 134 experiments out of 1160 
@@ -1370,7 +1381,8 @@ In the case of \heft, $14$ valid initial makespans were computed.
 Out of them, $13$ remain valid until the end, after all the update requests,
 \new{i.e., when accounting for the final execution time of each task and their memory requirement.}
 The same $13$ experiments end with a valid makespan in case of no recomputation.
-So, these workflows require so few resources that there is \new{nothing to be gained by re-scheduling them.}
+So, these workflows require so few resources that
+\new{the devations do not invalidate their scheduler. However, there is also nothing to be gained by re-scheduling them.}
 %$13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
 %rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
 %only, the success rate of not recomputing is $92\%$.
