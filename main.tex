@@ -1054,6 +1054,11 @@ As number of tasks, we use: 200, \numprint{1000}, \numprint{2000}, \numprint{400
 We divide the workflows into four groups by size: tiny ones with up to \numprint{200} tasks, small ones with \numprint{1000} to \numprint{8000} tasks,
 middle ones with \numprint{10000} to \numprint{18000} tasks, and big ones with \numprint{20000} to \numprint{30000} tasks.
 
+\new{Note that, due to a varying nature of the workflow generator, some workflows can have smaller makespans than their
+smaller counterparts due to more parallelism at nodes with higher out-degree or other factors of the workflow's
+internal composition.}
+
+
 \paragraph{Task and edge weights}
 For the real-world workflows, we use historical data files provided by Bader~\etal~\cite{lotaru}.
 The columns in these files are measured Linux PS stats, acquired during an execution of a nextflow workflow.
@@ -1076,9 +1081,6 @@ Hence, in the absence of historical data about a task, we give it fixed weights:
 an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
 These values align with the findings of Ref.~\cite{lotaru} about small tasks.
 
-\new{Due to a varying nature of the workflow generator, some workflows can have smaller makespans than their
-smaller counterparts due to more parallelism at nodes with higher out-degree or other factors of the workflow's
-internal composition.}
 
 \subsubsection{Target computing systems}
 %    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
@@ -1141,9 +1143,9 @@ is the mean and the deviation is~$10\%$.
 This scenario corresponds to the real-world scenarios identified in Ref.~\cite{lotaru} and
 other works dedicated to predicting task running times~\cite{da2015online,da2013toward}.
 
-Thus, the scheduler receives deviation values and makes decision based on them\new{, hence
-leading to an execution mode  \textit{with recomputation}.}
-This leads to several types of possible issues:
+Thus, the scheduler receives deviation values and makes decisions based on them\new{, which
+leads to an execution mode  \textit{with recomputation}.}
+This mode leads to several types of possible issues:
 %
 \begin{itemize}
 \item 
