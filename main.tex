@@ -42,7 +42,8 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \newcommand{\curC}{curC}
 \newcommand{\PD}{PD}
 
-\newcommand{\new}[1]{{\color{blue}#1}}
+%\newcommand{\new}[1]{{\color{blue}#1}}
+\newcommand{\new}[1]{{#1}}
 
 \newcommand{\skug}[1]{{\color{blue}[SK: #1]}}
 \newcommand{\hmey}[1]{{\color{red}[HM: #1]}}
@@ -786,7 +787,7 @@ and second, they assign tasks to processors in the order defined in the first st
 We consider three variants of HEFT accounting for memory usage (HEFTM), which only
 differ in the order they consider tasks to be scheduled in the first stage.
 
-\smallskip
+\medskip
 \noindent{\bf Compute task ranks. }
 
 Our three variants of memory-aware HEFT work as follows:
@@ -815,7 +816,8 @@ Our three variants of memory-aware HEFT work as follows:
 \end{itemize}
 
 
-\smallskip
+
+\bigskip
 \noindent  {\bf Task assignment. }
 
 Then, the idea is to pick the next free task in the given order,
@@ -1036,11 +1038,13 @@ Before presenting the results, we first describe the set of workflows we used fo
 then the clusters on which the workflows were scheduled.
 We also explain the way the runtime system works and interacts with our scheduler. 
 
+\medskip
 \subsubsection{Workflow instances}
 We run experiments on a set of several real-world workflows from Ref.~\cite{lotaru}
 (atacseq, bacass, chipseq, eager, and methylseq). We use the WFGen generator~\cite{COLEMAN202216} to
 create larger variants of the workflows above and add the instances created this way to the set.
 
+\medskip
 
 \paragraph{Workflow graphs}
 For the five real-world workflows, their nextflow definition (see~\cite{ewels2020nf}) was downloaded from the
@@ -1061,6 +1065,7 @@ middle ones with \numprint{10000} to \numprint{18000} tasks, and big ones with \
 smaller counterparts due to more parallelism at nodes with higher out-degree or other factors of the workflow's
 internal composition.}
 
+\medskip
 
 \paragraph{Task and edge weights}
 For the real-world workflows, we use historical data files provided by Bader~\etal~\cite{lotaru}.
@@ -1084,6 +1089,7 @@ Hence, in the absence of historical data about a task, we give it fixed weights:
 an execution time of $1$, a memory requirement of $50 MB$, and files written and received of $1KB$.
 These values align with the findings of Ref.~\cite{lotaru} about small tasks.
 
+\medskip
 
 \subsubsection{Target computing systems}
 %    \skug{Because of the normalized nature of the task/edge weights, I will now be saying that our larger cluster has 192 GB and it
@@ -1131,6 +1137,7 @@ The processor speeds and their relations stay unchanged (see Table~\ref{tab:proc
 Note that in both clusters, we set the size of the communication buffer to be equal
 to ten times the memory size.
 
+\medskip
 
 \subsubsection{Runtime system}
 \label{ss:runtime-sys}
@@ -1193,6 +1200,7 @@ Thus, we only present results with the eviction of largest files. % first.
 %    Our preliminary experiments have shown that evicting large or small files does not give a notable change in makespan.
 
 
+\medskip
 \subsubsection{Scheduling on the default cluster}
 %
 %    \paragraph{Normal cluster}
@@ -1301,7 +1309,7 @@ For the largest workflows, \heft schedules require almost twice as much memory a
 \end{figure}
 
 
-
+\medskip
 \subsubsection{Scheduling on the memory-constrained cluster}
 \label{ss:mem-constrained-cluster}
 %
@@ -1352,7 +1360,7 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
 \begin{figure}[tb]
     \centering
     \vspace{-0.3cm}
-    \includegraphics[width=1\columnwidth] {images/ms_relations_by_wf_size-constrained-barplot}
+    \includegraphics[width=1.03\columnwidth] {images/ms_relations_by_wf_size-constrained-barplot}
     \caption{Relative makespans on the memory-constrained cluster.
 %        produced by the heuristics to the makespan produced by the baseline, by workflow size.
     Smaller is better.}
@@ -1459,7 +1467,7 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=1\columnwidth] {images/runtimes-logarithmic2}
+  \hspace{-.5cm}  \includegraphics[width=1.01\columnwidth] {images/runtimes-logarithmic2}
     \caption{Average running times (in seconds) of the heuristics \wrt workflow size. The $y$-axis is logarithmic.}
     \label{fig:runtimes-log}
 %    \vspace{-0.3cm}
