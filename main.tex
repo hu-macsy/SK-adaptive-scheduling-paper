@@ -1316,7 +1316,7 @@ almost all invalid. It is thus worthwhile to resort to \heftmm for large workflo
 in a constrained cluster, since tasks are processed in an order that minimizes
 the memory usage of schedule.
 \new{Note how the relative makespan does not grow steadily with the size of the workflows.
-Rather, it grows at the beginning, but then falls for the sizes of workflows where scheduling becomes problematic.
+Rather, it grows at the beginning, but then falls for the workflow sizes where scheduling becomes very challenging.
 This indicates that \heft schedules become relatively worse for larger workflows, in addition to being unfeasible memory-wise.
 Finally, the relative makespan for the largest workflows, the ones for which only \heftmm can produce valid schedules,
 is growing larger again.
@@ -1369,7 +1369,8 @@ and we observe that the memory footprint of \heftmm remains constant with workfl
     
 \subsection{Dynamic experiments on the memory-constrained cluster}
 \label{sec.expe.dyn}
-\new{In this section, we compare the makespans of executions with and without recomputation.}
+\new{In this section, we try to assess the advantage of the dynamic approach.
+To this end, we compare the makespans of executions with and without recomputation.}
 The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
 situation -- that is, if the scheduler assumed the task's memory to be smaller than actually needed and
 assigned the task to a processor with not enough memory capacity.
@@ -1380,20 +1381,20 @@ In the case of \heft, $14$ valid initial makespans were computed.
 Out of them, $13$ remain valid until the end, after all the update requests,
 \new{i.e., when accounting for the final execution time of each task and their memory requirement.}
 The same $13$ experiments end with a valid makespan in case of no recomputation.
-So, these workflows require so few resources that
-\new{the devations do not invalidate their scheduler. However, there is also nothing to be gained by re-scheduling them.}
+Hence, these workflows require so few resources that
+\new{the devations do not invalidate their scheduler. However, there is also nothing to be gained by rescheduling them.}
 %$13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
 %rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
 %only, the success rate of not recomputing is $92\%$.
 
-In case of \heftmm, all $290$ workflows can be scheduled initially and all the schedules remain valid until the end,
+In case of \heftmm, all $290$\todo{SK: check!} workflows can be scheduled initially and all the schedules remain valid until the end,
 \new{when new schedules are computed in a dynamic way. Only}  
 $16$ experiments end with a successful schedule without recomputation, a rate of~$5.5\%$.
 
 \heftblc produces $142$ valid initial schedules and keeps $141$ of them valid until the end.
 $50$ experiments are successful without recomputation, a rate of $35\%$ out of all successful final schedules.
 
-\heftbl keeps $105$ schedules valid until the end out of $110$ initial valid schedules.
+\heftbl keeps $105$ schedules valid until the end out of $110$ initially valid schedules.
 $55$ remain valid until the end even without recomputation, roughly $50\%$ of all successes.
 
 \heftbl and \heftblc are successful on smaller workflows and fail on larger ones. 
@@ -1409,7 +1410,8 @@ cannot be successful when no recomputation is done.
 
 
 
-Figure~\ref{fig:updates-ms} shows the increase in makespan in case of no recomputation for these experiments.
+Figure~\ref{fig:updates-ms} shows \new{the self-relative improvement in makespan when doing recomputation 
+compared to no recomputation taking place} for these experiments.
 With growing size of the workflow, the excess makespan of not recomputing grows -- from $13.9\%$ to $20\%$ for \heftbl,
 from $12.7\%$ to $18.7\%$ on \heftblc (but there is no data for the $2000$-task workflows in this case),
 % TODO: why not? SK: no (or not enough) valid solutions
@@ -1417,11 +1419,18 @@ $12.1\%$ to $23.5\%$ for \heftmm.
 The larger variations for \heft can be explained by the small amount of data -- for instance, there are
 only \new{two workflows with  $200$ tasks in this case.}
 
+\new{
+These results indicate that a meaningful comparison proves difficult due to
+many invalid schedules. However, they still show that doing recomputation 
+is beneficial for both makespan and the number of valid solutions.
+}
+
+
 \begin{figure}[tb]
     \centering
     \includegraphics[width=0.95\columnwidth] {images/UpdatesMss2}
     \caption{
-    \new{Relative makespan improvement of \heftbl, \heftblc, \heftmm and baseline \heft against
+    \new{Self-relative makespan improvement of \heftbl, \heftblc, \heftmm and baseline \heft against
     the execution with the same heuristic, but without recomputation. Higher is better. } }
     \label{fig:updates-ms}
 %    \vspace{-0.3cm}
