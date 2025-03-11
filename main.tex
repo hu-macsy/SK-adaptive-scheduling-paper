@@ -1374,27 +1374,28 @@ To this end, we compare the makespans of executions with and without recomputati
 The makespan in case of no recomputation becomes invalid as soon as at least one task finds itself in an invalid memory size
 situation -- that is, if the scheduler assumed the task's memory to be smaller than actually needed and
 assigned the task to a processor with not enough memory capacity.
-Due to an extremely constrained memory in this cluster, only 134 experiments out of 1160 
-for all algorithm variants \new{obtain a valid makespan when no recomputation is done}.
+Due to an extremely constrained memory in this cluster, only 134 experiments out of 1160
+(290 experiments for each of the 3 heuristics and the baseline \heft)
+ \new{obtain a valid makespan when no recomputation is done}.
 
 In the case of \heft, $14$ valid initial makespans were computed.
-Out of them, $13$ remain valid until the end, after all the update requests,
-\new{i.e., when accounting for the final execution time of each task and their memory requirement.}
-The same $13$ experiments end with a valid makespan in case of no recomputation.
+Out of them, $13$ remain valid \new{until the end of an execution with recomputation},
+\new{i.e., the schedule is still valid when accounting for the final execution time of each task and their memory requirement.}
+The same $13$ experiments end \new{valid in case of no recomputation, i.e. when following the initial schedule without ever recomputing it}.
 Hence, these workflows require so few resources that
-\new{the devations do not invalidate their scheduler. However, there is also nothing to be gained by rescheduling them.}
+\new{the devations do not invalidate their schedules. However, there is also nothing to be gained by rescheduling them.}
 %$13$ experiments ended with a valid makespan after recomputation in case of \heft, which corresponds to $4.4\%$ success
 %rate. However, there were only $14$ successful \heft experiments overall in this setup, so for the successful experiments
 %only, the success rate of not recomputing is $92\%$.
 
-In case of \heftmm, all $290$\todo{SK: check!} workflows can be scheduled initially and all the schedules remain valid until the end,
-\new{when new schedules are computed in a dynamic way. Only}  
+In case of \heftmm, all $290$ workflows can be scheduled initially \new{(static case)} and all these schedules remain valid until the end,
+\new{when new schedules are computed in a dynamic way. However, only}
 $16$ experiments end with a successful schedule without recomputation, a rate of~$5.5\%$.
 
-\heftblc produces $142$ valid initial schedules and keeps $141$ of them valid until the end.
-$50$ experiments are successful without recomputation, a rate of $35\%$ out of all successful final schedules.
+\heftblc produces $142$ valid initial schedules and keeps $141$ of them valid until the end \new{when new schedules are computed in a dynamic way.}
+$50$ experiments \new{remain} successful \new{when following the original schedule} without recomputation, a rate of $35\%$ out of all successful final schedules.
 
-\heftbl keeps $105$ schedules valid until the end out of $110$ initially valid schedules.
+\heftbl keeps $105$ schedules valid until the end out of $110$ initial \new{(static)} valid schedules.
 $55$ remain valid until the end even without recomputation, roughly $50\%$ of all successes.
 
 \heftbl and \heftblc are successful on smaller workflows and fail on larger ones. 
