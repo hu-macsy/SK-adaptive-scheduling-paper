@@ -55,7 +55,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-    \title{Memory-aware Adaptive Scheduling of Scientific Workflows On Heterogeneous Architectures\\
+    \title{Memory-aware Adaptive Scheduling of Scientific Workflows on Heterogeneous Architectures\\
 %{\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
 %should not be used}
     % \thanks{Identify applicable funding agency here. If none, delete this.}
@@ -389,7 +389,7 @@ There are also some cloud-oriented models that include costs associated with mem
 
 Overall, there are a variety of memory models, but, to the best of our knowledge, the only study on a multiprocessor
 platform that is fully heterogeneous, with individual memories, \new{is our own previous work~\cite{DBLP:conf/icpp/KulaginaMB24}.}
-\new{Yet, in that paper we only propose} a partitioning-based mapping of the workflow, without processor reuse.
+\new{Yet, in that paper, we only propose} a partitioning-based mapping of the workflow, without processor reuse.
 \new{Since a processor is idle after a workflow partition has finished its execution 
 in~\cite{DBLP:conf/icpp/KulaginaMB24},
 there is no need for communication buffers to store data
@@ -463,7 +463,7 @@ We finally review related work in a dynamic setting. With no variation in task p
 
 De Olivera~\etal~\cite{de2012provenance} propose a tri-criteria (makespan, reliability, cost) \new{cost model and an adaptive
  scheduling algorithm for clouds (scheduling virtual machines).
-The greedy algorithm based on this cost model  works in 4 steps, choosing the best resources type to execute the virtual
+The greedy algorithm based on this cost model  works in four steps, choosing the best resource types to execute the virtual
 machine on, producing new cloud activities, setting up the granularity factor, and finally adapting the amount of resources
 to fit the budget.}
 The authors test four scenarios -- one preferring each criterion in the cost model and a balanced one.
@@ -479,7 +479,7 @@ and thus unrelated to each other.
 The authors search for an optimal schedule
 %    formulate a decision space of all permutations of $n$ jobs, and the optimal schedule 
 in relation to a performance measure. % $\phi$.
-Then they proceed to formulate the Absolute Deviation Robust Scheduling Problem \new{with} a set of linear constraints.
+Then, they proceed to formulate the Absolute Deviation Robust Scheduling Problem \new{with} a set of linear constraints.
     
 
 While several related works consider building a new schedule once some variation has been observed,
@@ -1141,7 +1141,8 @@ is the mean and the deviation is~$10\%$.
 This scenario corresponds to the real-world scenarios identified in Ref.~\cite{lotaru} and
 other works dedicated to predicting task running times~\cite{da2015online,da2013toward}.
 
-Thus, the scheduler receives deviation values and makes decision based on them.
+Thus, the scheduler receives deviation values and makes decision based on them\new{, hence
+leading to an execution mode  \textit{with recomputation}.}
 This leads to several types of possible issues:
 %
 \begin{itemize}
@@ -1162,20 +1163,18 @@ This leads to several types of possible issues:
   time than expected. In this case, we want to exploit the newly acquired free time by possibly starting other tasks earlier.
 \end{itemize}
 
-\new{We call this execution mode execution \textit{with recomputation}.
-Alternatively, the runtime system can execute \textit{without recomputation}.
+\new{Alternatively, the runtime system can execute \textit{without recomputation}.
 It then follows the original schedule without sending the deviation values to the scheduler.
 
 In this case, the runtime system waits for a blocked processor to become available if another task scheduled to it takes longer than expected.
 If the predecessor task takes longer to execute, the runtime system leaves the processor of the current task
 temporarily idle.
-If any tasks take less time then expected, the runtime system ignores the opportunity to start other tasks earlier.
+If any task takes less time than expected, the runtime system ignores the opportunity to start other tasks earlier.
 Finally, if there is not enough memory, the schedule is declared invalid and the execution stops.
 
 The comparison to the makespan of the execution without recomputation shows how much improvement the exploration of dynamic
 changes brings.
-Moreover, the number of schedules that manage to stay valid despite the changes is an indicator of their robustness and the quality of the scheduler.
-}
+Moreover, the number of schedules that manage to stay valid despite the changes is an indicator of their robustness and of the quality of the scheduler.}
 
 \subsection{Results in a static setting}
 \label{sec.expe.static}
