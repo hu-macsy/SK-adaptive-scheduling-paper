@@ -82,7 +82,17 @@ ORCID: 0000-0002-7769-726X}
 
 \maketitle
 
-\begin{abstract}
+
+ \IEEEpubid{\begin{minipage}{\textwidth}\ \\[12pt]
+ © 2025 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+ See https://www.ieee.org/publications/rights/index.html for more information.
+ The published conference version of this paper appears in the Proceedings of 25th International Symposium on Cluster, Cloud and Internet Computing (CCGrid), IEEE Computer Society.
+\end{minipage}}
+
+
+
+
+    \begin{abstract}
 The analysis of massive scientific data often happens in the form of workflows with
 interdependent tasks. When such a scientific workflow needs to be scheduled on a parallel or distributed
 system, one usually represents the workflow as a directed acyclic graph (DAG). 
@@ -135,7 +145,7 @@ scheduler, and the adaptive setting allows us to significantly reduce the makesp
     \end{IEEEkeywords}
 
 \section{Introduction} %: \skug{Full: 0, Polished: 0}}
-
+    \IEEEpubidadjcol
 %%% CONTEXT %%%
 The analysis of massive datasets, originating from fields such as genomics, 
 remote sensing, or biomedical imaging -- to name just a few -- has become ubiquitous in science;
@@ -151,7 +161,7 @@ to specific processors.
 \new{Moreover, a task schedule -- \iec a valid execution order that respects the dependencies --
 and possibly also starting times for the tasks are needed to increase utilization by reusing 
 processors that have become idle after finishing a task.}
-
+    \IEEEpubidadjcol
 
 %%% MOTIVATION %%%
 Modern parallel and in particular distributed computing platforms are often heterogeneous,
@@ -834,13 +844,14 @@ i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid
 
 \smallskip
 \noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-$$Res = availM_j - m_v - \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
-- \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\}.$$
+$$Res = availM_j - \max{ \{  m_v,  \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
+, \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\} \} }.$$
 
 $T(p_j)$ is the set of tasks already scheduled on $p_j$; by Step 1, their files are
 already in the memory of~$p_j$. However, the files from the
-other predecessor tasks must be loaded into memory before executing task~$v$,
-as well as the task data of size $m_v$, and the data generated for all successor tasks.
+other predecessor tasks must be loaded into memory before executing task~$v$.
+Depending on what part of $r_u$ was the largest, we need to have enough memory to store
+the task data of size $m_v$, or the data generated for all successor tasks.
 $Res$ then checks whether there is enough memory; if it is negative,
 we have exceeded the memory of~$p_j$ with this tentative assignment.
 %
@@ -942,7 +953,7 @@ In detail:
 %        at least for the fork? What worst-case can we think of? }
 
 
-
+\vspace{-0.09cm}
 \section{Dynamic scenario}
 \label{sec:dyn}
 %
