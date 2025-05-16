@@ -844,8 +844,13 @@ i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid
 
 \smallskip
 \noindent{\bf Step 2.} Next, we check the memory constraint on~$p_j$, by computing
-$$Res = availM_j - \max{ \{  m_v,  \!\!\!\! \sum_{u \in \Pi(v), u\notin T(p_j)}  \!\!\!\!\!\!\!\!\{c_{u,v}\}
-, \sum_{w\in Succ(v)} \!\!\!\!\!\! \{c_{v,w}\} \} }.$$
+
+\begin{align*}
+Res =\ & availM_j - \max \bigg\{ m_v,\
+\sum_{\substack{u \in \Pi(v)\\ u \notin T(p_j)}} c_{u,v},\\
+& \hspace{1.5cm}
+\sum_{\substack{w \in Succ(v)}} c_{v,w} - T(p_j) \bigg\}
+\end{align*}
 
 $T(p_j)$ is the set of tasks already scheduled on $p_j$; by Step 1, their files are
 already in the memory of~$p_j$. However, the files from the
@@ -1456,7 +1461,7 @@ is beneficial for both the makespan and the number of valid solutions.
     \new{Self-relative makespan improvement of \heftbl, \heftblc, \heftmm and baseline \heft against
     the execution with the same heuristic, but without recomputation. Higher is better. } }
     \label{fig:updates-ms}
-%    \vspace{-0.3cm}
+    \vspace{-0.5cm}
 \end{figure}
 
 
@@ -1481,7 +1486,7 @@ obtained in our experiments when scheduling large workflows in difficult (memory
   \hspace{-.5cm}  \includegraphics[width=1.01\columnwidth] {images/runtimes-logarithmic2}
     \caption{Average running times (in seconds) of the heuristics \wrt workflow size. The $y$-axis is logarithmic.}
     \label{fig:runtimes-log}
-%    \vspace{-0.3cm}
+    \vspace{-0.5cm}
 \end{figure}
 
 
@@ -1495,9 +1500,10 @@ obtained in our experiments when scheduling large workflows in difficult (memory
 
 %    \subsubsection{Summary}
 
-\bigskip
+\vspace{-0.1cm}
 \section{Conclusion}
 \label{sec:conc}
+\vspace{-0.1cm}
 
 We have formalized a scheduling problem in memory-constrained environments where tasks
 may exceed the memory available on a processor and resort to communication buffers
