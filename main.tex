@@ -849,7 +849,7 @@ i.e., $c_{u,v}\in PD_j$. Otherwise, the finish time is set to~$+\infty$ (invalid
 Res =\ & availM_j - \max \bigg\{ m_v,\
 \sum_{\substack{u \in \Pi(v)\\ u \notin T(p_j)}} c_{u,v},\\
 & \hspace{1.5cm}
-\sum_{\substack{w \in Succ(v)}} c_{v,w} - T(p_j) \bigg\}
+\sum_{\substack{w \in Succ(v)}} c_{v,w} - \sum_{\substack{u \in T(p_j)}} c_{u,v}  \bigg\}
 \end{align*}
 
 $T(p_j)$ is the set of tasks already scheduled on $p_j$; by Step 1, their files are
