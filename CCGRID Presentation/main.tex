@@ -122,11 +122,13 @@
 
     \begin{itemize}
         \item Large applications represented as DAG-shaped workflows
+        \uncover<2,3>{
         \item Heterogeneous execution environment with limited memories
          \begin{itemize}
                   \item Exceed memory = expensive or even fatal
         \end{itemize}
         \item Execute the workflow fast
+         }
     \end{itemize}   
 
 \begin{columns}
@@ -138,15 +140,15 @@
             %\caption{Caption }
         \end{figure}
     \column{0.39\textwidth}
-    \only<1>{
+    \only<2>{
      \begin{figure}
             \centering
-            \includegraphics[scale=0.3]{diagrams/images/CCGrid-muffin.png}
+            \includegraphics[scale=0.3]{diagrams/images/CCgrid-muffin.png}
             
             %\caption{Caption }
         \end{figure}
     }
-    \only<2>{
+    \only<3>{
      \begin{figure}
             \centering
             \includegraphics[scale=0.3]{diagrams/images/CCgrid-muffin-no.png}
@@ -168,6 +170,7 @@
 
     3 variants of a HEFT-based scheduler: HEFTM-\textbf{BL}, HEFTM-\textbf{BLC}, and HEFTM-\textbf{MM}
 
+    \pause
     ~~~~~~~~~~~~~~~~~
 
     
@@ -177,7 +180,9 @@
             \item HEFTM-\textbf{BL} and HEFTM-\textbf{BLC} produce valid makespans that are only $10$-$35\%$ worse than invalid HEFT makespans
             \item HEFTM-\textbf{MM} able to schedule all workflows even under extreme memory constraint
         \end{itemize}
-        
+
+        \pause
+
         \item + adaptive strategy for scenario with uncertainty          
 
         \begin{itemize}
