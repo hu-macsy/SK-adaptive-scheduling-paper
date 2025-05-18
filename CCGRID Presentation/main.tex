@@ -272,7 +272,7 @@
              \item Keep track of ready times on each
                   \begin{itemize}
                       \item Communication channel: $rt_{j,j'}$
-                      \item Communication buffer:  $rt_j$
+                      \item Processor:  $rt_j$
                   \end{itemize}  
                   }
          \end{itemize}
@@ -569,6 +569,7 @@ No returning tasks back into memory!
        % --- Foreground content (text appears over image) ---
     \begin{itemize}
         \item Start after all communications have finished
+        \pause
         \begin{figure}
             \centering
             \hskip -5.5cm
@@ -703,20 +704,20 @@ No returning tasks back into memory!
 
 \begin{frame}[t]
     \frametitle{Final Assignment}
+    \framesubtitle{Final assignment to processor}
 
-
-    Final assignment to processor
-
+    Previously - no change in the execution environment.
     \begin{itemize}
-        \item Evict files that need to be evicted from memory,
-        \begin{itemize}
-            \item  remove them from pending memory and add to communication buffer
-            \item reduce buffers sizes accordingly
-        \end{itemize}
-        \item New $availM_j$: - eviction, - incoming files, + outgoing files
+        \item Apply all tentative memory-related changes
+        \item Assign the task
+        \pause
+        \item $availM_j$ after exectution: - eviction, - incoming files, + outgoing files
         \item For each predecessor on another processor $j'$: ready time on communication buffer $rt_{j, j'}$
-
     \end{itemize}
+
+    \begin{center}
+        \includegraphics[scale=0.4]{diagrams/images/mem-after}
+    \end{center}
 
 \end{frame}
 
@@ -769,7 +770,7 @@ workflow research and development. Future Generation Computer Systems.}
     \begin{figure}    
         \centering
          \hskip -0.5cm
-        \includegraphics[scale=0.38]{diagrams/images/success-rates-large2.png}
+        \includegraphics[scale=0.36]{diagrams/images/success-rates-large2.png}
         % \caption{Makespans of HomPart in comparison to HetPart1.}
     \end{figure}
 
@@ -815,7 +816,7 @@ workflow research and development. Future Generation Computer Systems.}
                 minimum width=4cm,
                 minimum height=1.5cm,
                 align=center
-            ] at ([xshift=-5cm,yshift=-3.8cm]current page.north east)
+            ] at ([xshift=-5cm,yshift=-4.2cm]current page.north east)
             {HEFTM-* makespans valid, HEFT not \\ HEFTM-BL and BLC : 10 - 35\% worse \\ HEFTM-MM makespans 40\% to 2x worse};
         \end{tikzpicture}
 
@@ -832,8 +833,8 @@ workflow research and development. Future Generation Computer Systems.}
       \vspace{-0.3cm}
         \begin{figure}
             \centering
-            \hskip -0.5cm
-            \includegraphics[scale=1.25]{diagrams/images/success-rates-tiny.png}
+            \hskip -0.3cm
+            \includegraphics[scale=1.2]{diagrams/images/success-rates-tiny.png}
            % \caption{Makespans of HomPart in comparison to HetPart1.}
         \end{figure} 
 
@@ -888,7 +889,7 @@ workflow research and development. Future Generation Computer Systems.}
             minimum width=4cm,
             minimum height=1.5cm,
             align=center
-        ] at ([xshift=-5.0cm,yshift=-4.5cm]current page.north east)
+        ] at ([xshift=-4.0cm,yshift=-5.5cm]current page.north east)
         {Most makespans invalid, \\
         even by HEFTM-BL and HEFTM-BLC; \\ HEFTM-MM makespans the only valid ones };
     \end{tikzpicture}
@@ -912,7 +913,7 @@ workflow research and development. Future Generation Computer Systems.}
             minimum width=4.8cm,
             minimum height=1.7cm,
             align=center
-        ] at ([xshift=-4.5cm,yshift=-4.5cm]current page.north east)
+        ] at ([xshift=-4.5cm,yshift=-6.0cm]current page.north east)
         {Runtimes from 1/100 of seconds to minutes\\
          HEFTM-MM has longest runtimes\\
          Computation of optimal traversal costly};
@@ -965,7 +966,15 @@ workflow research and development. Future Generation Computer Systems.}
 \begin{frame}
     \frametitle{Adaptive Scenario}
 
+    \vspace{-1cm}
+
+    Compare makespans of recomputed schedules vs following the original
+
+    ~~~~
+
     No recomputation: the majority of schedules becomes invalid!
+
+    \pause
    
       
         \begin{figure}
@@ -986,7 +995,7 @@ workflow research and development. Future Generation Computer Systems.}
     \item Extend an influential predecessor (HEFT)
     \item Memory-aware, communicate over communication buffers
     \item Valid makespans, only 10-35\% worse than invalid HEFT makespans
-    \item HEFT-\textbf{MM} proves unique resilience in memory-constrained scenario
+    \item HEFTM-\textbf{MM} proves unique resilience in memory-constrained scenario
 \end{itemize}
 
 \pause
@@ -998,7 +1007,7 @@ workflow research and development. Future Generation Computer Systems.}
             \hline
             \textbf{Scenario} & \textbf{Winner} \\
             \hline
-            Memory very constrained & HEFT-\textbf{MM} \\
+            Memory very constrained & HEFTM-\textbf{MM} \\
             Memory somewhat constrained, need smallest makespan & HEFTM-\textbf{BL} \\
             Need balance, willing to trade (very little) makespan for less memory requirement & HEFTM-\textbf{BLC} \\
             Lots of memory, need smallest makespan & \only<1>{HEFT?} \only<2> {\sout{HEFT} ~~~~~~~ HEFTM-\textbf{BL}} \\
